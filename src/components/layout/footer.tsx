@@ -7,20 +7,20 @@ const FOOTER_LINKS = {
   shop: [
     { label: "Telefonlar", href: "/phones" },
     { label: "Aksesuarlar", href: "/phone-accessories" },
-    { label: "Ses & Müzik", href: "/category" },
+    { label: "Ses & Müzik", href: "/products?category=ses-muzik" },
     { label: "İndirimli Ürünler", href: "/products?sort=price-asc" },
   ],
   support: [
     { label: "Sipariş Takibi", href: "/orders" },
-    { label: "İade ve Değişim", href: "/policies/returns" },
-    { label: "Kargo Takip", href: "/policies/shipping" },
-    { label: "Sıkça Sorulan Sorular", href: "/faq" },
+    { label: "İade ve Değişim", href: "/contact" },
+    { label: "Kargo Takip", href: "/contact" },
+    { label: "Sıkça Sorulan Sorular", href: "/contact" },
   ],
   corporate: [
-    { label: "Hakkımızda", href: "/about" },
+    { label: "Hakkımızda", href: "/contact" },
     { label: "İletişim", href: "/contact" },
-    { label: "Mağazalarımız", href: "/stores" },
-    { label: "Kariyer", href: "/careers" },
+    { label: "Mağazalarımız", href: "/contact" },
+    { label: "Kariyer", href: "/contact" },
   ],
 };
 
