@@ -7,6 +7,7 @@ import { StoreProviders } from "@/components/providers/store-providers";
 import { MiniCart } from "@/components/cart/mini-cart";
 import { Toaster } from "react-hot-toast";
 import { Suspense } from "react";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
   title: {
@@ -55,6 +56,7 @@ export default function RootLayout({
             <LiveSupport />
           </Suspense>
           <Toaster position="bottom-right" />
+          <Analytics />
         </StoreProviders>
       </body>
     </html>
