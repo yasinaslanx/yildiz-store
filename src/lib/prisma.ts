@@ -9,8 +9,8 @@ const globalForPrisma = globalThis as unknown as {
 const connectionString = process.env.DATABASE_URL!
 const pool = new Pool({ 
   connectionString,
-  max: 2,
-  idleTimeoutMillis: 30000,
+  max: 1, // Serverless'ta 1 bile yeterlidir
+  idleTimeoutMillis: 1000, // 1 saniye boşta kalırsa kapat
   connectionTimeoutMillis: 5000,
 })
 const adapter = new PrismaPg(pool)
