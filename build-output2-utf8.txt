@@ -1,0 +1,33 @@
+﻿
+> yildiz-store@0.1.0 build
+> next build
+
+Ôû▓ Next.js 16.2.2 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 1595ms
+  Running TypeScript ...
+node.exe : Failed to type check.
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\Monster\AppData\Roa
+min ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~
+    + CategoryInfo          : NotSpecified: (Failed to type check.: 
+   String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+./src/app/api/orders/route.ts:11:13
+Type error: Object literal may only specify known properties, and 'p
+roduct' does not exist in type 'OrderItemInclude<DefaultArgs>'.
+
+  [90m 9 |[0m         items: {
+  [90m10 |[0m           include: {
+[31m[1m>[0m [90m11 |[0m             product: [36mtrue[0m,
+  [90m   |[0m             [31m[1m^[0m
+  [90m12 |[0m             variant: [36mtrue[0m,
+  [90m13 |[0m           },
+  [90m14 |[0m         },
+Next.js build worker exited with code: 1 and signal: null
