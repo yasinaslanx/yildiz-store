@@ -7,7 +7,12 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 const connectionString = process.env.DATABASE_URL!
-const pool = new Pool({ connectionString })
+const pool = new Pool({ 
+  connectionString,
+  max: 2,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+})
 const adapter = new PrismaPg(pool)
 
 // Diagnostic check: This will run on server start
