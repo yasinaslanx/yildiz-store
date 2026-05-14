@@ -60,7 +60,7 @@ export default function OrdersPage() {
               <h2 className="mt-2 text-2xl font-black text-stone-900 tracking-tighter uppercase">Panelim</h2>
               
               <nav className="mt-10 space-y-2">
-                 <Link href="/orders" className="flex items-center gap-4 rounded-2xl bg-stone-900 px-6 py-4 text-xs font-black uppercase tracking-widest text-white shadow-xl shadow-stone-200">
+                 <Link href="/orders" className="flex items-center gap-4 rounded-2xl border-2 border-black bg-white px-6 py-4 text-xs font-black uppercase tracking-widest text-black shadow-lg shadow-stone-100">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                     Siparişlerim
                  </Link>
@@ -124,7 +124,7 @@ export default function OrdersPage() {
                               <p className="text-xs font-black text-stone-500 mt-1 uppercase tracking-tighter">#{order.orderNumber}</p>
                            </div>
                         </div>
-                        <Link href={`/orders/${order.id}`} className="rounded-full bg-stone-900 px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-white hover:bg-black transition active:scale-95 shadow-xl shadow-stone-200">Detayları Gör</Link>
+                        <Link href={`/orders/${order.id}`} className="rounded-full border-2 border-black bg-white px-8 py-3.5 text-[10px] font-black uppercase tracking-widest text-black hover:bg-stone-50 transition active:scale-95 shadow-md">Detayları Gör</Link>
                      </div>
 
                      <div className="p-10 flex flex-wrap items-center justify-between gap-10">

@@ -138,16 +138,16 @@ function ProfileContent() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex w-full items-center gap-4 rounded-2xl px-5 py-4 transition-all duration-300 cursor-pointer ${
+              className={`flex w-full items-center gap-4 rounded-2xl px-5 py-4 transition-all duration-300 cursor-pointer border-2 ${
                 activeTab === tab.id
-                  ? "bg-black text-white shadow-xl shadow-stone-200"
-                  : "bg-transparent text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+                  ? "bg-white border-black text-black shadow-xl shadow-stone-100"
+                  : "bg-transparent border-transparent text-stone-500 hover:bg-stone-50 hover:text-stone-900"
               }`}
             >
-              <div className={activeTab === tab.id ? "text-white" : "text-stone-400"}>
+              <div className={activeTab === tab.id ? "text-black" : "text-stone-400"}>
                 {tab.icon}
               </div>
-              <span className={`text-sm font-black uppercase tracking-wider ${activeTab === tab.id ? "text-white" : ""}`} style={{ color: activeTab === tab.id ? '#FFFFFF' : undefined }}>{tab.label}</span>
+              <span className="text-sm font-black uppercase tracking-wider text-black">{tab.label}</span>
             </button>
           ))}
         </aside>
@@ -254,8 +254,7 @@ function ProfileContent() {
                         
                         <Link 
                           href={`/orders/${order.id}`}
-                          className="flex h-12 items-center justify-center rounded-full bg-black px-6 text-[10px] font-black uppercase tracking-widest text-white shadow-lg transition hover:bg-stone-800 active:scale-95"
-                          style={{ color: '#FFFFFF', backgroundColor: '#000000' }}
+                          className="flex h-12 items-center justify-center rounded-full border-2 border-black bg-white px-8 text-[10px] font-black uppercase tracking-widest text-black shadow-sm transition hover:bg-stone-50 active:scale-95"
                         >
                           DETAYLARI GÖR
                         </Link>

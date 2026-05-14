@@ -228,7 +228,7 @@ function ProductsContent() {
                   <button 
                     key={b}
                     onClick={() => updateUrl({ brand: brand === b ? "" : b, page: 1 })}
-                    className={`rounded-xl border border-stone-100 px-4 py-2 text-[10px] font-black uppercase tracking-widest transition hover:border-black hover:text-stone-900 ${brand === b ? "bg-stone-900 text-white" : "bg-white text-stone-500"}`}
+                    className={`rounded-xl border-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest transition hover:border-black hover:text-stone-900 ${brand === b ? "bg-white border-black text-black shadow-md" : "bg-white border-stone-100 text-stone-500"}`}
                   >
                     {b}
                   </button>
@@ -259,7 +259,7 @@ function ProductsContent() {
                 </div>
                 <button 
                   onClick={() => updateUrl({ minPrice, maxPrice, page: 1 })}
-                  className="w-full rounded-xl bg-stone-900 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-xl shadow-stone-200 transition hover:bg-black"
+                  className="w-full rounded-xl border-2 border-black bg-white py-3 text-[10px] font-black uppercase tracking-widest text-black shadow-md transition hover:bg-stone-50"
                 >
                    Uygula
                 </button>
