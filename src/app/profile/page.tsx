@@ -140,14 +140,14 @@ function ProfileContent() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex w-full items-center gap-4 rounded-2xl px-5 py-4 transition-all duration-300 cursor-pointer ${
                 activeTab === tab.id
-                  ? "bg-stone-900 text-white shadow-xl shadow-stone-200"
+                  ? "bg-black text-white shadow-xl shadow-stone-200"
                   : "bg-transparent text-stone-500 hover:bg-stone-100 hover:text-stone-900"
               }`}
             >
               <div className={activeTab === tab.id ? "text-white" : "text-stone-400"}>
                 {tab.icon}
               </div>
-              <span className={`text-sm font-black uppercase tracking-wider ${activeTab === tab.id ? "text-white" : ""}`}>{tab.label}</span>
+              <span className={`text-sm font-black uppercase tracking-wider ${activeTab === tab.id ? "text-white" : ""}`} style={{ color: activeTab === tab.id ? '#FFFFFF' : undefined }}>{tab.label}</span>
             </button>
           ))}
         </aside>
@@ -254,9 +254,10 @@ function ProfileContent() {
                         
                         <Link 
                           href={`/orders/${order.id}`}
-                          className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full border-2 border-stone-200 bg-white text-stone-400 transition group-hover:border-black group-hover:text-stone-900"
+                          className="flex h-12 items-center justify-center rounded-full bg-black px-6 text-[10px] font-black uppercase tracking-widest text-white shadow-lg transition hover:bg-stone-800 active:scale-95"
+                          style={{ color: '#FFFFFF', backgroundColor: '#000000' }}
                         >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                          DETAYLARI GÖR
                         </Link>
                       </div>
                     </div>
