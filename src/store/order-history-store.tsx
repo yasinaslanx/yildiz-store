@@ -10,7 +10,7 @@ type OrderHistoryContextType = {
 
 const OrderHistoryContext = createContext<OrderHistoryContextType | null>(null);
 
-const STORAGE_KEY = "yildiz-store-order-history";
+const STORAGE_KEY = "sunix-store-order-history";
 
 export function OrderHistoryProvider({
   children,

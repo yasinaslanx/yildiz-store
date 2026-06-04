@@ -54,6 +54,7 @@ export default function RegisterPage() {
     }
 
     showToast(result.message, "success");
+    router.refresh();
     router.push("/");
     setLoading(false);
   };

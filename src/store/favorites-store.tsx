@@ -23,7 +23,7 @@ type FavoritesContextType = {
 
 const FavoritesContext = createContext<FavoritesContextType | null>(null);
 
-const FAVORITES_STORAGE_KEY = "yildiz-store-favorites";
+const FAVORITES_STORAGE_KEY = "sunix-store-favorites";
 
 export function FavoritesProvider({
   children,

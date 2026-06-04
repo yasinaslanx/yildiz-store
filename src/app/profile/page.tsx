@@ -19,7 +19,7 @@ type Order = {
 function ProfileContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const { items: favoriteItems, toggleFavorite } = useFavorites();
   const tabFromQuery = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(tabFromQuery || "info");
@@ -46,10 +46,18 @@ function ProfileContent() {
 
   // Giriş yapmamış kullanıcıyı yönlendir
   useEffect(() => {
-    if (!user) {
+    if (!isLoading && !user) {
       router.push("/login");
     }
-  }, [user, router]);
+  }, [user, isLoading, router]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[40vh] items-center justify-center">
+         <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-100 border-t-black" />
+      </div>
+    );
+  }
 
   if (!user) {
     return null;

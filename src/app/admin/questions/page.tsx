@@ -145,7 +145,7 @@ export default function AdminQuestionsPage() {
                        <div className="ml-16 rounded-3xl bg-stone-50 p-8 border border-stone-100">
                           <div className="flex items-center gap-2 text-stone-900 mb-4">
                              <CheckCircle className="h-4 w-4" />
-                             <p className="text-[10px] font-black uppercase tracking-widest italic">YıldızStore Yanıtı</p>
+                             <p className="text-[10px] font-black uppercase tracking-widest italic">Sunix Store Yanıtı</p>
                           </div>
                           <p className="text-sm font-bold text-stone-800 leading-relaxed italic">{q.answer}</p>
                        </div>

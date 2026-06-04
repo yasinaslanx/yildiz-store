@@ -76,7 +76,7 @@ export function Navbar() {
             <div className="flex h-10 w-10 items-center justify-center rounded-[0.8rem] border-2 border-black bg-white transition group-hover:bg-stone-900 group-hover:text-white group-active:scale-90 shadow-sm">
               <span className="text-xl">★</span>
             </div>
-            <span className="uppercase tracking-tighter">YıldızStore</span>
+            <span className="uppercase tracking-tighter hidden sm:inline">Sunix Store</span>
           </Link>
 
           {/* Navigation - Spaced out */}
@@ -182,7 +182,7 @@ export function Navbar() {
                 </Link>
                 <button
                   onClick={() => setShowLogoutModal(true)}
-                  className="cursor-pointer flex h-11 w-11 items-center justify-center rounded-2xl border border-stone-100 transition hover:bg-red-50 hover:border-red-100 hover:text-red-500 shadow-sm"
+                  className="cursor-pointer hidden sm:flex h-11 w-11 items-center justify-center rounded-2xl border border-stone-100 transition hover:bg-red-50 hover:border-red-100 hover:text-red-500 shadow-sm"
                   title="Çıkış Yap"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -230,7 +230,7 @@ export function Navbar() {
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-3">
                 <Link
                   href="/login"
                   className="cursor-pointer rounded-2xl border-2 border-stone-100 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-stone-900 transition hover:border-black hover:bg-white"
@@ -276,7 +276,7 @@ export function Navbar() {
                   <div className="flex h-10 w-10 items-center justify-center rounded-[0.8rem] border-2 border-black bg-white">
                     <span className="text-xl font-black">★</span>
                   </div>
-                  <span className="text-lg font-black uppercase tracking-tighter text-stone-900">YıldızStore</span>
+                  <span className="text-lg font-black uppercase tracking-tighter text-stone-900">Sunix Store</span>
                 </Link>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}

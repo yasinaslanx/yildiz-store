@@ -67,7 +67,7 @@ export default function ContactPage() {
                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-50 text-2xl group-hover:bg-white group-hover:shadow-lg transition-all">✉️</div>
                  <div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">E-Posta</p>
-                    <p className="mt-1 text-xl font-black text-stone-900">info@yildizstore.com</p>
+                    <p className="mt-1 text-xl font-black text-stone-900">info@sunixstore.com</p>
                     <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mt-1">24 Saat İçinde Yanıt</p>
                  </div>
               </div>
@@ -78,7 +78,7 @@ export default function ContactPage() {
                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-50 text-2xl group-hover:bg-white group-hover:shadow-lg transition-all">📍</div>
                  <div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Merkez Ofis</p>
-                    <p className="mt-1 text-sm font-bold text-stone-900">Yıldız Teknoloji Merkezi, Siverek / Şanlıurfa</p>
+                    <p className="mt-1 text-sm font-bold text-stone-900">Sunix Teknoloji Merkezi, Siverek / Şanlıurfa</p>
                  </div>
               </div>
            </div>
@@ -110,7 +110,7 @@ export default function ContactPage() {
                             <input 
                               type="email" 
                               required 
-                              placeholder="yasinyildiz@ornek.com"
+                              placeholder="yasin@sunixstore.com"
                               className="w-full rounded-2xl border border-stone-100 bg-stone-50/50 px-5 py-4 text-sm font-bold text-stone-900 outline-none focus:border-black focus:bg-white transition-all"
                               value={form.email}
                               onChange={e => setForm(prev => ({...prev, email: e.target.value}))}

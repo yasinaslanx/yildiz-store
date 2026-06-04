@@ -163,7 +163,7 @@ function ProductsContent() {
         <div>
            <div className="flex items-center gap-3 mb-4">
               <span className="h-px w-8 bg-stone-200" />
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400">YıldızStore Katalog</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400">Sunix Store Katalog</p>
            </div>
           <h1 className="text-5xl font-black tracking-tighter text-stone-900 uppercase">
              {q ? `"${q}" İçin Sonuçlar` : "Tüm Ürünler"}

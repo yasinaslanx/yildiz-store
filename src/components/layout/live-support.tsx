@@ -136,7 +136,7 @@ export function LiveSupport() {
                  {!isFinished && <span className="absolute -right-1 -bottom-1 h-4 w-4 rounded-full border-2 border-white bg-green-500 animate-pulse" />}
               </div>
               <div>
-                <h3 className="text-sm font-black text-stone-900 uppercase tracking-widest">Yıldız Destek</h3>
+                <h3 className="text-sm font-black text-stone-900 uppercase tracking-widest">Sunix Destek</h3>
                 <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
                   {isFinished ? "Görüşme Sonlandı" : "Şu an çevrimiçi"}
                 </p>
@@ -188,7 +188,7 @@ export function LiveSupport() {
                          required
                          type="email"
                          className="w-full rounded-2xl border border-stone-100 bg-stone-50 px-6 py-4 text-sm font-bold text-stone-900 outline-none focus:border-black focus:bg-white transition-all shadow-inner"
-                         placeholder="destek@yildizstore.com"
+                         placeholder="destek@sunixstore.com"
                          value={form.email}
                          onChange={e => setForm(prev => ({...prev, email: e.target.value}))}
                        />

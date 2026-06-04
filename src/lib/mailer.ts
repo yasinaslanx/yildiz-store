@@ -25,7 +25,7 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
                         <table cellpadding="0" cellspacing="0">
                           <tr>
                             <td style="width:40px;height:40px;border:2px solid #1c1917;border-radius:10px;text-align:center;vertical-align:middle;font-size:20px;">★</td>
-                            <td style="padding-left:12px;font-size:18px;font-weight:900;color:#1c1917;letter-spacing:-0.5px;text-transform:uppercase;">YıldızStore</td>
+                            <td style="padding-left:12px;font-size:18px;font-weight:900;color:#1c1917;letter-spacing:-0.5px;text-transform:uppercase;">Sunix Store</td>
                           </tr>
                         </table>
                       </td>
@@ -68,7 +68,7 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
               <tr>
                 <td style="padding:24px 48px;border-top:2px solid #f5f5f4;background:#fafaf9;">
                   <p style="margin:0;font-size:10px;font-weight:900;color:#a8a29e;text-transform:uppercase;letter-spacing:2px;">
-                    © 2026 YıldızStore · Premium Teknoloji Mağazası
+                    © 2026 Sunix Store · Premium Teknoloji Mağazası
                   </p>
                 </td>
               </tr>
@@ -82,9 +82,9 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'YıldızStore <onboarding@resend.dev>', // Use Resend's testing domain
+      from: 'Sunix Store <onboarding@resend.dev>', // Use Resend's testing domain
       to,
-      subject: "Şifre Sıfırlama Talebi — YıldızStore",
+      subject: "Şifre Sıfırlama Talebi — Sunix Store",
       html,
     });
 

@@ -25,22 +25,22 @@ async function main() {
   const userPasswordHash = await hashPassword("User123456");
 
   await prisma.user.upsert({
-    where: { email: "admin@yildizstore.com" },
+    where: { email: "admin@sunixstore.com" },
     update: {
       passwordHash: adminPasswordHash,
       role: "ADMIN",
     },
     create: {
-      firstName: "Yıldız",
+      firstName: "Sunix",
       lastName: "Admin",
-      email: "admin@yildizstore.com",
+      email: "admin@sunixstore.com",
       passwordHash: adminPasswordHash,
       role: "ADMIN",
     },
   });
 
   await prisma.user.upsert({
-    where: { email: "user@yildizstore.com" },
+    where: { email: "user@sunixstore.com" },
     update: {
       passwordHash: userPasswordHash,
       role: "USER",
@@ -48,7 +48,7 @@ async function main() {
     create: {
       firstName: "Test",
       lastName: "Kullanıcı",
-      email: "user@yildizstore.com",
+      email: "user@sunixstore.com",
       passwordHash: userPasswordHash,
       role: "USER",
     },

@@ -43,28 +43,31 @@ type AuthResult = {
 type AuthContextType = {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  isLoading: boolean;
   register: (payload: RegisterPayload) => Promise<AuthResult>;
   login: (payload: LoginPayload) => Promise<AuthResult>;
   logout: () => Promise<void>;
 };
 
-const AUTH_USER_KEY = "yildiz-store-auth-user";
+const AUTH_USER_KEY = "sunix-store-auth-user";
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const raw = localStorage.getItem(AUTH_USER_KEY);
 
-    if (!raw) return;
-
-    try {
-      setUser(JSON.parse(raw) as AuthUser);
-    } catch {
-      setUser(null);
+    if (raw) {
+      try {
+        setUser(JSON.parse(raw) as AuthUser);
+      } catch {
+        setUser(null);
+      }
     }
+    setIsLoading(false);
   }, []);
 
   const register = async (payload: RegisterPayload): Promise<AuthResult> => {
@@ -115,11 +118,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       user,
       isAuthenticated: !!user,
+      isLoading,
       register,
       login,
       logout,
     }),
-    [user],
+    [user, isLoading],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

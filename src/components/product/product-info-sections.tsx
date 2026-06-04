@@ -192,7 +192,7 @@ export function ProductInfoSections({ product }: { product: any }) {
               <div>
                 <h3 className="text-2xl font-black uppercase tracking-tighter leading-none italic">Güvenli Alışveriş</h3>
                 <p className="mt-6 text-[10px] font-bold text-stone-400 uppercase tracking-widest leading-relaxed">
-                  YıldızStore üzerinden yapacağınız tüm işlemler <span className="text-white">SSL sertifikası</span> ile uçtan uca korunmaktadır.
+                  Sunix Store üzerinden yapacağınız tüm işlemler <span className="text-white">SSL sertifikası</span> ile uçtan uca korunmaktadır.
                 </p>
               </div>
 

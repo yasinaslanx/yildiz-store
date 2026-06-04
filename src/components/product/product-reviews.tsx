@@ -277,7 +277,7 @@ export function ProductReviews({ productSlug, productId }: { productSlug: string
                                <CornerDownRight className="absolute left-0 top-6 h-6 w-6 text-stone-300" />
                                <div className="rounded-[2.5rem] bg-stone-50 p-8 border border-stone-100">
                                   <div className="flex items-center gap-3 mb-4">
-                                     <span className="bg-stone-900 text-white px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest italic">YıldızStore Ekibi</span>
+                                     <span className="bg-stone-900 text-white px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest italic">Sunix Store Ekibi</span>
                                   </div>
                                   <p className="text-xs font-bold text-stone-600 leading-relaxed italic">
                                      "{review.adminReply}"

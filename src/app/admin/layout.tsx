@@ -18,13 +18,21 @@ const adminMenu = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
-    if (!user || user.role !== "admin") {
+    if (!isLoading && (!user || user.role !== "admin")) {
       router.push("/");
     }
-  }, [user, router]);
+  }, [user, isLoading, router]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[40vh] items-center justify-center">
+         <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-100 border-t-black" />
+      </div>
+    );
+  }
 
   if (!user || user.role !== "admin") return null;
 

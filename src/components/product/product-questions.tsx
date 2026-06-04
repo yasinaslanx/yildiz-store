@@ -173,7 +173,7 @@ export function ProductQuestions({
                          <div className="space-y-3">
                             <div className="flex items-center gap-2 text-stone-900">
                                <ShieldCheck className="h-4 w-4" />
-                               <p className="text-[9px] font-black uppercase tracking-widest italic">YıldızStore Yanıtı</p>
+                               <p className="text-[9px] font-black uppercase tracking-widest italic">Sunix Store Yanıtı</p>
                             </div>
                             <p className="text-sm font-bold text-stone-900 leading-relaxed italic">{q.answer}</p>
                          </div>

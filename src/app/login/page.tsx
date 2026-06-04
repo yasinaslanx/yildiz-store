@@ -38,6 +38,7 @@ function LoginForm() {
     }
 
     showToast(result.message, "success");
+    router.refresh();
     router.push(redirect);
     setLoading(false);
   };
@@ -57,7 +58,7 @@ function LoginForm() {
             <input
               type="email"
               required
-              placeholder="ornek@yildizstore.com"
+              placeholder="ornek@sunixstore.com"
               value={form.email}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, email: e.target.value }))

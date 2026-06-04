@@ -100,7 +100,7 @@ export default function OrdersPage() {
              <div className="rounded-[4rem] border border-dashed border-stone-200 p-24 text-center">
                 <div className="mx-auto h-20 w-20 rounded-3xl bg-stone-50 flex items-center justify-center text-stone-300 text-4xl mb-8">📦</div>
                 <h2 className="text-2xl font-black text-stone-900 uppercase tracking-tighter">Henüz Siparişiniz Yok</h2>
-                <p className="mt-4 text-stone-400 font-medium max-w-xs mx-auto">YıldızStore'un benzersiz koleksiyonlarını keşfetmeye hemen başlayın.</p>
+                <p className="mt-4 text-stone-400 font-medium max-w-xs mx-auto">Sunix Store'un benzersiz koleksiyonlarını keşfetmeye hemen başlayın.</p>
                 <Link href="/products" className="mt-10 inline-block rounded-full border-2 border-black bg-white px-10 py-5 text-[11px] font-black uppercase tracking-widest text-stone-900 transition hover:bg-stone-50 active:scale-95 shadow-xl shadow-stone-100">Alışverişe Başla</Link>
              </div>
            ) : (

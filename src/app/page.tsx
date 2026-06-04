@@ -7,7 +7,7 @@ import { NewsletterForm } from "@/components/ui/newsletter-form";
 
 export const metadata: Metadata = {
    title: "Teknoloji Yeniden Tanımlandı",
-   description: "YıldızStore ile premium teknoloji deneyimine adım atın. En yeni iPhone modelleri ve aksesuarları keşfedin.",
+   description: "Sunix Store ile premium teknoloji deneyimine adım atın. En yeni Sunix ürünleri ve aksesuarları keşfedin.",
 };
 
 export default function HomePage() {
@@ -29,7 +29,7 @@ export default function HomePage() {
                   </h1>
 
                   <p className="max-w-md text-lg font-bold leading-relaxed text-stone-400 uppercase tracking-tight">
-                     YıldızStore'un küratörlüğünü yaptığı premium teknoloji ekosistemiyle tanışın.
+                     Sunix Store'un küratörlüğünü yaptığı premium teknoloji ekosistemiyle tanışın.
                   </p>
 
                   <div className="flex flex-wrap gap-4 pt-6">
@@ -159,7 +159,7 @@ export default function HomePage() {
                <div className="group relative overflow-hidden rounded-[2.5rem] md:col-span-1 shadow-sm min-h-[220px]">
                   <Image
                      src="https://images.unsplash.com/photo-1519710164239-da123dc03ef4?q=80&w=1200&auto=format&fit=crop"
-                     alt="Yıldız Lifestyle"
+                     alt="Sunix Lifestyle"
                      fill
                      className="object-cover transition-transform duration-1000 group-hover:scale-110 grayscale"
                   />
@@ -167,7 +167,7 @@ export default function HomePage() {
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
                      <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-stone-300 text-lg mb-4">✦</span>
                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-stone-400 mb-2">Çok Yakında</p>
-                     <h3 className="text-lg font-black text-stone-900 uppercase tracking-tighter leading-tight">Yıldız <br />Lifestyle</h3>
+                     <h3 className="text-lg font-black text-stone-900 uppercase tracking-tighter leading-tight">Sunix <br />Lifestyle</h3>
                   </div>
                </div>
             </div>
@@ -252,7 +252,7 @@ export default function HomePage() {
                   </div>
                   <div>
                      <p className="text-xs font-black uppercase tracking-widest text-stone-900">Yasin Yıldız</p>
-                     <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Kurucu, YıldızStore</p>
+                     <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Kurucu, Sunix Store</p>
                   </div>
                </div>
             </div>

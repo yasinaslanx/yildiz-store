@@ -38,7 +38,7 @@ type CartContextType = {
 
 const CartContext = createContext<CartContextType | null>(null);
 
-const CART_STORAGE_KEY = "yildiz-store-cart";
+const CART_STORAGE_KEY = "sunix-store-cart";
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);

@@ -281,7 +281,7 @@ export default function AdminOrdersPage() {
                               </head>
                               <body>
                                 <div class="header">
-                                  <div class="logo">YILDIZSTORE ★</div>
+                                  <div class="logo">SUNIX STORE ★</div>
                                   <div style="text-align: right">
                                     <div style="font-weight: 900">FATURA</div>
                                     <div style="font-size: 12px; color: #666">No: ${order.orderNumber}</div>
@@ -324,7 +324,7 @@ export default function AdminOrdersPage() {
                                 </div>
 
                                 <div style="margin-top: 80px; font-size: 10px; color: #999; text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
-                                  YıldızStore Premium Teknoloji Mağazası - Bu belge elektronik ortamda oluşturulmuştur.
+                                  Sunix Store Premium Teknoloji Mağazası - Bu belge elektronik ortamda oluşturulmuştur.
                                 </div>
 
                                 <script>

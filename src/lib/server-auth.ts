@@ -36,7 +36,7 @@ export async function createUser(input: {
     };
   }
 
-  const isAdmin = input.email.toLowerCase() === "admin@yildizstore.com";
+  const isAdmin = input.email.toLowerCase() === "admin@sunixstore.com";
 
   const newUser = await prisma.user.create({
     data: {

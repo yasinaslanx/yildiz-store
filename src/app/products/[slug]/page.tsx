@@ -56,7 +56,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
     title: product.name,
     description: product.description,
     openGraph: {
-      title: `${product.name} | YıldızStore`,
+      title: `${product.name} | Sunix Store`,
       description: product.description,
       images: product.variants[0]?.images[0]?.url ? [product.variants[0].images[0].url] : [],
     },

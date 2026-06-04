@@ -53,7 +53,7 @@ export function CheckoutForm() {
   const finalTotal = totalPrice - discount + shipping;
 
   const applyCoupon = () => {
-    if (coupon.trim().toUpperCase() === "YILDIZ10") {
+    if (coupon.trim().toUpperCase() === "SUNIX10") {
       setCouponApplied(true);
       showToast("Kupon uygulandı: %10 indirim", "success");
     } else {

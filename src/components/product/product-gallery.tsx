@@ -81,7 +81,7 @@ export function ProductGallery({ images, alt }: ProductGalleryProps) {
 
         <div className="absolute bottom-10 right-10">
            <div className="bg-stone-900 text-white px-5 py-2 rounded-full shadow-xl">
-              <p className="text-[9px] font-black uppercase tracking-[0.2em]">YıldızStore Özel</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.2em]">Sunix Store Özel</p>
            </div>
         </div>
       </div>

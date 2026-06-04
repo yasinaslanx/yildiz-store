@@ -11,23 +11,23 @@ import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
   title: {
-    default: "YıldızStore | Premium Teknoloji ve Aksesuar Mağazası",
-    template: "%s | YıldızStore"
+    default: "Sunix Store | Premium Teknoloji ve Aksesuar Mağazası",
+    template: "%s | Sunix Store"
   },
   description: "En yeni iPhone modelleri, premium kılıflar, ses sistemleri ve teknolojik aksesuarların tek adresi. Modern tasarım, eşsiz performans.",
-  keywords: ["teknoloji", "iphone", "aksesuar", "premium", "yildizstore", "elektronik"],
-  authors: [{ name: "YıldızStore" }],
+  keywords: ["teknoloji", "iphone", "aksesuar", "premium", "sunix", "sunixstore", "elektronik"],
+  authors: [{ name: "Sunix Store" }],
   openGraph: {
     type: "website",
     locale: "tr_TR",
-    url: "https://yildizstore.com",
-    title: "YıldızStore | Teknoloji Yeniden Tanımlandı",
+    url: "https://sunixstore.com",
+    title: "Sunix Store | Teknoloji Yeniden Tanımlandı",
     description: "Premium teknoloji ve aksesuar deneyimi.",
-    siteName: "YıldızStore",
+    siteName: "Sunix Store",
   },
   twitter: {
     card: "summary_large_image",
-    title: "YıldızStore | Teknoloji Yeniden Tanımlandı",
+    title: "Sunix Store | Teknoloji Yeniden Tanımlandı",
     description: "Premium teknoloji ve aksesuar deneyimi.",
   },
   icons: {

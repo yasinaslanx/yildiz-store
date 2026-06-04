@@ -9,7 +9,7 @@ import { toast } from "react-hot-toast";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const { items, clearLocalState } = useCart();
 
   const [customerName, setCustomerName] = useState("");
@@ -121,6 +121,14 @@ export default function CheckoutPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[40vh] items-center justify-center">
+         <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-100 border-t-black" />
+      </div>
+    );
   }
 
   if (!user) {

@@ -5,5 +5,5 @@ import { NextResponse } from "next/server";
  */
 export async function GET() {
   console.log("Sentry test rotası tetiklendi...");
-  throw new Error("YıldızStore: Sentry test hatası!");
+  throw new Error("Sunix Store: Sentry test hatası!");
 }

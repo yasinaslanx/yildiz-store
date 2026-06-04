@@ -94,10 +94,10 @@ export function Footer() {
                <div className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-black bg-white">
                  <span className="text-xl">★</span>
                </div>
-               <span>YıldızStore</span>
+               <span>Sunix Store</span>
             </Link>
             <p className="text-sm font-medium leading-relaxed text-stone-500 max-w-sm">
-              Teknolojinin en parlak yıldızlarını, en güvenilir ve premium deneyimle kapınıza getiriyoruz.
+              Sunix'in kaliteli ürünlerini en güvenilir ve premium deneyimle kapınıza getiriyoruz.
             </p>
             
             <div className="space-y-4 pt-4">
@@ -153,7 +153,7 @@ export function Footer() {
                    <ul className="space-y-4">
                       <li className="space-y-1">
                         <p className="text-[10px] font-black uppercase text-stone-300">E-posta</p>
-                        <p className="text-sm font-bold text-stone-900">destek@yildizstore.com</p>
+                        <p className="text-sm font-bold text-stone-900">destek@sunixstore.com</p>
                       </li>
                       <li className="space-y-1">
                         <p className="text-[10px] font-black uppercase text-stone-300">Telefon</p>
@@ -172,7 +172,7 @@ export function Footer() {
         {/* Bottom Section */}
         <div className="mt-20 flex flex-col items-center justify-between gap-8 border-t border-stone-100 pt-10 md:flex-row">
            <div className="text-xs font-bold text-stone-400">
-             © 2026 Yıldız Store. Premium Teknoloji Mağazası.
+             © 2026 Sunix Store. Premium Teknoloji Mağazası.
            </div>
 
            {/* Payment Logos (Simulated with text/style) */}
@@ -186,7 +186,7 @@ export function Footer() {
            {/* Socials */}
            <div className="flex gap-4">
               <a 
-                href="https://instagram.com/yildiz.store63" 
+                href="https://instagram.com/sunixstore" 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-stone-400 hover:text-stone-900 transition-colors"
