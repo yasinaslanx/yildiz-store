@@ -16,9 +16,13 @@ export type Product = {
   slug: string;
   name: string;
   brand: string;
-  category: ProductCategory;
+  category: ProductCategory | any;
   description: string;
   featured?: boolean;
+  active?: boolean;
+  price?: number;
+  image?: string;
+  stock?: number;
   variants: ProductVariant[];
 };
 
