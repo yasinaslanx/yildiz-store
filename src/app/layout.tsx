@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Nunito } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
@@ -8,6 +9,13 @@ import { MiniCart } from "@/components/cart/mini-cart";
 import { Toaster } from "react-hot-toast";
 import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/react";
+
+const nunito = Nunito({
+  subsets: ["latin"],
+  weight: ["400", "700", "800", "900"],
+  variable: "--font-nunito",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -42,7 +50,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr">
-      <body className="bg-[var(--background)] text-[var(--foreground)]">
+      <body className={`bg-[var(--background)] text-[var(--foreground)] ${nunito.variable}`}>
         <StoreProviders>
           <Suspense fallback={null}>
             <Navbar />

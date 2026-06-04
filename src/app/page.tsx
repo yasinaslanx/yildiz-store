@@ -85,19 +85,26 @@ export default function HomePage() {
          </section>
 
          {/* --- BRAND MARQUEE: SOCIAL PROOF --- */}
-         <section className="border-y-2 border-stone-100 bg-white py-12">
-            <div className="flex animate-marquee whitespace-nowrap overflow-hidden">
-               {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="mx-12 flex items-center gap-12 text-4xl font-black tracking-tighter text-stone-100 uppercase">
-                     <span className="text-stone-200">APPLE</span>
-                     <span className="h-3 w-3 rounded-full bg-stone-100" />
-                     <span className="text-stone-200">BOSE</span>
-                     <span className="h-3 w-3 rounded-full bg-stone-100" />
-                     <span className="text-stone-200">SAMSUNG</span>
-                     <span className="h-3 w-3 rounded-full bg-stone-100" />
-                     <span className="text-stone-200">SONY</span>
-                     <span className="h-3 w-3 rounded-full bg-stone-100" />
-                     <span className="text-stone-200">MARSHALL</span>
+         <section className="border-y-2 border-stone-100 bg-white py-12 overflow-hidden">
+            <div className="flex animate-marquee whitespace-nowrap">
+               {[1, 2].map((i) => (
+                  <div key={i} className="flex flex-shrink-0 items-center gap-16 px-16 text-4xl font-black tracking-tighter text-stone-200 uppercase">
+                     <span>APPLE</span>
+                     <span className="h-3 w-3 rounded-full bg-stone-100 flex-shrink-0" />
+                     <span>BOSE</span>
+                     <span className="h-3 w-3 rounded-full bg-stone-100 flex-shrink-0" />
+                     <span>SAMSUNG</span>
+                     <span className="h-3 w-3 rounded-full bg-stone-100 flex-shrink-0" />
+                     <span>SONY</span>
+                     <span className="h-3 w-3 rounded-full bg-stone-100 flex-shrink-0" />
+                     <span>MARSHALL</span>
+                     <span className="h-3 w-3 rounded-full bg-stone-100 flex-shrink-0" />
+                     <span>JBL</span>
+                     <span className="h-3 w-3 rounded-full bg-stone-100 flex-shrink-0" />
+                     <span>SUNIX</span>
+                     <span className="h-3 w-3 rounded-full bg-stone-100 flex-shrink-0" />
+                     <span>XIAOMI</span>
+                     <span className="h-3 w-3 rounded-full bg-stone-100 flex-shrink-0" />
                   </div>
                ))}
             </div>

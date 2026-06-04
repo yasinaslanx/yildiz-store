@@ -9,6 +9,7 @@ import { useAuth } from "@/store/auth-store";
 import { useUi } from "@/store/ui-store";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Heart, ShoppingBag, User, LogOut, ChevronRight, Home, Smartphone, Headphones } from "lucide-react";
+import { SunixLogo } from "./sunix-logo";
 
 const navItems = [
   { href: "/", label: "Ana Sayfa" },
@@ -69,15 +70,7 @@ export function Navbar() {
           >
             <Menu size={20} strokeWidth={2.5} />
           </button>
-          <Link
-            href="/"
-            className="group flex items-center gap-3 text-xl font-black tracking-tighter text-stone-900 flex-shrink-0 cursor-pointer"
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-[0.8rem] border-2 border-black bg-white transition group-hover:bg-stone-900 group-hover:text-white group-active:scale-90 shadow-sm">
-              <span className="text-xl">★</span>
-            </div>
-            <span className="uppercase tracking-tighter hidden sm:inline">Sunix Store</span>
-          </Link>
+          <SunixLogo style={{ fontSize: "2rem" }} />
 
           {/* Navigation - Spaced out */}
           <nav className="hidden xl:flex items-center gap-10">
@@ -188,46 +181,6 @@ export function Navbar() {
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                 </button>
 
-                {/* Çıkış Onay Modalı */}
-                {showLogoutModal && (
-                  <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4">
-                    <div 
-                      className="absolute inset-0 bg-black/20 backdrop-blur-sm"
-                      onClick={() => setShowLogoutModal(false)}
-                    />
-                    <div className="relative w-full max-w-sm rounded-[3rem] bg-white p-12 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] animate-in fade-in slide-in-from-bottom-8 duration-500">
-                      <div className="space-y-8 text-center">
-                        <div className="space-y-3">
-                          <h2 className="text-3xl font-black tracking-tighter text-stone-900 uppercase italic">Çıkış Yap</h2>
-                          <p className="text-sm font-medium text-stone-400 leading-relaxed">
-                            Hesabınızdan çıkış yapmak istediğinize emin misiniz?
-                          </p>
-                        </div>
-                        <div className="flex flex-col gap-3">
-                          <button
-                            onClick={async () => {
-                              await logout();
-                              clearCartState();
-                              clearFavoritesState();
-                              setShowLogoutModal(false);
-                            }}
-                            className="w-full rounded-full bg-stone-900 py-5 text-xs font-black uppercase tracking-[0.2em] text-white transition hover:bg-black active:scale-95"
-                            style={{ color: '#FFFFFF', backgroundColor: '#000000' }}
-                          >
-                            Evet, Çıkış Yap
-                          </button>
-                          <button
-                            onClick={() => setShowLogoutModal(false)}
-                            className="w-full rounded-full border-2 border-stone-100 py-5 text-xs font-black uppercase tracking-[0.2em] text-stone-900 transition hover:bg-stone-50 active:scale-95"
-                            style={{ color: '#000000' }}
-                          >
-                            Vazgeç
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             ) : (
               <div className="hidden sm:flex items-center gap-3">
@@ -272,12 +225,7 @@ export function Navbar() {
             >
               {/* Header */}
               <div className="flex items-center justify-between border-b border-stone-100 p-8">
-                <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-[0.8rem] border-2 border-black bg-white">
-                    <span className="text-xl font-black">★</span>
-                  </div>
-                  <span className="text-lg font-black uppercase tracking-tighter text-stone-900">Sunix Store</span>
-                </Link>
+                <SunixLogo style={{ fontSize: "1.75rem" }} onClick={() => setIsMobileMenuOpen(false)} />
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-50 text-stone-400 cursor-pointer"
@@ -322,6 +270,7 @@ export function Navbar() {
                       href="/login" 
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="flex items-center justify-center rounded-2xl bg-stone-900 py-5 text-[10px] font-black uppercase tracking-widest text-white"
+                      style={{ color: "#ffffff" }}
                     >
                       Giriş Yap
                     </Link>
@@ -375,6 +324,47 @@ export function Navbar() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Çıkış Onay Modalı - Moved outside header to avoid backdrop-blur containment */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4">
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowLogoutModal(false)}
+          />
+          <div className="relative w-full max-w-sm rounded-[3rem] bg-white p-12 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] animate-in fade-in slide-in-from-bottom-8 duration-500">
+            <div className="space-y-8 text-center">
+              <div className="space-y-3">
+                <h2 className="text-3xl font-black tracking-tighter text-stone-900 uppercase italic">Çıkış Yap</h2>
+                <p className="text-sm font-medium text-stone-400 leading-relaxed">
+                  Hesabınızdan çıkış yapmak istediğinize emin misiniz?
+                </p>
+              </div>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={async () => {
+                    await logout();
+                    clearCartState();
+                    clearFavoritesState();
+                    setShowLogoutModal(false);
+                  }}
+                  className="w-full rounded-full bg-stone-900 py-5 text-xs font-black uppercase tracking-[0.2em] text-white transition hover:bg-black active:scale-95"
+                  style={{ color: '#FFFFFF', backgroundColor: '#000000' }}
+                >
+                  Evet, Çıkış Yap
+                </button>
+                <button
+                  onClick={() => setShowLogoutModal(false)}
+                  className="w-full rounded-full border-2 border-stone-100 py-5 text-xs font-black uppercase tracking-[0.2em] text-stone-900 transition hover:bg-stone-50 active:scale-95"
+                  style={{ color: '#000000' }}
+                >
+                  Vazgeç
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

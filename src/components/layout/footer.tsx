@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { NewsletterForm } from "@/components/ui/newsletter-form";
+import { SunixLogo } from "./sunix-logo";
 
 const FOOTER_LINKS = {
   shop: [
@@ -90,12 +91,9 @@ export function Footer() {
         <div className="grid gap-16 lg:grid-cols-12">
           {/* Brand and Newsletter */}
           <div className="lg:col-span-4 space-y-8">
-            <Link href="/" className="flex items-center gap-2 text-2xl font-black tracking-tighter text-stone-900">
-               <div className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-black bg-white">
-                 <span className="text-xl">★</span>
-               </div>
-               <span>Sunix Store</span>
-            </Link>
+            <div className="flex items-center">
+               <SunixLogo style={{ fontSize: "2.25rem" }} />
+            </div>
             <p className="text-sm font-medium leading-relaxed text-stone-500 max-w-sm">
               Sunix'in kaliteli ürünlerini en güvenilir ve premium deneyimle kapınıza getiriyoruz.
             </p>

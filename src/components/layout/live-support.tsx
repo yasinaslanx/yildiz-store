@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useUi } from "@/store/ui-store";
 import { usePathname } from "next/navigation";
+import { SunixLogo } from "./sunix-logo";
 
 type Message = {
   id: string;
@@ -131,9 +132,9 @@ export function LiveSupport() {
           {/* Header */}
           <div className="bg-stone-50 p-6 border-b border-stone-100 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="relative h-12 w-12 rounded-2xl border-2 border-black bg-white flex items-center justify-center">
-                 <span className="text-xl">★</span>
-                 {!isFinished && <span className="absolute -right-1 -bottom-1 h-4 w-4 rounded-full border-2 border-white bg-green-500 animate-pulse" />}
+              <div className="relative flex items-center justify-center bg-white px-3 py-2 rounded-xl shadow-sm border border-stone-100">
+                 <SunixLogo asLink={false} style={{ fontSize: "1.25rem" }} />
+                 {!isFinished && <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white bg-green-500 animate-pulse" />}
               </div>
               <div>
                 <h3 className="text-sm font-black text-stone-900 uppercase tracking-widest">Sunix Destek</h3>
