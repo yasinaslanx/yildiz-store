@@ -28,6 +28,21 @@ function ProfileContent() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
 
+  const [points, setPoints] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (user && activeTab === "info" && points === null) {
+      fetch("/api/user/points")
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setPoints(data.points);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [user, activeTab, points]);
+
   useEffect(() => {
     if (tabFromQuery && tabFromQuery !== activeTab) {
       setActiveTab(tabFromQuery);
@@ -167,8 +182,8 @@ function ProfileContent() {
               <h2 className="text-2xl font-black uppercase tracking-tight text-stone-900">Kişisel Bilgiler</h2>
               <p className="mt-2 text-sm font-bold text-stone-400">Hesap bilgilerinizi buradan görüntüleyebilirsiniz.</p>
               
-              <div className="mt-8 grid gap-6 sm:grid-cols-2">
-                <div className="rounded-3xl border border-stone-100 bg-stone-50/30 p-8">
+              <div className="mt-8 grid gap-6 sm:grid-cols-3">
+                <div className="rounded-3xl border border-stone-100 bg-stone-50/30 p-8 sm:col-span-2">
                   <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Üyelik Bilgileri</p>
                   <div className="mt-6 space-y-6">
                     <div>
@@ -182,6 +197,17 @@ function ProfileContent() {
                   </div>
                 </div>
 
+                <div className="rounded-3xl border border-yellow-200 bg-gradient-to-br from-yellow-50 to-orange-50 p-8 flex flex-col items-center justify-center text-center shadow-inner">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow-400 text-yellow-900 text-sm font-black mb-4">
+                    YP
+                  </div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-yellow-600 mb-1">Yıldız Puanlarım</p>
+                  <p className="text-4xl font-black text-yellow-900 tracking-tighter mb-2">{points !== null ? points : "..."}</p>
+                  <p className="text-[10px] font-bold text-yellow-700 uppercase tracking-widest">{points !== null ? points : 0} ₺ Değerinde</p>
+                </div>
+              </div>
+
+              <div className="mt-12 grid gap-6 sm:grid-cols-2">
                 <div className="rounded-3xl border border-stone-100 bg-stone-50/30 p-8">
                   <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Hesap Güvenliği</p>
                   <div className="mt-6 space-y-6">
@@ -196,18 +222,16 @@ function ProfileContent() {
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="mt-12 p-8 rounded-3xl bg-black text-white">
-                 <div className="flex items-center justify-between">
-                    <div>
-                       <h3 className="text-xl font-black italic tracking-tighter uppercase">Premium Destek</h3>
-                       <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mt-1">Öncelikli müşteri desteğinden faydalanın.</p>
-                    </div>
-                    <button className="cursor-pointer rounded-full bg-white px-6 py-3 text-[10px] font-black uppercase tracking-widest text-black hover:bg-stone-100 transition">
-                       Bize Ulaşın
-                    </button>
-                 </div>
+                <div className="p-8 rounded-3xl bg-black text-white flex flex-col justify-between">
+                   <div>
+                      <h3 className="text-xl font-black italic tracking-tighter uppercase">Premium Destek</h3>
+                      <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mt-2">Öncelikli müşteri desteğinden faydalanın.</p>
+                   </div>
+                   <button className="mt-8 cursor-pointer rounded-full bg-white px-6 py-4 text-[10px] font-black uppercase tracking-widest text-black hover:bg-stone-100 transition self-start">
+                      Bize Ulaşın
+                   </button>
+                </div>
               </div>
             </div>
           )}

@@ -44,4 +44,9 @@ export const createOrderSchema = z.object({
     ])
     .optional()
     .default("CASH_ON_DELIVERY"),
+    
+  couponCode: z.string().optional(),
+  usePoints: z.boolean().optional().default(false),
+  currency: z.string().optional(),
+  exchangeRate: z.number().optional(),
 });

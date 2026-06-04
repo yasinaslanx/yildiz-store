@@ -26,6 +26,7 @@ import {
   ArrowRight,
   Clock
 } from "lucide-react";
+import { useCurrency } from "@/store/currency-store";
 
 type Product = {
   id: string;
@@ -43,6 +44,7 @@ type Product = {
     color: string;
     storage?: string | null;
     price: number;
+    oldPrice?: number;
     stock: number;
     active: boolean;
     images: { url: string }[];
@@ -52,6 +54,7 @@ type Product = {
 export function ProductDetailView({ product }: { product: Product }) {
   const { addItem } = useCart();
   const { openCart } = useUi();
+  const { formatPrice } = useCurrency();
   
   const colors = useMemo(() => Array.from(new Set(product.variants.map((v) => v.color))), [product.variants]);
   const [selectedColor, setSelectedColor] = useState(colors[0]);
@@ -207,18 +210,26 @@ export function ProductDetailView({ product }: { product: Product }) {
             <div className="space-y-4">
                <div className="flex items-center gap-4">
                   <p className="text-[11px] font-black uppercase tracking-[0.3em] text-stone-400">Güncel Fiyat</p>
-                  <span className="bg-green-50 text-green-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
-                    %20 İndirim
-                  </span>
+                  {selectedVariant.oldPrice && selectedVariant.oldPrice > selectedVariant.price ? (
+                    <span className="bg-green-50 text-green-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
+                      %20 İndirim
+                    </span>
+                  ) : null}
                </div>
                
                <div className="flex flex-col gap-1">
-                  <span className="text-xl font-bold text-stone-300 line-through decoration-stone-200 tracking-tighter">
-                    {(selectedVariant.price * 1.25).toLocaleString("tr-TR")} ₺
-                  </span>
+                  {selectedVariant.oldPrice && selectedVariant.oldPrice > selectedVariant.price ? (
+                    <span className="text-xl font-bold text-stone-300 line-through decoration-stone-200 tracking-tighter">
+                      {formatPrice(selectedVariant.oldPrice)}
+                    </span>
+                  ) : (
+                    <span className="text-xl font-bold text-stone-300 line-through decoration-stone-200 tracking-tighter">
+                      {formatPrice(selectedVariant.price * 1.25)}
+                    </span>
+                  )}
                   <div className="flex items-baseline gap-6">
                     <span className="text-7xl font-black tracking-tighter text-stone-900 italic">
-                      {selectedVariant.price.toLocaleString("tr-TR")} ₺
+                      {formatPrice(selectedVariant.price)}
                     </span>
                     <div className="flex flex-col gap-2">
                       <button 
@@ -331,7 +342,11 @@ export function ProductDetailView({ product }: { product: Product }) {
       <div className="mt-40 border-t border-stone-100 pt-40 space-y-40">
          <ProductReviews productSlug={product.slug} productId={product.id} />
          <ProductQuestions productSlug={product.slug} productId={product.id} />
-         <RecommendedProducts currentProductId={product.id} title="Sizin İçin Seçtiklerimiz" />
+         <RecommendedProducts 
+           currentProductId={product.id} 
+           title="Sizin İçin Seçtiklerimiz" 
+           categorySlug={product.category?.slug}
+         />
          <RecentlyViewedProducts currentProductId={product.id} />
       </div>
 

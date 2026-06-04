@@ -148,9 +148,39 @@ export async function POST(request: Request) {
         }
       }
 
-      const totalAmount = cart.items.reduce((sum, item) => {
+      let totalAmount = cart.items.reduce((sum, item) => {
         return sum + Number(item.variant.price) * item.quantity;
       }, 0);
+
+      let appliedCoupon = null;
+      let discountAmount = 0;
+
+      if (validatedBody.couponCode) {
+        const coupon = await tx.coupon.findUnique({
+          where: { code: validatedBody.couponCode.toUpperCase() },
+        });
+
+        if (coupon && coupon.active && (!coupon.expiresAt || new Date() <= coupon.expiresAt) && (!coupon.usageLimit || coupon.usedCount < coupon.usageLimit)) {
+          appliedCoupon = coupon;
+          const discountValue = Number(coupon.discountValue);
+          if (coupon.discountType === "PERCENTAGE") {
+            discountAmount = (totalAmount * discountValue) / 100;
+          } else if (coupon.discountType === "FIXED") {
+            discountAmount = discountValue;
+          }
+          if (discountAmount > totalAmount) discountAmount = totalAmount;
+          totalAmount = Math.max(0, totalAmount - discountAmount);
+        }
+      }
+
+      const dbUser = await tx.user.findUnique({ where: { id: user.id } });
+      let spentPoints = 0;
+      if (validatedBody.usePoints && dbUser && dbUser.points > 0) {
+        spentPoints = Math.min(dbUser.points, Math.floor(totalAmount));
+        totalAmount = Math.max(0, totalAmount - spentPoints);
+      }
+      
+      const earnedPoints = Math.floor(totalAmount / 100); // Her 100 TL için 1 Puan
 
       const orderItems: Prisma.OrderItemCreateWithoutOrderInput[] = cart.items.map((item) => {
         const variant = item.variant;
@@ -187,6 +217,10 @@ export async function POST(request: Request) {
           paymentStatus: paymentMethod === "CREDIT_CARD" ? "PENDING" : "UNPAID",
           status: "PENDING",
           totalAmount: new Prisma.Decimal(totalAmount),
+          earnedPoints,
+          spentPoints,
+          currency: validatedBody.currency || "TRY",
+          exchangeRate: validatedBody.exchangeRate ? new Prisma.Decimal(validatedBody.exchangeRate) : null,
 
           items: {
             create: orderItems,
@@ -213,6 +247,25 @@ export async function POST(request: Request) {
           cartId: cart.id,
         },
       });
+
+      if (appliedCoupon) {
+        await tx.coupon.update({
+          where: { id: appliedCoupon.id },
+          data: { usedCount: { increment: 1 } },
+        });
+      }
+
+      if (spentPoints > 0 || earnedPoints > 0) {
+        await tx.user.update({
+          where: { id: user.id },
+          data: {
+            points: {
+              decrement: spentPoints,
+              increment: earnedPoints,
+            },
+          },
+        });
+      }
 
       return order;
     });

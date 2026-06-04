@@ -22,6 +22,7 @@ const FOOTER_LINKS = {
     { label: "İletişim", href: "/contact" },
     { label: "Mağazalarımız", href: "/contact" },
     { label: "Kariyer", href: "/contact" },
+    { label: "Bayilik Başvurusu", href: "/dealer-application" },
   ],
 };
 

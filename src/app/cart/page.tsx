@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useCart } from "@/store/cart-store";
+import { useCurrency } from "@/store/currency-store";
 
 export default function CartPage() {
   const {
@@ -12,6 +12,7 @@ export default function CartPage() {
     decreaseItem,
     totalPrice,
   } = useCart();
+  const { formatPrice } = useCurrency();
 
   if (items.length === 0) {
     return (
@@ -64,12 +65,14 @@ export default function CartPage() {
                   <p className="mt-1 text-xs font-bold uppercase tracking-widest text-stone-400">
                     {item.color}{item.storage ? ` · ${item.storage}` : ""}
                   </p>
-                  <p className="mt-3 text-xl font-black tracking-tighter text-stone-900">
-                    {(item.price * item.quantity).toLocaleString("tr-TR")} ₺
-                  </p>
-                  {item.quantity > 1 && (
-                    <p className="text-[10px] font-bold text-stone-400">{item.price.toLocaleString("tr-TR")} ₺ / adet</p>
-                  )}
+                  <div className="flex flex-col items-start gap-1">
+                    <span className="text-xl font-black tracking-tighter text-stone-900 italic">
+                      {formatPrice(item.price * item.quantity)}
+                    </span>
+                    {item.quantity > 1 && (
+                      <p className="text-[10px] font-bold text-stone-400">{formatPrice(item.price)} / adet</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Quantity Control */}
@@ -121,9 +124,9 @@ export default function CartPage() {
           </div>
 
           <div className="space-y-4 border-y-2 border-stone-200 py-8">
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-bold uppercase tracking-widest text-stone-500">Ara Toplam</span>
-              <span className="text-sm font-black text-stone-900">{totalPrice.toLocaleString("tr-TR")} ₺</span>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">Ara Toplam</span>
+              <span className="text-sm font-black text-stone-900">{formatPrice(totalPrice)}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-xs font-bold uppercase tracking-widest text-stone-500">Kargo</span>
@@ -137,7 +140,7 @@ export default function CartPage() {
 
           <div className="flex items-end justify-between">
             <span className="text-lg font-black uppercase tracking-tighter text-stone-900">Toplam</span>
-            <span className="text-3xl font-black tracking-tighter text-stone-900">{totalPrice.toLocaleString("tr-TR")} ₺</span>
+            <span className="text-3xl font-black tracking-tighter text-stone-900">{formatPrice(totalPrice)}</span>
           </div>
 
           <Link

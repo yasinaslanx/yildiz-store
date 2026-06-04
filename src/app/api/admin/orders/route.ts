@@ -17,6 +17,11 @@ function formatOrder(order: any) {
     shippingCity: order.shippingCity,
     shippingDistrict: order.shippingDistrict,
     shippingPostalCode: order.shippingPostalCode,
+    shippingCarrier: order.shippingCarrier,
+    trackingNumber: order.trackingNumber,
+    trackingUrl: order.trackingUrl,
+    earnedPoints: order.earnedPoints,
+    spentPoints: order.spentPoints,
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
     user: order.user

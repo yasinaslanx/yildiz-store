@@ -50,13 +50,10 @@ export async function middleware(request: NextRequest) {
   const isAuthenticated = !!sessionUser;
   const isAdmin = sessionUser?.role === "ADMIN";
 
-  // Giriş yapılması zorunlu sayfalar
   const protectedRoutes = [
     "/checkout",
     "/orders",
     "/profile",
-    "/favorites",
-    "/cart",
   ];
 
   const isProtectedRoute = protectedRoutes.some((route) =>

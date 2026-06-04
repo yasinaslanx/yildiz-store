@@ -10,6 +10,8 @@ type AdminOrder = {
   paymentStatus: "UNPAID" | "PENDING" | "PAID" | "FAILED" | "REFUNDED";
   paymentMethod: string;
   totalAmount: number;
+  earnedPoints: number;
+  spentPoints: number;
   customerName: string;
   customerEmail: string;
   customerPhone: string;
@@ -239,6 +241,18 @@ export default function AdminOrdersPage() {
                             <span className="text-xs font-black text-stone-900 uppercase tracking-widest">Toplam</span>
                             <span className="text-lg font-black text-stone-900 tracking-tighter">{order.totalAmount.toLocaleString()} ₺</span>
                          </div>
+                         {(order.earnedPoints > 0 || order.spentPoints > 0) && (
+                            <div className="pt-4 border-t border-stone-100 flex justify-between">
+                               <div className="flex flex-col gap-1">
+                                  <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest">Kazanılan Puan</span>
+                                  <span className="text-xs font-black text-yellow-600">+{order.earnedPoints} YP</span>
+                               </div>
+                               <div className="flex flex-col gap-1 items-end">
+                                  <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest">Harcanan Puan</span>
+                                  <span className="text-xs font-black text-stone-900">-{order.spentPoints} YP</span>
+                               </div>
+                            </div>
+                         )}
                       </div>
                       <div className="space-y-3">
                          <p className="text-[9px] font-black text-stone-400 uppercase tracking-widest">İletişim Bilgileri</p>

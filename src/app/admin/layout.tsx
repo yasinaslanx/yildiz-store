@@ -11,8 +11,10 @@ const adminMenu = [
   { href: "/admin/products", label: "Ürün Yönetimi", icon: "📱" },
   { href: "/admin/warehouse", label: "Depo Yönetimi", icon: "🏠" },
   { href: "/admin/categories", label: "Kategori Yönetimi", icon: "📁" },
+  { href: "/admin/coupons", label: "Kuponlar", icon: "🎟️" },
   { href: "/admin/stock-alerts", label: "Stok Bekleyenler", icon: "🔔" },
   { href: "/admin/support", label: "Canlı Destek", icon: "💬" },
+  { href: "/admin/dealers", label: "Bayi Yönetimi", icon: "🤝" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -21,7 +23,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { user, isLoading } = useAuth();
 
   useEffect(() => {
-    if (!isLoading && (!user || user.role !== "admin")) {
+    if (!isLoading && (!user || (user.role !== "admin" && user.role !== "ADMIN"))) {
       router.push("/");
     }
   }, [user, isLoading, router]);
@@ -34,7 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  if (!user || user.role !== "admin") return null;
+  if (!user || (user.role !== "admin" && user.role !== "ADMIN")) return null;
 
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">

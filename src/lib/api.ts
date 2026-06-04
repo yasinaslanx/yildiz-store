@@ -80,6 +80,10 @@ export type CheckoutPayload = {
   shippingDistrict: string;
   shippingPostalCode?: string;
   paymentMethod?: "CASH_ON_DELIVERY" | "BANK_TRANSFER" | "CREDIT_CARD";
+  couponCode?: string;
+  usePoints?: boolean;
+  currency?: string;
+  exchangeRate?: number;
 };
 
 export async function createOrderRequest(payload: CheckoutPayload) {
@@ -253,6 +257,9 @@ export async function updateAdminOrderRequest(
   payload: {
     status?: "PENDING" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
     paymentStatus?: "UNPAID" | "PENDING" | "PAID" | "FAILED" | "REFUNDED";
+    shippingCarrier?: string;
+    trackingNumber?: string;
+    trackingUrl?: string;
   },
 ) {
   const response = await fetch(`/api/admin/orders/${orderId}`, {
@@ -501,4 +508,62 @@ export async function resetPasswordRequest(payload: {
   }
 
   return result;
+}
+
+export async function validateCouponRequest(payload: { code: string; cartTotal: number }) {
+  const response = await fetch("/api/coupons/validate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  const result = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.message || "Kupon doğrulanamadı");
+  }
+
+  return result.data as {
+    code: string;
+    discountType: string;
+    discountValue: number;
+    discountAmount: number;
+  };
+}
+
+// Admin Coupon APIs
+export async function fetchAdminCoupons() {
+  const res = await fetch("/api/admin/coupons");
+  const json = await res.json();
+  if (!json.success) throw new Error(json.message);
+  return json.data;
+}
+
+export async function createAdminCoupon(data: any) {
+  const res = await fetch("/api/admin/coupons", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.message);
+  return json.data;
+}
+
+export async function updateAdminCoupon(id: string, data: any) {
+  const res = await fetch(`/api/admin/coupons/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.message);
+  return json.data;
+}
+
+export async function deleteAdminCoupon(id: string) {
+  const res = await fetch(`/api/admin/coupons/${id}`, { method: "DELETE" });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.message);
+  return true;
 }

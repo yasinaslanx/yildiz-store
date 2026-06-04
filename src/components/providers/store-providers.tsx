@@ -6,6 +6,7 @@ import { OrderProvider } from "@/store/order-store";
 import { OrderHistoryProvider } from "@/store/order-history-store";
 import { UiProvider } from "@/store/ui-store";
 import { AuthProvider } from "@/store/auth-store";
+import { CurrencyProvider } from "@/store/currency-store";
 import { ToastContainer } from "@/components/ui/toast-container";
 
 export function StoreProviders({ children }: { children: React.ReactNode }) {
@@ -14,12 +15,14 @@ export function StoreProviders({ children }: { children: React.ReactNode }) {
       <AuthProvider>
         <OrderHistoryProvider>
           <OrderProvider>
-            <FavoritesProvider>
-              <CartProvider>
-                {children}
-                <ToastContainer />
-              </CartProvider>
-            </FavoritesProvider>
+            <CurrencyProvider>
+              <FavoritesProvider>
+                <CartProvider>
+                  {children}
+                  <ToastContainer />
+                </CartProvider>
+              </FavoritesProvider>
+            </CurrencyProvider>
           </OrderProvider>
         </OrderHistoryProvider>
       </AuthProvider>

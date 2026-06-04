@@ -7,11 +7,13 @@ import Image from "next/image";
 export function RecommendedProducts({ 
   currentProductId, 
   title = "Bunları Da Sevebilirsiniz",
-  filterBrand 
+  filterBrand,
+  categorySlug
 }: { 
   currentProductId: string;
   title?: string;
   filterBrand?: string;
+  categorySlug?: string;
 }) {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,21 +21,23 @@ export function RecommendedProducts({
   useEffect(() => {
     async function fetchRecommended() {
       try {
-        let url = `/api/products?limit=8`;
+        let url = `/api/products?limit=8&excludeId=${currentProductId}`;
         if (filterBrand) {
           url += `&brand=${encodeURIComponent(filterBrand)}`;
+        }
+        if (categorySlug) {
+          url += `&category=${encodeURIComponent(categorySlug)}`;
         }
         
         const res = await fetch(url);
         const data = await res.json();
         if (data.success) {
-          // Mevcut ürünü listeden çıkar ve karıştır (shuffle)
-          const filtered = data.data
-            .filter((p: any) => p.id !== currentProductId)
+          // Zaten excludeId ile çektik, sadece karıştırıp ilk 4'ü alıyoruz
+          const shuffled = data.data
             .sort(() => 0.5 - Math.random())
             .slice(0, 4);
             
-          setProducts(filtered);
+          setProducts(shuffled);
         }
       } catch (err) {
         console.error("Recommended fetch error:", err);
@@ -42,7 +46,7 @@ export function RecommendedProducts({
       }
     }
     fetchRecommended();
-  }, [currentProductId, filterBrand]);
+  }, [currentProductId, filterBrand, categorySlug]);
 
   if (loading || products.length === 0) return null;
 

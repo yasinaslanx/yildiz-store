@@ -13,6 +13,7 @@ model User {
   email        String     @unique
   passwordHash String
   role         UserRole   @default(USER)
+  points       Int        @default(0)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   addresses    Address[]
@@ -21,6 +22,7 @@ model User {
   orders       Order[]
   reviews      ProductReview[]
   questions    ProductQuestion[]
+  dealerApp    DealerApplication?
 }
 
 model Address {
@@ -75,14 +77,15 @@ model Product {
 model ProductVariant {
   id        String         @id @default(cuid())
   productId String
-  sku       String         @unique
-  color     String
-  storage   String?
-  price     Decimal        @db.Decimal(10, 2)
-  oldPrice  Decimal?       @db.Decimal(10, 2)
-  stock     Int            @default(0)
-  active    Boolean        @default(true)
-  createdAt DateTime       @default(now())
+  sku            String         @unique
+  color          String
+  storage        String?
+  price          Decimal        @db.Decimal(10, 2)
+  wholesalePrice Decimal?       @db.Decimal(10, 2)
+  oldPrice       Decimal?       @db.Decimal(10, 2)
+  stock          Int            @default(0)
+  active         Boolean        @default(true)
+  createdAt      DateTime       @default(now())
   updatedAt DateTime       @updatedAt
   cartItems  CartItem[]
   favorites  Favorite[]
@@ -159,6 +162,10 @@ model Order {
   trackingUrl        String?
 
   totalAmount Decimal @db.Decimal(10, 2)
+  currency    String  @default("TRY")
+  exchangeRate Decimal? @db.Decimal(10, 4)
+  earnedPoints Int     @default(0)
+  spentPoints  Int     @default(0)
 
   items OrderItem[]
   reviews ProductReview[]
@@ -213,6 +220,7 @@ model Coupon {
 
 enum UserRole {
   USER
+  DEALER
   ADMIN
 }
 
@@ -347,4 +355,26 @@ model NewsletterSubscription {
   email     String   @unique
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
+}
+
+model DealerApplication {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  companyName String
+  taxOffice   String
+  taxNumber   String
+  phone       String
+  address     String   @db.Text
+  status      ApplicationStatus @default(PENDING)
+  adminNote   String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

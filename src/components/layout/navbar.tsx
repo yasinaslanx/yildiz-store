@@ -10,6 +10,7 @@ import { useUi } from "@/store/ui-store";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Heart, ShoppingBag, User, LogOut, ChevronRight, Home, Smartphone, Headphones } from "lucide-react";
 import { SunixLogo } from "./sunix-logo";
+import { CurrencySelector } from "@/components/ui/currency-selector";
 
 const navItems = [
   { href: "/", label: "Ana Sayfa" },
@@ -43,7 +44,7 @@ export function Navbar() {
   return (
     <>
       {/* Announcement Bar */}
-      <div className="bg-stone-50 border-b border-stone-100 py-3 px-6 hidden sm:block">
+      <div className="relative z-[60] bg-stone-50 border-b border-stone-100 py-3 px-6 hidden sm:block">
          <div className="mx-auto max-w-[1440px] flex items-center justify-between">
             <div className="flex items-center gap-4">
                <span className="inline-flex items-center rounded-full bg-stone-900 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-white">
@@ -54,6 +55,7 @@ export function Navbar() {
                </p>
             </div>
             <div className="flex items-center gap-8">
+               <CurrencySelector />
                <Link href="/contact" className="text-[9px] font-black text-stone-400 hover:text-stone-900 transition uppercase tracking-[0.2em]">Destek Merkezi</Link>
                <Link href="/stores" className="text-[9px] font-black text-stone-400 hover:text-stone-900 transition uppercase tracking-[0.2em]">Mağazalarımız</Link>
             </div>
@@ -299,6 +301,24 @@ export function Navbar() {
                         <ChevronRight size={16} className="text-stone-300" />
                       </Link>
                     ))}
+                    
+                    <Link
+                      href="/stores"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center justify-between rounded-2xl bg-stone-50/50 p-5 text-sm font-black uppercase tracking-tight text-stone-900 hover:bg-stone-50"
+                    >
+                      <span className="italic tracking-tighter">Mağazalarımız</span>
+                      <ChevronRight size={16} className="text-stone-300" />
+                    </Link>
+
+                    <Link
+                      href="/dealer-application"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center justify-between rounded-2xl bg-stone-50/50 p-5 text-sm font-black uppercase tracking-tight text-stone-900 hover:bg-stone-50"
+                    >
+                      <span className="italic tracking-tighter">Bayilik Başvurusu</span>
+                      <ChevronRight size={16} className="text-stone-300" />
+                    </Link>
                     {user?.role === "admin" && (
                        <Link
                         href="/admin/support"
@@ -310,6 +330,12 @@ export function Navbar() {
                       </Link>
                     )}
                   </div>
+                </div>
+
+                {/* Mobile Currency & Quick Actions */}
+                <div className="mt-8 flex items-center justify-between p-6 rounded-[2.5rem] bg-stone-50 border border-stone-100">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-stone-900">Para Birimi</span>
+                  <CurrencySelector />
                 </div>
 
                 {/* Quick Info */}

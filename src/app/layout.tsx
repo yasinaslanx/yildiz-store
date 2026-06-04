@@ -50,7 +50,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr">
-      <body className={`bg-[var(--background)] text-[var(--foreground)] ${nunito.variable}`}>
+      <body className={`bg-white text-stone-900 ${nunito.variable}`}>
         <StoreProviders>
           <Suspense fallback={null}>
             <Navbar />

@@ -59,6 +59,9 @@ function ProductsContent() {
   const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") ?? "");
   const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") ?? "");
 
+  const selectedCategories = category ? category.split(",") : [];
+  const selectedBrands = brand ? brand.split(",") : [];
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -200,39 +203,64 @@ function ProductsContent() {
         <aside className="space-y-10">
           {/* Categories */}
           <div className="space-y-6">
-             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-stone-900">Kategoriler</h3>
+             <div className="flex justify-between items-center">
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-stone-900">Kategoriler</h3>
+                {selectedCategories.length > 0 && (
+                  <button onClick={() => updateUrl({ category: "", page: 1 })} className="text-[10px] text-stone-400 hover:text-stone-900 font-bold uppercase">Temizle</button>
+                )}
+             </div>
              <div className="space-y-3">
-                <button 
-                  onClick={() => updateUrl({ category: "", page: 1 })}
-                  className={`block w-full text-left text-xs font-bold uppercase tracking-widest transition ${category === "" ? "text-stone-900" : "text-stone-400 hover:text-stone-600"}`}
-                >
-                   Tüm Kategoriler
-                </button>
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => updateUrl({ category: cat.slug, page: 1 })}
-                    className={`block w-full text-left text-xs font-bold uppercase tracking-widest transition ${category === cat.slug ? "text-stone-900" : "text-stone-400 hover:text-stone-600"}`}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
+                {categories.map((cat) => {
+                  const isSelected = selectedCategories.includes(cat.slug);
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        const newCat = isSelected
+                          ? selectedCategories.filter((c) => c !== cat.slug)
+                          : [...selectedCategories, cat.slug];
+                        updateUrl({ category: newCat.join(","), page: 1 });
+                      }}
+                      className="group flex items-center gap-3 w-full text-left"
+                    >
+                      <div className={`flex h-4 w-4 items-center justify-center rounded border transition-all ${isSelected ? 'bg-stone-900 border-stone-900' : 'border-stone-300 bg-white group-hover:border-stone-500'}`}>
+                        {isSelected && <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                      </div>
+                      <span className={`text-xs font-bold uppercase tracking-widest transition ${isSelected ? "text-stone-900" : "text-stone-400 group-hover:text-stone-600"}`}>
+                        {cat.name}
+                      </span>
+                    </button>
+                  );
+                })}
              </div>
           </div>
 
           {/* Brands */}
           <div className="space-y-6">
-             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-stone-900">Markalar</h3>
+             <div className="flex justify-between items-center">
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-stone-900">Markalar</h3>
+                {selectedBrands.length > 0 && (
+                  <button onClick={() => updateUrl({ brand: "", page: 1 })} className="text-[10px] text-stone-400 hover:text-stone-900 font-bold uppercase">Temizle</button>
+                )}
+             </div>
              <div className="grid grid-cols-2 gap-3">
-                 {brands.map((b) => (
-                  <button 
-                    key={b}
-                    onClick={() => updateUrl({ brand: brand === b ? "" : b, page: 1 })}
-                    className={`rounded-xl border-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest transition hover:border-black hover:text-stone-900 ${brand === b ? "bg-white border-black text-black shadow-md" : "bg-white border-stone-100 text-stone-500"}`}
-                  >
-                    {b}
-                  </button>
-                ))}
+                 {brands.map((b) => {
+                  const isSelected = selectedBrands.includes(b);
+                  return (
+                    <button 
+                      key={b}
+                      onClick={() => {
+                        const newBrand = isSelected
+                          ? selectedBrands.filter((br) => br !== b)
+                          : [...selectedBrands, b];
+                        updateUrl({ brand: newBrand.join(","), page: 1 });
+                      }}
+                      className={`rounded-xl border-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest transition hover:border-black hover:text-stone-900 ${isSelected ? "bg-white border-black text-black shadow-md" : "bg-white border-stone-100 text-stone-500"}`}
+                    >
+                      {b}
+                    </button>
+                  );
+                })}
              </div>
           </div>
 

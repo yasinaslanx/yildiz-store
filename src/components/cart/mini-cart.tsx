@@ -6,10 +6,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ShoppingBag, ArrowRight, Trash2, Minus, Plus } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useCurrency } from "@/store/currency-store";
 
 export function MiniCart() {
   const { items, totalPrice, increaseItem, decreaseItem, removeItem } = useCart();
   const { isCartOpen, closeCart } = useUi();
+  const { formatPrice } = useCurrency();
 
   return (
     <AnimatePresence>
@@ -103,7 +105,7 @@ export function MiniCart() {
                             </button>
                           </div>
                           <p className="text-sm font-black tracking-tighter text-stone-900 italic">
-                            {(item.price * item.quantity).toLocaleString()} ₺
+                            {formatPrice(item.price * item.quantity)}
                           </p>
                         </div>
                       </div>
@@ -135,7 +137,7 @@ export function MiniCart() {
                 <div className="flex items-end justify-between">
                   <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Toplam Tutar</p>
                   <p className="text-3xl font-black tracking-tighter text-stone-900 italic">
-                    {totalPrice.toLocaleString()} ₺
+                    {formatPrice(totalPrice)}
                   </p>
                 </div>
                 <div className="grid gap-3">

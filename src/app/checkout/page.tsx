@@ -2,15 +2,18 @@
 
 import { FormEvent, useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createOrderRequest, startIyzicoPaymentRequest } from "@/lib/api";
+import { createOrderRequest, startIyzicoPaymentRequest, validateCouponRequest } from "@/lib/api";
 import { useCart } from "@/store/cart-store";
 import { useAuth } from "@/store/auth-store";
 import { toast } from "react-hot-toast";
+import { Loader2, Ticket } from "lucide-react";
+import { useCurrency } from "@/store/currency-store";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
   const { items, clearLocalState } = useCart();
+  const { formatPrice, currency, rates } = useCurrency();
 
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState(user?.email ?? "");
@@ -34,9 +37,53 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const totalAmount = useMemo(() => {
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; amount: number } | null>(null);
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+
+  const [availablePoints, setAvailablePoints] = useState(0);
+  const [usePoints, setUsePoints] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      fetch("/api/user/points")
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setAvailablePoints(data.points);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [user]);
+
+  const subtotal = useMemo(() => {
     return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   }, [items]);
+
+  const totalAmount = useMemo(() => {
+    let t = Math.max(0, subtotal - (appliedCoupon?.amount || 0));
+    if (usePoints && availablePoints > 0) {
+      t = Math.max(0, t - availablePoints);
+    }
+    return t;
+  }, [subtotal, appliedCoupon, usePoints, availablePoints]);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    try {
+      setApplyingCoupon(true);
+      const data = await validateCouponRequest({ code: couponCode, cartTotal: subtotal });
+      setAppliedCoupon({ code: data.code, amount: data.discountAmount });
+      toast.success(`${data.code} kuponu uygulandı: -${data.discountAmount} ₺`);
+      setCouponCode("");
+    } catch (err: any) {
+      toast.error(err.message || "Kupon doğrulanamadı");
+      setAppliedCoupon(null);
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
 
   // Kart numarasını formatla (4 hanede bir boşluk)
   const formatCardNumber = (value: string) => {
@@ -100,6 +147,10 @@ export default function CheckoutPage() {
         shippingDistrict,
         shippingPostalCode,
         paymentMethod,
+        couponCode: appliedCoupon?.code,
+        usePoints,
+        currency,
+        exchangeRate: rates[currency],
       });
 
       toast.dismiss(loadingToast);
@@ -354,7 +405,7 @@ export default function CheckoutPage() {
                          <p className="text-xs font-black text-stone-900 truncate uppercase">{item.productName}</p>
                          <div className="flex justify-between items-center mt-2">
                             <span className="text-[10px] font-bold text-stone-400">{item.quantity} Adet</span>
-                            <span className="text-xs font-black text-stone-900">{(item.price * item.quantity).toLocaleString()} ₺</span>
+                            <span className="text-xs font-black text-stone-900">{formatPrice(item.price * item.quantity)}</span>
                          </div>
                       </div>
                    </div>
@@ -362,17 +413,88 @@ export default function CheckoutPage() {
               </div>
 
               <div className="space-y-4 pt-10 border-t border-stone-200">
-                 <div className="flex justify-between items-center text-xs font-bold text-stone-400 uppercase tracking-widest">
+                 {/* Coupon Section */}
+                 {!appliedCoupon ? (
+                   <div className="flex gap-2">
+                     <input
+                       type="text"
+                       placeholder="Kupon Kodu"
+                       className="flex-1 rounded-2xl border border-stone-200 bg-white px-4 py-3 text-xs font-bold text-stone-900 outline-none focus:border-black transition"
+                       value={couponCode}
+                       onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                     />
+                     <button
+                       type="button"
+                       onClick={handleApplyCoupon}
+                       disabled={applyingCoupon || !couponCode.trim()}
+                       className="rounded-2xl bg-stone-900 px-6 py-3 text-xs font-black uppercase tracking-widest text-white transition hover:bg-stone-800 disabled:opacity-50"
+                     >
+                       {applyingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : "Uygula"}
+                     </button>
+                   </div>
+                 ) : (
+                   <div className="flex justify-between items-center rounded-2xl border border-green-100 bg-green-50 px-4 py-3">
+                     <div className="flex items-center gap-2">
+                       <Ticket className="w-4 h-4 text-green-600" />
+                       <span className="text-xs font-bold text-green-700">{appliedCoupon.code} uygulandı</span>
+                     </div>
+                     <button
+                       type="button"
+                       onClick={() => setAppliedCoupon(null)}
+                       className="text-[10px] font-black text-green-600 hover:text-green-800 uppercase tracking-widest"
+                     >
+                       İptal
+                     </button>
+                   </div>
+                 )}
+
+                 {/* Points Section */}
+                 {availablePoints > 0 && (
+                   <div className="flex justify-between items-center rounded-2xl border border-yellow-100 bg-yellow-50 px-4 py-3">
+                     <div className="flex items-center gap-2">
+                       <div className="flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-yellow-900 text-[10px] font-black">
+                         YP
+                       </div>
+                       <div>
+                         <span className="block text-xs font-bold text-yellow-700">Yıldız Puanlarınızı Kullanın</span>
+                         <span className="block text-[10px] font-medium text-yellow-600">{availablePoints} Puan = {formatPrice(availablePoints)} İndirim</span>
+                       </div>
+                     </div>
+                     <label className="relative inline-flex items-center cursor-pointer">
+                       <input 
+                         type="checkbox" 
+                         className="sr-only peer"
+                         checked={usePoints}
+                         onChange={(e) => setUsePoints(e.target.checked)}
+                       />
+                       <div className="w-9 h-5 bg-yellow-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-yellow-500"></div>
+                     </label>
+                   </div>
+                 )}
+
+                 <div className="flex justify-between items-center text-xs font-bold text-stone-400 uppercase tracking-widest mt-6">
                     <span>Ara Toplam</span>
-                    <span>{totalAmount.toLocaleString()} ₺</span>
+                    <span>{formatPrice(subtotal)}</span>
                  </div>
-                 <div className="flex justify-between items-center text-xs font-bold text-stone-400 uppercase tracking-widest">
+                 {appliedCoupon && (
+                   <div className="flex justify-between items-center text-xs font-bold text-green-500 uppercase tracking-widest">
+                      <span>Kupon İndirimi</span>
+                      <span>-{formatPrice(appliedCoupon.amount)}</span>
+                   </div>
+                 )}
+                 {usePoints && availablePoints > 0 && (
+                   <div className="flex justify-between items-center text-xs font-bold text-yellow-500 uppercase tracking-widest">
+                      <span>Puan İndirimi</span>
+                      <span>-{formatPrice(Math.min(availablePoints, Math.max(0, subtotal - (appliedCoupon?.amount || 0))))}</span>
+                   </div>
+                 )}
+                 <div className="flex justify-between items-center pt-6 mt-6 border-t-2 border-stone-200 text-stone-400 uppercase tracking-widest">
                     <span>Kargo</span>
                     <span className="text-green-600 font-black">ÜCRETSİZ</span>
                  </div>
                  <div className="flex justify-between items-end pt-4">
                     <span className="text-lg font-black text-stone-900 uppercase tracking-tighter leading-none">Toplam</span>
-                    <span className="text-3xl font-black text-stone-900 tracking-tighter leading-none">{totalAmount.toLocaleString()} ₺</span>
+                    <span className="text-3xl font-black text-stone-900 tracking-tighter leading-none">{formatPrice(totalAmount)}</span>
                  </div>
               </div>
 

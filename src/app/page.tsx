@@ -12,9 +12,9 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
    return (
-      <div className="flex flex-col gap-0 bg-white overflow-hidden">
+      <div className="flex flex-col gap-0 bg-white overflow-hidden transition-colors duration-500">
          {/* --- HERO SECTION: SIDE BY SIDE --- */}
-         <section className="relative w-full overflow-hidden bg-white py-20 lg:py-32">
+         <section className="relative w-full overflow-hidden bg-white py-20 lg:py-32 transition-colors duration-500">
             <div className="mx-auto flex max-w-[1440px] flex-col gap-16 lg:flex-row lg:items-center px-6 lg:px-20">
 
                {/* Left: Text Content */}
@@ -25,7 +25,7 @@ export default function HomePage() {
                   </div>
 
                   <h1 className="text-6xl font-black leading-[0.9] tracking-tighter text-stone-900 md:text-8xl lg:text-[110px] uppercase">
-                     Geleceği <br /> <span className="text-transparent" style={{ WebkitTextStroke: '2px #1c1917' }}>Deneyimle</span>
+                     Geleceği <br /> <span className="text-transparent" style={{ WebkitTextStroke: '2px currentColor' }}>Deneyimle</span>
                   </h1>
 
                   <p className="max-w-md text-lg font-bold leading-relaxed text-stone-400 uppercase tracking-tight">
@@ -85,7 +85,7 @@ export default function HomePage() {
          </section>
 
          {/* --- BRAND MARQUEE: SOCIAL PROOF --- */}
-         <section className="border-y-2 border-stone-100 bg-white py-12 overflow-hidden">
+         <section className="border-y-2 border-stone-100 bg-white py-12 overflow-hidden transition-colors duration-500">
             <div className="flex animate-marquee whitespace-nowrap">
                {[1, 2].map((i) => (
                   <div key={i} className="flex flex-shrink-0 items-center gap-16 px-16 text-4xl font-black tracking-tighter text-stone-200 uppercase">
@@ -181,7 +181,7 @@ export default function HomePage() {
          </section>
 
          {/* --- FEATURE STRIP: PREMIUM HORIZONTAL --- */}
-         <section className="border-y-2 border-stone-100 bg-white">
+         <section className="border-y-2 border-stone-100 bg-white transition-colors duration-500">
             <div className="mx-auto max-w-[1440px] divide-x-2 divide-stone-100 grid md:grid-cols-4">
                {[
                   {
@@ -251,7 +251,7 @@ export default function HomePage() {
             <div className="relative z-10 mx-auto flex h-full max-w-4xl flex-col justify-center px-6 text-center text-stone-900">
                <span className="text-[10px] font-black uppercase tracking-[0.5em] text-stone-400">Deneyim</span>
                <h2 className="mt-8 text-4xl md:text-6xl font-black tracking-tighter uppercase leading-[0.9]">
-                  "Teknoloji yaşam tarzınızın bir <span className="text-transparent" style={{ WebkitTextStroke: '1.5px #1c1917' }}>yansımasıdır.</span>"
+                  "Teknoloji yaşam tarzınızın bir <span className="text-transparent" style={{ WebkitTextStroke: '1.5px currentColor' }}>yansımasıdır.</span>"
                </h2>
                <div className="mt-12 flex flex-col items-center gap-4">
                   <div className="h-16 w-16 rounded-full border-4 border-white shadow-xl overflow-hidden">
@@ -259,7 +259,7 @@ export default function HomePage() {
                   </div>
                   <div>
                      <p className="text-xs font-black uppercase tracking-widest text-stone-900">Yasin Yıldız</p>
-                     <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Kurucu, Sunix Store</p>
+                     <p className="text-[10px] font-black text-stone-700 uppercase tracking-widest mt-0.5">Kurucu, Sunix Store</p>
                   </div>
                </div>
             </div>
@@ -278,7 +278,7 @@ export default function HomePage() {
 
          {/* --- NEWSLETTER: BOLD LIGHT --- */}
          <section className="mx-auto max-w-[1440px] px-6 pb-24 lg:px-20 lg:pb-40">
-            <div className="relative overflow-hidden rounded-[4rem] border-2 border-stone-100 bg-white p-12 md:p-24 lg:p-32 text-center shadow-2xl shadow-stone-100">
+            <div className="relative overflow-hidden rounded-[4rem] border-2 border-stone-100 bg-white p-12 md:p-24 lg:p-32 text-center shadow-2xl shadow-stone-100 transition-colors duration-500">
                <div className="relative z-10 max-w-2xl mx-auto space-y-8">
                   <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-stone-900 uppercase">Dünyamıza <br /> Katılın</h2>
                   <p className="text-sm font-bold text-stone-900 uppercase tracking-widest leading-relaxed">Özel indirimlerden ilk siz haberdar olun.</p>

@@ -12,7 +12,7 @@ const secret = new TextEncoder().encode(
 export type SessionUser = {
   id: string;
   email: string;
-  role: "USER" | "ADMIN";
+  role: "USER" | "ADMIN" | "DEALER";
 };
 
 export async function createSessionToken(user: SessionUser) {

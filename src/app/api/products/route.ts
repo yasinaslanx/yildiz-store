@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSessionUser } from "@/lib/session";
 
-function formatProduct(product: any) {
+function formatProduct(product: any, isDealer: boolean = false) {
   const firstVariant = product.variants?.[0];
 
   return {
@@ -20,7 +21,7 @@ function formatProduct(product: any) {
         }
       : null,
     image: firstVariant?.images?.[0]?.url ?? product.images?.[0]?.url ?? "",
-    price: firstVariant ? Number(firstVariant.price) : 0,
+    price: firstVariant ? Number(isDealer && firstVariant.wholesalePrice ? firstVariant.wholesalePrice : firstVariant.price) : 0,
     stock: product.variants.reduce(
       (sum: number, variant: any) => sum + variant.stock,
       0,
@@ -30,7 +31,7 @@ function formatProduct(product: any) {
       sku: variant.sku,
       color: variant.color,
       storage: variant.storage,
-      price: Number(variant.price),
+      price: Number(isDealer && variant.wholesalePrice ? variant.wholesalePrice : variant.price),
       oldPrice: variant.oldPrice ? Number(variant.oldPrice) : null,
       stock: variant.stock,
       active: variant.active,
@@ -42,6 +43,9 @@ function formatProduct(product: any) {
 
 export async function GET(request: Request) {
   try {
+    const user = await getSessionUser();
+    const isDealer = user?.role === "DEALER";
+
     const { searchParams } = new URL(request.url);
 
     const q = searchParams.get("q")?.trim();
@@ -52,6 +56,7 @@ export async function GET(request: Request) {
     const minPrice = searchParams.get("minPrice") ? Number(searchParams.get("minPrice")) : undefined;
     const maxPrice = searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : undefined;
     const brand = searchParams.get("brand")?.trim();
+    const excludeId = searchParams.get("excludeId")?.trim();
 
     const page = Math.max(Number(searchParams.get("page") ?? "1"), 1);
     const limit = Math.min(
@@ -63,6 +68,7 @@ export async function GET(request: Request) {
 
     const where: any = {
       active: true,
+      ...(excludeId ? { id: { not: excludeId } } : {}),
     };
 
     // If price filters are applied, the product must have at least one active variant matching the price
@@ -103,14 +109,16 @@ export async function GET(request: Request) {
     }
 
     if (category) {
+      const categories = category.split(",").map(c => c.trim()).filter(Boolean);
       where.category = {
-        slug: category,
+        slug: { in: categories },
         active: true,
       };
     }
 
     if (brand) {
-      where.brand = { equals: brand, mode: "insensitive" };
+      const brands = brand.split(",").map(b => b.trim()).filter(Boolean);
+      where.brand = { in: brands, mode: "insensitive" };
     }
 
     const orderBy =
@@ -151,7 +159,7 @@ export async function GET(request: Request) {
       prisma.product.count({ where }),
     ]);
 
-    let formattedProducts = products.map(formatProduct);
+    let formattedProducts = products.map(p => formatProduct(p, isDealer));
 
     if (sort === "price-asc") {
       formattedProducts = formattedProducts.sort((a, b) => a.price - b.price);
