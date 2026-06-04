@@ -80,15 +80,30 @@ export function ProductDetailView({ product }: { product: Product }) {
   const rating = useMemo(() => 4.6 + (product.id.charCodeAt(0) % 4) / 10, [product.id]);
 
   const selectedVariant = useMemo(() => {
+    if (!product.variants || product.variants.length === 0) {
+      return {
+        id: "default-variant",
+        sku: "N/A",
+        color: "",
+        storage: "",
+        price: product.price || 0,
+        stock: 0,
+        active: false,
+        images: product.image ? [{ url: product.image }] : [],
+      };
+    }
     return product.variants.find(
       (variant) =>
         variant.color === selectedColor &&
         (variant.storage ?? "") === selectedStorage,
-    );
-  }, [product.variants, selectedColor, selectedStorage]);
+    ) || product.variants[0];
+  }, [product.variants, selectedColor, selectedStorage, product.price, product.image]);
 
   // Sadece seçili renge ait tüm görselleri topla (hafıza değişiminde resimlerin sıfırlanmasını engeller)
   const colorImages = useMemo(() => {
+    if (!product.variants || product.variants.length === 0) {
+      return product.image ? [{ url: product.image }] : [];
+    }
     const variantsOfColor = product.variants.filter((v) => v.color === selectedColor);
     const allImages: {url: string}[] = [];
     const seen = new Set<string>();
@@ -107,8 +122,8 @@ export function ProductDetailView({ product }: { product: Product }) {
       return product.variants[0].images;
     }
     
-    return allImages;
-  }, [product.variants, selectedColor]);
+    return allImages.length > 0 ? allImages : (product.image ? [{ url: product.image }] : []);
+  }, [product.variants, selectedColor, product.image]);
 
   const estimatedDelivery = useMemo(() => {
     const date = new Date();
@@ -126,8 +141,6 @@ export function ProductDetailView({ product }: { product: Product }) {
       setSelectedStorage(availableStoragesForNewColor[0] ?? "");
     }
   };
-
-  if (!selectedVariant) return null;
 
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-8 lg:py-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">

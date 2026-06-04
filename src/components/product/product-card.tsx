@@ -161,7 +161,7 @@ export function ProductCard({ product }: ProductCardProps) {
                      </p>
                    )}
                    <p className="text-2xl font-black tracking-tighter text-stone-900 italic">
-                     {firstVariant?.price.toLocaleString("tr-TR")} ₺
+                     {firstVariant?.price ? firstVariant.price.toLocaleString("tr-TR") : product.price.toLocaleString("tr-TR")} ₺
                    </p>
                 </div>
               <div className="flex items-center gap-2 text-green-600 mb-1">

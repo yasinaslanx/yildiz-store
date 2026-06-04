@@ -63,18 +63,20 @@ export async function GET(request: Request) {
 
     const where: any = {
       active: true,
-      variants: {
+    };
+
+    // If price filters are applied, the product must have at least one active variant matching the price
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      where.variants = {
         some: {
           active: true,
-          ...(minPrice !== undefined || maxPrice !== undefined ? {
-            price: {
-              ...(minPrice !== undefined ? { gte: minPrice } : {}),
-              ...(maxPrice !== undefined ? { lte: maxPrice } : {}),
-            }
-          } : {})
+          price: {
+            ...(minPrice !== undefined ? { gte: minPrice } : {}),
+            ...(maxPrice !== undefined ? { lte: maxPrice } : {}),
+          }
         },
-      },
-    };
+      };
+    }
 
     if (featured) {
       where.featured = true;
