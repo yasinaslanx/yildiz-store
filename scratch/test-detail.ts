@@ -1,3 +1,5 @@
+export {};
+
 async function main() {
   const url = "https://www.sunix.com.tr/urun/usb-20-flash-bellek";
   const response = await fetch(url, {

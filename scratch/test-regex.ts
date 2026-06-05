@@ -1,3 +1,5 @@
+export {};
+
 async function main() {
   const url = "https://www.sunix.com.tr/kategori?sayfa=1";
   const response = await fetch(url, {

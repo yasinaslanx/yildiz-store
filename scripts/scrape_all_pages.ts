@@ -33,7 +33,7 @@ const manualCategories = [
 ];
 
 async function scrapeProductsForCategory(categoryUrl: string, dbCategoryId: string, queryParam: string = "?sayfa=") {
-  let products: any[] = [];
+  const products: { name: string; slug: string; image: string; categoryId: string; description: string; price: number; stock: number }[] = [];
   let page = 1;
   let hasMore = true;
 
@@ -45,11 +45,11 @@ async function scrapeProductsForCategory(categoryUrl: string, dbCategoryId: stri
       const response = await axios.get(pageUrl);
       const $ = cheerio.load(response.data);
       
-      const pageProducts: any[] = [];
+      const pageProducts: { name: string; slug: string; image: string; categoryId: string; description: string; price: number; stock: number }[] = [];
       
       $(".th-product-card").each((i, el) => {
         const href = $(el).attr("href");
-        let slug = href?.replace("/urun/", "") || `sunix-urun-${Date.now()}-${i}`;
+        const slug = href?.replace("/urun/", "") || `sunix-urun-${Date.now()}-${i}`;
         
         const name = $(el).find(".th-product-card__name").text().trim();
         const imgDataSrc = $(el).find("img").attr("data-src");
@@ -81,7 +81,7 @@ async function scrapeProductsForCategory(categoryUrl: string, dbCategoryId: stri
         }
       }
     } catch (error) {
-      console.error(`Hata oluştu (${pageUrl}):`, error.message);
+      console.error(`Hata oluştu (${pageUrl}):`, error instanceof Error ? error.message : String(error));
       hasMore = false;
     }
     
@@ -155,7 +155,7 @@ async function main() {
 
         totalAdded++;
       } catch (err) {
-        console.error(`Ürün eklenirken hata: ${prodData.name}`, err.message);
+        console.error(`Ürün eklenirken hata: ${prodData.name}`, err instanceof Error ? err.message : String(err));
       }
     }
   }

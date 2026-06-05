@@ -100,7 +100,7 @@ export default function DealerApplicationPage() {
           <h1 className="text-3xl font-black uppercase tracking-tighter text-stone-900">Giriş Yapın</h1>
           <p className="text-stone-500 font-medium">Bayilik başvurusunda bulunmak için öncelikle üye olmalı veya giriş yapmalısınız.</p>
           <div className="pt-4">
-            <Link href="/login" className="flex items-center justify-center w-full bg-stone-900 text-white rounded-2xl h-14 font-black uppercase tracking-widest hover:bg-black transition-colors">
+            <Link href="/login" className="flex items-center justify-center w-full bg-stone-900 text-white rounded-2xl h-14 font-black uppercase tracking-widest hover:bg-black transition-colors" style={{ color: "#ffffff" }}>
               Giriş / Kayıt
             </Link>
           </div>

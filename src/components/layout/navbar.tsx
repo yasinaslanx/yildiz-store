@@ -62,7 +62,7 @@ export function Navbar() {
          </div>
       </div>
 
-      <header className="sticky top-0 z-50 border-b border-stone-100 bg-white/70 backdrop-blur-3xl shadow-sm transition-all duration-500">
+      <header className="sticky top-0 w-full z-50 border-b border-stone-100 bg-white/70 backdrop-blur-3xl shadow-sm transition-all duration-500">
         <div className="mx-auto flex max-w-[1440px] items-center px-6 py-5 gap-4 lg:gap-12">
           
           {/* Mobile Menu Button */}

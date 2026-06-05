@@ -3,9 +3,10 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import { PrismaClient, Prisma } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
-import pg from "pg";
+import { Pool } from "pg";
 
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
@@ -56,12 +57,12 @@ async function scrapeProductsForCategory(categoryUrl: string, dbCategoryId: stri
     const response = await axios.get(categoryUrl);
     const $ = cheerio.load(response.data);
 
-    const products: any[] = [];
+    const products: { name: string; slug: string; image: string; categoryId: string; description: string; price: number; stock: number }[] = [];
 
     $(".th-product-card").each((i, el) => {
       const href = $(el).attr("href");
-      let slug = href?.replace("/urun/", "") || `sunix-urun-${Date.now()}-${i}`;
-      
+      const slug = href?.replace("/urun/", "") || `sunix-urun-${Date.now()}-${i}`;
+
       const name = $(el).find(".th-product-card__name").text().trim();
       const imgDataSrc = $(el).find("img").attr("data-src");
       const imgSrc = $(el).find("img").attr("src");
@@ -82,7 +83,7 @@ async function scrapeProductsForCategory(categoryUrl: string, dbCategoryId: stri
 
     return products;
   } catch (error) {
-    console.error(`Hata oluştu (${categoryUrl}):`, error.message);
+    console.error(`Hata oluştu (${categoryUrl}):`, error instanceof Error ? error.message : String(error));
     return [];
   }
 }
@@ -151,7 +152,7 @@ async function main() {
 
         totalAdded++;
       } catch (err) {
-        console.error(`Ürün eklenirken hata: ${prodData.name}`, err.message);
+        console.error(`Ürün eklenirken hata: ${prodData.name}`, err instanceof Error ? err.message : String(err));
       }
     }
 

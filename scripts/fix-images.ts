@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 import 'dotenv/config';
 import { prisma } from '../src/lib/prisma';
 
@@ -24,7 +24,7 @@ async function run() {
 
   if (!p) return;
 
-  const colorMap = {
+  const colorMap: Record<string, string> = {
     'Siyah Titanyum': '/products/iphone17/black.avif',
     'Beyaz Titanyum': '/products/iphone17/white.avif',
     'Doğal Titanyum': '/products/iphone17/natural.webp',

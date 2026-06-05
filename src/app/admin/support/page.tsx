@@ -102,9 +102,9 @@ export default function AdminSupportPage() {
   };
 
   return (
-    <main className="flex h-[calc(100vh-80px)] bg-white overflow-hidden">
+    <main className="flex flex-col md:flex-row h-[calc(100vh-80px)] bg-white overflow-hidden">
       {/* Sidebar: Session List */}
-      <aside className="w-96 border-r border-stone-100 flex flex-col bg-white">
+      <aside className={`w-full md:w-96 border-r border-stone-100 flex-col bg-white ${selectedSessionId ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-10 border-b border-stone-100">
            <div className="flex items-center gap-3">
               <div className="h-2 w-2 rounded-full bg-stone-900 animate-pulse" />
@@ -156,13 +156,16 @@ export default function AdminSupportPage() {
       </aside>
 
       {/* Main Content: Chat Area */}
-      <section className="flex-1 flex flex-col bg-stone-50/30">
+      <section className={`flex-1 flex-col bg-stone-50/30 ${selectedSessionId ? 'flex' : 'hidden md:flex'}`}>
         {selectedSessionId ? (
           <>
             {/* Chat Header */}
-            <div className="bg-white p-8 border-b border-stone-100 flex justify-between items-center shadow-sm">
-               <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-2xl bg-stone-900 text-white flex items-center justify-center text-lg font-black">
+            <div className="bg-white p-4 md:p-8 border-b border-stone-100 flex justify-between items-center shadow-sm">
+               <div className="flex items-center gap-3 md:gap-4">
+                  <button onClick={() => setSelectedSessionId(null)} className="md:hidden flex h-10 w-10 items-center justify-center rounded-2xl bg-stone-100 text-stone-500 hover:text-stone-900 transition mr-2">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                  </button>
+                  <div className="h-10 w-10 md:h-12 md:w-12 rounded-2xl bg-stone-900 text-white flex items-center justify-center text-lg font-black shrink-0">
                     {sessions.find(s => s.id === selectedSessionId)?.customerName.charAt(0).toUpperCase()}
                   </div>
                   <div>
