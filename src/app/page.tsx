@@ -33,21 +33,15 @@ export default function HomePage() {
                      Sunix Store'un küratörlüğünü yaptığı premium teknoloji ekosistemiyle tanışın.
                   </p>
 
-                  <div className="flex flex-wrap gap-4 pt-6">
+                  <div className="mt-12 flex flex-col sm:flex-row items-center gap-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
                      <Link
                         href="/products"
-                        className="group flex items-center gap-3 rounded-full border-2 border-black bg-white px-10 py-5 md:px-12 md:py-6 text-xs font-black uppercase tracking-widest text-stone-900 transition hover:bg-stone-50 active:scale-95 shadow-xl shadow-stone-100"
+                        className="group flex items-center gap-4 rounded-full border-2 border-black bg-white px-12 py-6 text-xs font-black uppercase tracking-widest text-stone-900 transition hover:bg-stone-50 active:scale-95 shadow-xl shadow-stone-200/50"
                      >
                         Koleksiyonu Keşfet
                         <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                            <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                         </svg>
-                     </Link>
-                     <Link
-                        href="/products/iphone-17-pro-max"
-                        className="rounded-full border-2 border-stone-200 bg-white px-12 py-6 text-xs font-black uppercase tracking-widest text-stone-900 transition hover:border-black active:scale-95"
-                     >
-                        iPhone 17 Pro Max
                      </Link>
                   </div>
                </div>

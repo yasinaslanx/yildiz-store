@@ -43,22 +43,17 @@ export function Navbar() {
 
   return (
     <>
-      {/* Announcement Bar */}
-      <div className="relative z-[60] bg-stone-50 border-b border-stone-100 py-3 px-6 hidden sm:block">
-         <div className="mx-auto max-w-[1440px] flex items-center justify-between">
-            <div className="flex items-center gap-4">
-               <span className="inline-flex items-center rounded-full bg-stone-900 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-white">
-                  YENİ
-               </span>
-               <p className="text-[10px] font-bold text-stone-400 uppercase tracking-[0.2em]">
-                  İLK ALIŞVERİŞE ÖZEL %10 İNDİRİM FIRSATI!
-               </p>
-            </div>
-            <div className="flex items-center gap-8">
-               <CurrencySelector />
-               <Link href="/contact" className="text-[9px] font-black text-stone-400 hover:text-stone-900 transition uppercase tracking-[0.2em]">Destek Merkezi</Link>
-               <Link href="/stores" className="text-[9px] font-black text-stone-400 hover:text-stone-900 transition uppercase tracking-[0.2em]">Mağazalarımız</Link>
-            </div>
+      {/* Announcement Bar Marquee */}
+      <div className="relative z-[60] bg-stone-900 text-white py-2.5 overflow-hidden flex items-center border-b border-stone-800">
+         <div className="flex animate-marquee whitespace-nowrap w-max">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="flex items-center gap-12 px-6 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] flex-shrink-0">
+                 <span>2199₺ ve üzeri siparişlerinizde <span className="text-stone-400">ücretsiz* kargo</span></span>
+                 <span className="h-1 w-1 rounded-full bg-stone-700" />
+                 <span>Hafta içi saat 14.00'dan önce verilen siparişler <span className="text-stone-400">aynı gün kargoya teslim edilir.</span></span>
+                 <span className="h-1 w-1 rounded-full bg-stone-700" />
+              </div>
+            ))}
          </div>
       </div>
 
