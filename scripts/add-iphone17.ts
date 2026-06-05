@@ -2,9 +2,8 @@ import 'dotenv/config';
 import { prisma } from '../src/lib/prisma';
 
 async function main() {
-  console.log('iPhone 17 Pro Max ekleniyor...');
+  console.log('iPhone 17 Pro Max güncelleniyor...');
 
-  // Telefon kategorisini bul
   const category = await prisma.category.findUnique({
     where: { slug: 'phones' }
   });
@@ -14,73 +13,91 @@ async function main() {
     return;
   }
 
-  // Ürünü oluştur veya bul
-  let product = await prisma.product.findUnique({
-    where: { slug: 'iphone-17-pro-max' }
+  // Ürünü bul veya oluştur
+  const product = await prisma.product.upsert({
+    where: { slug: 'iphone-17-pro-max' },
+    update: {
+      description: 'Yeni iPhone 17 Pro Max. Çarpıcı Derin Mavi, Kozmik Turuncu ve Gümüş renk seçenekleriyle. Kusursuz performans ve inanılmaz kamera yetenekleri.',
+    },
+    create: {
+      name: 'iPhone 17 Pro Max',
+      slug: 'iphone-17-pro-max',
+      brand: 'Apple',
+      categoryId: category.id,
+      description: 'Yeni iPhone 17 Pro Max. Çarpıcı Derin Mavi, Kozmik Turuncu ve Gümüş renk seçenekleriyle. Kusursuz performans ve inanılmaz kamera yetenekleri.',
+      featured: true,
+      active: true
+    }
   });
 
-  if (!product) {
-    product = await prisma.product.create({
-      data: {
-        name: 'iPhone 17 Pro Max',
-        slug: 'iphone-17-pro-max',
-        brand: 'Apple',
-        categoryId: category.id,
-        description: 'Apple Intelligence için tasarlandı. Yeni nesil işlemci, olağanüstü kamera yetenekleri ve titanyum tasarım. Geleceği şimdi deneyimleyin.',
-        featured: true,
-        active: true
-      }
+  // Eski varyantları ve resimlerini temizle ki yenilerini sıfırdan ekleyelim
+  const oldVariants = await prisma.productVariant.findMany({
+    where: { productId: product.id }
+  });
+  const oldVariantIds = oldVariants.map(v => v.id);
+
+  if (oldVariantIds.length > 0) {
+    await prisma.cartItem.deleteMany({
+      where: { variantId: { in: oldVariantIds } }
     });
+    // In case there are other relations like OrderItem or Favorite
+    try {
+      await prisma.favorite.deleteMany({
+        where: { productId: product.id }
+      });
+    } catch(e) {}
   }
 
+  await prisma.productImage.deleteMany({
+    where: { productId: product.id }
+  });
+  await prisma.productVariant.deleteMany({
+    where: { productId: product.id }
+  });
+
   const colors = [
-    { name: 'Siyah Titanyum', img: 'https://placehold.co/600x600/1a1a1a/ffffff?text=Siyah+Titanyum' },
-    { name: 'Beyaz Titanyum', img: 'https://placehold.co/600x600/f5f5f5/000000?text=Beyaz+Titanyum' },
-    { name: 'Doğal Titanyum', img: 'https://placehold.co/600x600/a39b93/ffffff?text=Dogal+Titanyum' },
-    { name: 'Çöl Titanyumu', img: 'https://placehold.co/600x600/c7b299/ffffff?text=Col+Titanyumu' }
+    { name: 'Kozmik Turuncu', img: '/images/iphone17/iphone17promax.avif' },
+    { name: 'Gümüş', img: '/images/iphone17/İphone17ProMaxBeyaz.avif' },
+    { name: 'Derin Mavi', img: '/images/iphone17/İphone17ProMaxMavi.webp' },
   ];
 
   const storages = [
-    { size: '256 GB', price: 99999 },
-    { size: '512 GB', price: 109999 },
-    { size: '1 TB', price: 119999 }
+    { size: '256 GB', price: 132999 },
+    { size: '512 GB', price: 146999 },
+    { size: '1 TB', price: 160999 },
+    { size: '2 TB', price: 188999 }
   ];
 
   for (const color of colors) {
     for (const storage of storages) {
+      // Create a URL-safe, unique SKU
       const sku = `IPH17PM-${color.name.substring(0,3).toUpperCase()}-${storage.size.replace(' ','')}`;
       
-      const existingVariant = await prisma.productVariant.findUnique({
-        where: { sku }
+      const variant = await prisma.productVariant.create({
+        data: {
+          productId: product.id,
+          sku,
+          color: color.name,
+          storage: storage.size,
+          price: storage.price,
+          stock: Math.floor(Math.random() * 20) + 5,
+          active: true
+        }
       });
 
-      if (!existingVariant) {
-        const variant = await prisma.productVariant.create({
-          data: {
-            productId: product.id,
-            sku,
-            color: color.name,
-            storage: storage.size,
-            price: storage.price,
-            stock: Math.floor(Math.random() * 20) + 5, // Rastgele stok
-            active: true
-          }
-        });
-
-        // Resim ekle
-        await prisma.productImage.create({
-          data: {
-            productId: product.id,
-            variantId: variant.id,
-            url: color.img,
-            order: 0
-          }
-        });
-      }
+      // Resim ekle
+      await prisma.productImage.create({
+        data: {
+          productId: product.id,
+          variantId: variant.id,
+          url: color.img,
+          order: 0
+        }
+      });
     }
   }
 
-  console.log('iPhone 17 Pro Max ve varyantları başarıyla eklendi!');
+  console.log('iPhone 17 Pro Max bilgileri Apple TR güncel verisiyle başarıyla güncellendi!');
 }
 
 main()

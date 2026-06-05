@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCart } from "@/store/cart-store";
 import { useFavorites } from "@/store/favorites-store";
 import { useAuth } from "@/store/auth-store";
@@ -30,6 +30,11 @@ export function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const currentCategory = searchParams.get("category");
 
@@ -148,7 +153,7 @@ export function Navbar() {
               {pathname === "/contact" && <span className="absolute -bottom-2 left-0 h-[3px] w-full rounded-full bg-stone-900 animate-in fade-in zoom-in-50 duration-500" />}
             </Link>
             
-            {user?.role === "admin" && (
+            {isMounted && user?.role === "admin" && (
               <Link
                 href="/admin/support"
                 className={`relative text-[10px] font-black uppercase tracking-[0.25em] transition-all duration-300 px-4 py-2 rounded-xl bg-stone-50 border border-stone-100 hover:border-black ${
@@ -209,7 +214,7 @@ export function Navbar() {
             <div className="h-8 w-px bg-stone-100 hidden sm:block" />
 
             {/* Auth Section */}
-            {isAuthenticated ? (
+            {isMounted ? (isAuthenticated ? (
               <div className="flex items-center gap-4">
                 <Link href="/profile" className="hidden flex-col items-end sm:flex group transition">
                   <p className="text-[8px] font-black uppercase tracking-widest text-stone-300 group-hover:text-stone-900">Hesabım</p>
@@ -222,23 +227,19 @@ export function Navbar() {
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                 </button>
-
               </div>
             ) : (
-              <div className="hidden sm:flex items-center gap-3">
-                <Link
-                  href="/login"
-                  className="cursor-pointer rounded-2xl border-2 border-stone-100 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-stone-900 transition hover:border-black hover:bg-white"
-                >
-                  Giriş
-                </Link>
-                <Link
-                  href="/register"
-                  className="cursor-pointer hidden rounded-2xl border-2 border-black bg-white px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-stone-900 transition hover:bg-stone-50 sm:block shadow-lg shadow-stone-100"
-                >
-                  Kayıt
-                </Link>
-              </div>
+              <Link href="/login" className="hidden sm:flex items-center gap-3 group">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-stone-50 text-stone-400 transition-all duration-300 group-hover:bg-stone-900 group-hover:text-white group-active:scale-95">
+                  <User size={18} strokeWidth={2.5} />
+                </div>
+                <div className="hidden text-left xl:block">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-stone-400 transition-colors group-hover:text-stone-900">Hesabım</p>
+                  <p className="text-xs font-black text-stone-900 leading-none mt-1">Giriş Yap</p>
+                </div>
+              </Link>
+            )) : (
+              <div className="hidden sm:flex items-center gap-3 w-[120px]"></div>
             )}
           </div>
         </div>
@@ -293,7 +294,7 @@ export function Navbar() {
                  </form>
 
                 {/* Auth State */}
-                {isAuthenticated ? (
+                {isMounted ? (isAuthenticated ? (
                   <div className="mb-10 p-6 rounded-[2.5rem] bg-stone-50 border border-stone-100">
                     <div className="flex items-center gap-4">
                       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm text-stone-900 font-black">
@@ -338,7 +339,7 @@ export function Navbar() {
                       Kayıt Ol
                     </Link>
                   </div>
-                )}
+                )) : null}
 
                 {/* Main Navigation */}
                 <div className="space-y-4">
@@ -373,7 +374,7 @@ export function Navbar() {
                       <span className="italic tracking-tighter">Bayilik Başvurusu</span>
                       <ChevronRight size={16} className="text-stone-300" />
                     </Link>
-                    {user?.role === "admin" && (
+                    {isMounted && user?.role === "admin" && (
                        <Link
                         href="/admin/support"
                         onClick={() => setIsMobileMenuOpen(false)}

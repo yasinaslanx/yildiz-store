@@ -39,52 +39,46 @@ export const products: Product[] = [
     variants: [
       {
         id: "p1-v1",
-        color: "Blue Titanium",
+        color: "Kozmik Turuncu",
         storage: "256 GB",
-        price: 99999,
+        price: 132999,
         stock: 7,
-        sku: "APL-17PM-BLU-256",
+        sku: "IPH17PM-KOZ-256GB",
         images: [
-          "/images/iphone17/blue-1.webp",
-          "/images/iphone17/blue-2.webp",
-          "/images/iphone17/blue-3.webp",
+          "/images/iphone17/iphone17promax.avif"
         ],
       },
       {
         id: "p1-v2",
-        color: "Blue Titanium",
+        color: "Gümüş",
         storage: "512 GB",
-        price: 109999,
+        price: 146999,
         stock: 5,
-        sku: "APL-17PM-BLU-512",
+        sku: "IPH17PM-GUM-512GB",
         images: [
-          "/images/iphone17/blue-1.webp",
-          "/images/iphone17/blue-2.webp",
-          "/images/iphone17/blue-3.webp",
+          "/images/iphone17/İphone17ProMaxBeyaz.avif"
         ],
       },
       {
         id: "p1-v3",
-        color: "White Titanium",
-        storage: "256 GB",
-        price: 99999,
+        color: "Derin Mavi",
+        storage: "1 TB",
+        price: 160999,
         stock: 4,
-        sku: "APL-17PM-WHT-256",
+        sku: "IPH17PM-DER-1TB",
         images: [
-          "/images/iphone17/white-1.avif",
-          "/images/iphone17/white-2.avif",
+          "/images/iphone17/İphone17ProMaxMavi.webp"
         ],
       },
       {
         id: "p1-v4",
-        color: "Desert Titanium",
-        storage: "1 TB",
-        price: 124999,
+        color: "Gümüş",
+        storage: "2 TB",
+        price: 188999,
         stock: 3,
-        sku: "APL-17PM-DSR-1TB",
+        sku: "IPH17PM-GUM-2TB",
         images: [
-          "/images/iphone17/desert-1.avif",
-          "/images/iphone17/desert-2.avif",
+          "/images/iphone17/İphone17ProMaxBeyaz.avif"
         ],
       },
     ],
