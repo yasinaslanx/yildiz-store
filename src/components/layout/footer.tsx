@@ -29,65 +29,6 @@ const FOOTER_LINKS = {
 export function Footer() {
   return (
     <footer className="border-t border-stone-100 bg-white">
-      {/* Top Section: Trust Badges */}
-      <div className="border-b-2 border-stone-100">
-        <div className="mx-auto max-w-[1440px] divide-x-2 divide-stone-100 grid grid-cols-2 md:grid-cols-4">
-           {[
-             {
-               title: "Hızlı Teslimat",
-               desc: "24 Saatte Kargoda",
-               icon: (
-                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                   <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/>
-                   <rect x="9" y="11" width="14" height="10" rx="2"/>
-                   <circle cx="12" cy="21" r="1"/>
-                   <circle cx="20" cy="21" r="1"/>
-                 </svg>
-               )
-             },
-             {
-               title: "Güvenli Ödeme",
-               desc: "256-bit SSL Koruma",
-               icon: (
-                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                   <polyline points="9 12 11 14 15 10"/>
-                 </svg>
-               )
-             },
-             {
-               title: "Orijinal Ürün",
-               desc: "%100 Marka Garantisi",
-               icon: (
-                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                 </svg>
-               )
-             },
-             {
-               title: "Kolay İade",
-               desc: "14 Gün İçinde İade",
-               icon: (
-                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                   <polyline points="1 4 1 10 7 10"/>
-                   <path d="M3.51 15a9 9 0 1 0 .49-3.49"/>
-                 </svg>
-               )
-             }
-           ].map((badge, i) => (
-             <div key={i} className="flex items-center gap-4 px-8 py-8">
-                <div className="flex-shrink-0 h-12 w-12 rounded-2xl border-2 border-stone-100 bg-stone-50 flex items-center justify-center text-stone-700">
-                   {badge.icon}
-                </div>
-                <div>
-                   <p className="text-xs font-black uppercase tracking-tight text-stone-900">{badge.title}</p>
-                   <p className="mt-0.5 text-[10px] font-bold text-stone-400 uppercase tracking-wider">{badge.desc}</p>
-                </div>
-             </div>
-           ))}
-        </div>
-      </div>
-
       <div className="mx-auto max-w-7xl px-6 py-16 lg:py-24">
         <div className="grid gap-16 lg:grid-cols-12">
           {/* Brand and Newsletter */}
@@ -107,62 +48,60 @@ export function Footer() {
 
           {/* Links Grid */}
           <div className="lg:col-span-8">
-             <div className="grid grid-cols-2 gap-10 md:grid-cols-4 divide-x-0 md:divide-x divide-stone-100">
-                <div className="space-y-6 md:pl-0">
-                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Alışveriş</h4>
-                   <ul className="space-y-4">
-                      {FOOTER_LINKS.shop.map(link => (
-                        <li key={link.label}>
-                           <Link href={link.href} className="group flex items-center gap-2 text-sm font-bold text-stone-600 hover:text-stone-900 transition-all">
-                              <span className="h-1 w-0 rounded-full bg-stone-900 transition-all group-hover:w-2" />
-                              {link.label}
-                           </Link>
-                        </li>
-                      ))}
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
+                {/* Column 1: Menu */}
+                <div className="space-y-6">
+                   <h4 className="font-bold text-stone-900">Menu</h4>
+                   <ul className="space-y-4 text-sm font-medium text-stone-500">
+                      <li><Link href="/products" className="hover:text-stone-900 transition-colors">Ara</Link></li>
+                      <li><Link href="/contact" className="hover:text-stone-900 transition-colors">İletişim</Link></li>
+                      <li><Link href="/products?category=outlet" className="hover:text-stone-900 transition-colors">Outlet</Link></li>
+                      <li><Link href="#" className="hover:text-stone-900 transition-colors">Gizlilik Politikası</Link></li>
+                      <li><Link href="#" className="hover:text-stone-900 transition-colors">Mesafeli Satış Sözleşmesi</Link></li>
+                      <li><Link href="#" className="hover:text-stone-900 transition-colors">İade Koşulları</Link></li>
+                      <li><Link href="#" className="hover:text-stone-900 transition-colors">Kargo ve Teslimat Bilgileri</Link></li>
+                      <li><Link href="#" className="hover:text-stone-900 transition-colors">Ürün talep et</Link></li>
+                      <li><span className="hover:text-stone-900 transition-colors cursor-pointer">ETBİS'e Kayıtlıdır</span></li>
                    </ul>
                 </div>
-                <div className="space-y-6 md:pl-10">
-                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Destek</h4>
-                   <ul className="space-y-4">
-                      {FOOTER_LINKS.support.map(link => (
-                        <li key={link.label}>
-                           <Link href={link.href} className="group flex items-center gap-2 text-sm font-bold text-stone-600 hover:text-stone-900 transition-all">
-                              <span className="h-1 w-0 rounded-full bg-stone-900 transition-all group-hover:w-2" />
-                              {link.label}
-                           </Link>
-                        </li>
-                      ))}
-                   </ul>
+
+                {/* Column 2: Destek Hattı */}
+                <div className="space-y-6">
+                   <h4 className="font-bold text-stone-900">Destek Hattı</h4>
+                   <div className="space-y-6 text-sm font-medium text-stone-500">
+                      <div>
+                         <p className="font-bold text-stone-900">E-mail Adresimiz:</p>
+                         <p className="mt-1 hover:text-stone-900 transition-colors cursor-pointer">destek@sunixstore.com</p>
+                      </div>
+                      <div>
+                         <p className="font-bold text-stone-900">Telefon:</p>
+                         <p className="mt-1">+90 540 082 82 63</p>
+                      </div>
+                      <div>
+                         <p className="font-bold text-stone-900">İş Birliği Talepleriniz İçin:</p>
+                         <p className="mt-1 hover:text-stone-900 transition-colors cursor-pointer">isbirligi@sunixstore.com</p>
+                      </div>
+                      <div>
+                         <p className="font-bold text-stone-900">Toplu Satın Alım Talepleriniz İçin (For distribution cooperation inquiries):</p>
+                         <p className="mt-1 hover:text-stone-900 transition-colors cursor-pointer">sales@sunixstore.com</p>
+                      </div>
+                      <div>
+                         <p className="font-bold text-stone-900">Canlı Destek</p>
+                         <p className="mt-1 leading-relaxed">Hafta içi <span className="font-bold text-stone-900">10:30 - 17:00</span> saatleri arasında sitenin sağ alt köşesinde canlı destek baloncuğuna ulaşabilirsiniz.</p>
+                      </div>
+
+                   </div>
                 </div>
-                <div className="space-y-6 md:pl-10">
-                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Kurumsal</h4>
-                   <ul className="space-y-4">
-                      {FOOTER_LINKS.corporate.map(link => (
-                        <li key={link.label}>
-                           <Link href={link.href} className="group flex items-center gap-2 text-sm font-bold text-stone-600 hover:text-stone-900 transition-all">
-                              <span className="h-1 w-0 rounded-full bg-stone-900 transition-all group-hover:w-2" />
-                              {link.label}
-                           </Link>
-                        </li>
-                      ))}
-                   </ul>
-                </div>
-                <div className="space-y-6 md:pl-10">
-                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">İletişim</h4>
-                   <ul className="space-y-4">
-                      <li className="space-y-1">
-                        <p className="text-[10px] font-black uppercase text-stone-300">E-posta</p>
-                        <p className="text-sm font-bold text-stone-900">destek@sunixstore.com</p>
-                      </li>
-                      <li className="space-y-1">
-                        <p className="text-[10px] font-black uppercase text-stone-300">Telefon</p>
-                        <p className="text-sm font-bold text-stone-900">0850 123 45 67</p>
-                      </li>
-                      <li className="space-y-1">
-                        <p className="text-[10px] font-black uppercase text-stone-300">Çalışma Saatleri</p>
-                        <p className="text-sm font-bold text-stone-600">Hafta içi: 09:00 - 18:00</p>
-                      </li>
-                   </ul>
+
+                {/* Column 3: Adreslerimiz */}
+                <div className="space-y-6">
+                   <h4 className="font-bold text-stone-900">Adreslerimiz</h4>
+                   <div className="space-y-8 text-sm font-medium text-stone-500">
+                      <div>
+                         <p className="font-bold text-stone-900 mb-2">Merkez Ofis</p>
+                         <p className="leading-relaxed">Şanlıurfa Siverek</p>
+                      </div>
+                   </div>
                 </div>
              </div>
           </div>

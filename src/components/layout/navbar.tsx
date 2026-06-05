@@ -76,37 +76,63 @@ export function Navbar() {
 
           {/* Navigation - Spaced out */}
           <nav className="hidden xl:flex items-center gap-10">
-            {navItems.map((item) => {
-              const isProductsPage = item.href.startsWith("/products");
-              const itemUrl = new URL(item.href, "http://localhost");
-              const itemCategory = itemUrl.searchParams.get("category");
+            <Link href="/" className={`relative text-[10px] font-black uppercase tracking-[0.25em] transition-all duration-300 hover:text-stone-900 ${pathname === "/" ? "text-stone-900" : "text-stone-400"}`}>
+              Ana Sayfa
+              {pathname === "/" && <span className="absolute -bottom-2 left-0 h-[3px] w-full rounded-full bg-stone-900 animate-in fade-in zoom-in-50 duration-500" />}
+            </Link>
 
-              let isActive = false;
+            <div className="group relative">
+              <Link href="/products" className={`flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.25em] transition-all duration-300 hover:text-stone-900 ${pathname.startsWith("/products") ? "text-stone-900" : "text-stone-400"}`}>
+                Kategoriler
+                <svg className="w-3 h-3 group-hover:rotate-180 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" /></svg>
+                {pathname.startsWith("/products") && <span className="absolute -bottom-2 left-0 h-[3px] w-full rounded-full bg-stone-900 animate-in fade-in zoom-in-50 duration-500" />}
+              </Link>
 
-              if (item.href === "/") {
-                isActive = pathname === "/";
-              } else if (isProductsPage) {
-                // Sadece pathname tutmalı VE kategori eşleşmeli (null === null durumu "Tüm Ürünler" için geçerli)
-                isActive = pathname === "/products" && currentCategory === itemCategory;
-              } else {
-                isActive = pathname === item.href;
-              }
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`relative text-[10px] font-black uppercase tracking-[0.25em] transition-all duration-300 hover:text-stone-900 ${
-                    isActive ? "text-stone-900" : "text-stone-400"
-                  }`}
-                >
-                  {item.label}
-                  {isActive && (
-                    <span className="absolute -bottom-2 left-0 h-[3px] w-full rounded-full bg-stone-900 animate-in fade-in zoom-in-50 duration-500" />
-                  )}
-                </Link>
-              );
-            })}
+              {/* Mega Menu Dropdown */}
+              <div className="absolute left-0 top-full pt-8 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                <div className="w-[1050px] bg-white rounded-[2.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] border border-stone-100 p-12 grid grid-cols-4 gap-12">
+                   {/* Column 1 */}
+                   <div className="space-y-6">
+                      <h4 className="text-xs font-black uppercase tracking-[0.2em] text-stone-400 border-b border-stone-100 pb-4">Akıllı Telefonlar</h4>
+                      <ul className="space-y-5">
+                         <li><Link href="/products?category=phones" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Tüm Telefonlar</Link></li>
+                         <li><Link href="/products?brand=Apple" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Apple iPhone</Link></li>
+                         <li><Link href="/products?brand=Samsung" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Samsung Galaxy</Link></li>
+                      </ul>
+                   </div>
+                   {/* Column 2 */}
+                   <div className="space-y-6">
+                      <h4 className="text-xs font-black uppercase tracking-[0.2em] text-stone-400 border-b border-stone-100 pb-4">Aksesuarlar</h4>
+                      <ul className="space-y-5">
+                         <li><Link href="/products?category=phone-accessories" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Kılıflar & Kapaklar</Link></li>
+                         <li><Link href="/products?q=ekran" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Ekran Koruyucular</Link></li>
+                         <li><Link href="/products?q=şarj" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Şarj Aletleri & Kablolar</Link></li>
+                         <li><Link href="/products?q=powerbank" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Powerbank</Link></li>
+                      </ul>
+                   </div>
+                   {/* Column 3 */}
+                   <div className="space-y-6">
+                      <h4 className="text-xs font-black uppercase tracking-[0.2em] text-stone-400 border-b border-stone-100 pb-4">Ses ve Giyilebilir</h4>
+                      <ul className="space-y-5">
+                         <li><Link href="/products?q=kulaklık" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Bluetooth Kulaklık</Link></li>
+                         <li><Link href="/products?q=saat" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Akıllı Saatler</Link></li>
+                         <li><Link href="/products?q=hoparlör" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Hoparlör</Link></li>
+                      </ul>
+                   </div>
+                   {/* Column 4 - Highlight */}
+                   <div className="bg-stone-50 rounded-3xl p-8 flex flex-col items-center justify-center text-center border border-stone-100 group/banner hover:border-black transition-colors cursor-pointer">
+                      <div className="bg-stone-900 text-white text-[9px] font-black px-3 py-1.5 rounded-md uppercase tracking-widest mb-5">ÖNE ÇIKAN</div>
+                      <h4 className="text-base font-black text-stone-900 uppercase italic tracking-tight mb-3">Sunix Premium Kılıf Serisi</h4>
+                      <Link href="/products?category=phone-accessories" className="mt-4 text-[10px] font-black uppercase tracking-widest text-stone-900 underline underline-offset-4 group-hover/banner:text-stone-500 transition">Hemen İncele</Link>
+                   </div>
+                </div>
+              </div>
+            </div>
+            
+            <Link href="/contact" className={`relative text-[10px] font-black uppercase tracking-[0.25em] transition-all duration-300 hover:text-stone-900 ${pathname === "/contact" ? "text-stone-900" : "text-stone-400"}`}>
+              İletişim
+              {pathname === "/contact" && <span className="absolute -bottom-2 left-0 h-[3px] w-full rounded-full bg-stone-900 animate-in fade-in zoom-in-50 duration-500" />}
+            </Link>
             
             {user?.role === "admin" && (
               <Link
@@ -237,7 +263,21 @@ export function Navbar() {
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto p-8 scrollbar-hide">
+              <div className="flex-1 overflow-y-auto p-8 scrollbar-hide space-y-10">
+                 {/* Mobile Search */}
+                 <form onSubmit={(e) => { handleSearch(e); setIsMobileMenuOpen(false); }} className="relative block lg:hidden">
+                    <input 
+                      type="text" 
+                      placeholder="Ürün veya model ara..." 
+                      className="w-full rounded-2xl border border-stone-100 bg-stone-50/50 px-6 py-4 text-xs font-bold text-stone-900 outline-none focus:border-black focus:bg-white focus:ring-4 focus:ring-stone-100 transition-all pr-12"
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                    />
+                    <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-900 transition scale-110">
+                       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    </button>
+                 </form>
+
                 {/* Auth State */}
                 {isAuthenticated ? (
                   <div className="mb-10 p-6 rounded-[2.5rem] bg-stone-50 border border-stone-100">
