@@ -156,14 +156,13 @@ export function ProductDetailView({ product }: { product: Product }) {
         />
       </div>
 
-      <div className="grid gap-20 lg:grid-cols-[1fr_500px]">
-        <div className="space-y-32">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_500px] gap-8 lg:gap-20">
+        <div className="order-1 lg:col-start-1 lg:row-start-1">
           <ProductGallery images={colorImages} alt={`${product.name} ${selectedColor}`} />
-          <ProductInfoSections product={product} />
         </div>
 
-        <div className="lg:sticky lg:top-32 h-fit space-y-16">
-          <div className="space-y-10">
+        <div className="order-2 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:sticky lg:top-32 h-fit space-y-8 lg:space-y-16">
+          <div className="space-y-6 lg:space-y-10">
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-2">
                  <p className="text-[11px] font-black uppercase tracking-[0.4em] text-stone-400">{product.brand}</p>
@@ -188,8 +187,8 @@ export function ProductDetailView({ product }: { product: Product }) {
                />
             </div>
 
-            <div className="space-y-6">
-               <h1 className="text-6xl font-black tracking-tighter text-stone-900 uppercase leading-[0.9] italic lg:text-7xl">
+            <div className="space-y-4 lg:space-y-6">
+               <h1 className="text-4xl lg:text-7xl font-black tracking-tighter text-stone-900 uppercase leading-[0.9] italic">
                  {product.name}
                </h1>
                
@@ -258,8 +257,8 @@ export function ProductDetailView({ product }: { product: Product }) {
             </div>
           </div>
 
-          <div className="space-y-12">
-            <div className="space-y-10">
+          <div className="space-y-8 lg:space-y-12">
+            <div className="space-y-6 lg:space-y-10">
               <VariantSelector
                 label="Renk Seçimi"
                 type="color"
@@ -284,7 +283,7 @@ export function ProductDetailView({ product }: { product: Product }) {
               )}
             </div>
 
-            <div className="space-y-8">
+            <div className="space-y-6 lg:space-y-8">
               {selectedVariant.stock > 0 ? (
                 <div className="flex flex-col gap-4">
                   <button
@@ -337,9 +336,13 @@ export function ProductDetailView({ product }: { product: Product }) {
             </div>
           </div>
         </div>
+
+        <div className="order-3 lg:col-start-1 lg:row-start-2">
+          <ProductInfoSections product={product} />
+        </div>
       </div>
 
-      <div className="mt-40 border-t border-stone-100 pt-40 space-y-40">
+      <div className="mt-16 lg:mt-40 border-t border-stone-100 pt-16 lg:pt-40 space-y-16 lg:space-y-40">
          <ProductReviews productSlug={product.slug} productId={product.id} />
          <ProductQuestions productSlug={product.slug} productId={product.id} />
          <RecommendedProducts 

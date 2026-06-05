@@ -109,9 +109,9 @@ export function ProductInfoSections({ product }: { product: any }) {
   const boxContent = getBoxContent();
 
   return (
-    <div className="mt-20 lg:mt-32 space-y-20 lg:space-y-32">
+    <div className="mt-12 lg:mt-32 space-y-12 lg:space-y-32">
       {/* 1. Güven & Öne Çıkanlar Barı */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8">
         {[
           { icon: <Truck className="h-6 w-6" />, title: "Ücretsiz Kargo", desc: "Tüm siparişlerde geçerli" },
           { icon: <RotateCcw className="h-6 w-6" />, title: "14 Gün İade", desc: "Koşulsuz iade garantisi" },
@@ -126,10 +126,10 @@ export function ProductInfoSections({ product }: { product: any }) {
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-[1fr_0.4fr] gap-20">
+      <div className="grid lg:grid-cols-[1fr_0.4fr] gap-12 lg:gap-20">
         {/* Sol Taraf: Özellikler & Bilgiler */}
         <div className="space-y-4">
-          <div className="flex items-center gap-6 mb-12">
+          <div className="flex items-center gap-4 lg:gap-6 mb-8 lg:mb-12">
             <h2 className="text-4xl font-black uppercase tracking-tighter text-stone-900 italic">Ürün Bilgileri</h2>
             <div className="h-px flex-1 bg-stone-100" />
           </div>
