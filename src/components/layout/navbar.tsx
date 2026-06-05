@@ -57,6 +57,25 @@ export function Navbar() {
          </div>
       </div>
 
+      {/* Secondary Bar */}
+      <div className="relative z-[60] bg-stone-50 border-b border-stone-100 py-3 px-6 hidden sm:block">
+         <div className="mx-auto max-w-[1440px] flex items-center justify-between">
+            <div className="flex items-center gap-4">
+               <span className="inline-flex items-center rounded-full bg-stone-900 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-white">
+                  YENİ
+               </span>
+               <p className="text-[10px] font-bold text-stone-400 uppercase tracking-[0.2em]">
+                  İLK ALIŞVERİŞE ÖZEL %10 İNDİRİM FIRSATI!
+               </p>
+            </div>
+            <div className="flex items-center gap-8">
+               <CurrencySelector />
+               <Link href="/contact" className="text-[9px] font-black text-stone-400 hover:text-stone-900 transition uppercase tracking-[0.2em]">Destek Merkezi</Link>
+               <Link href="/stores" className="text-[9px] font-black text-stone-400 hover:text-stone-900 transition uppercase tracking-[0.2em]">Mağazalarımız</Link>
+            </div>
+         </div>
+      </div>
+
       <header className="sticky top-0 w-full z-50 border-b border-stone-100 bg-white/70 backdrop-blur-3xl shadow-sm transition-all duration-500">
         <div className="mx-auto flex max-w-[1440px] items-center px-6 py-5 gap-4 lg:gap-12">
           
