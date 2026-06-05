@@ -202,7 +202,12 @@ export function ProductDetailView({ product }: { product: Product }) {
                      </div>
                   </div>
                   <div className="h-4 w-px bg-stone-100" />
-                  <p className="text-[10px] font-black text-stone-900 underline underline-offset-8 tracking-widest uppercase italic cursor-pointer hover:text-stone-500 transition">Tüm Yorumları Gör</p>
+                  <button 
+                    onClick={() => document.getElementById('reviews')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                    className="text-[10px] font-black text-stone-900 underline underline-offset-8 tracking-widest uppercase italic cursor-pointer hover:text-stone-500 transition"
+                  >
+                    Tüm Yorumları Gör
+                  </button>
                </div>
             </div>
 

@@ -29,6 +29,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "sunix.tr",
       },
+      {
+        protocol: "https",
+        hostname: "store.storeimages.cdn-apple.com",
+      },
     ],
   },
 };

@@ -146,14 +146,14 @@ export function ProductCard({ product }: ProductCardProps) {
              </h3>
            </Link>
            
-           <div className="flex items-center gap-3">
+           <Link href={`/products/${product.slug}#reviews`} className="flex items-center gap-3 group/rating hover:opacity-80 transition-opacity">
               <div className="flex text-stone-900">
                  {[...Array(5)].map((_, i) => (
                    <Star key={i} className={`h-2.5 w-2.5 ${i < Math.floor(rating) ? "fill-current" : "text-stone-100"}`} />
                  ))}
               </div>
-              <p className="text-[10px] font-black text-stone-900 underline underline-offset-4 tracking-widest uppercase italic">Yorumlar</p>
-           </div>
+              <p className="text-[10px] font-black text-stone-900 underline underline-offset-4 tracking-widest uppercase italic group-hover/rating:text-stone-600">Yorumlar (1)</p>
+           </Link>
         </div>
 
         {/* Fiyat Alanı */}

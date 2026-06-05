@@ -8,9 +8,10 @@ type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl";
 };
 
-export function Modal({ isOpen, onClose, children }: ModalProps) {
+export function Modal({ isOpen, onClose, children, maxWidth = "xl" }: ModalProps) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -21,6 +22,16 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
       document.body.style.overflow = "unset";
     };
   }, [isOpen]);
+
+  const maxWidthClass = {
+    sm: "max-w-sm",
+    md: "max-w-md",
+    lg: "max-w-lg",
+    xl: "max-w-xl",
+    "2xl": "max-w-2xl",
+    "3xl": "max-w-3xl",
+    "4xl": "max-w-4xl",
+  }[maxWidth];
 
   return (
     <AnimatePresence>
@@ -33,20 +44,20 @@ export function Modal({ isOpen, onClose, children }: ModalProps) {
             onClick={onClose}
             className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm" 
           />
+          <button 
+            onClick={onClose}
+            className="fixed right-4 top-4 sm:right-8 sm:top-8 z-[110] h-12 w-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white shadow-2xl transition hover:bg-white/20 flex items-center justify-center"
+          >
+            <X size={24} />
+          </button>
           <motion.div 
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-xl overflow-hidden rounded-[3rem] bg-white shadow-2xl"
+            className={`relative flex flex-col w-full ${maxWidthClass} max-h-[90vh] overflow-hidden rounded-[2rem] sm:rounded-[3rem] bg-white shadow-2xl mt-8 sm:mt-0`}
           >
-            <button 
-              onClick={onClose}
-              className="absolute right-8 top-8 z-10 h-10 w-10 rounded-full bg-stone-50 text-stone-400 transition hover:bg-stone-100 hover:text-stone-900 flex items-center justify-center"
-            >
-              <X size={18} />
-            </button>
-            <div className="p-10 lg:p-12">
+            <div className="p-6 pt-10 sm:p-10 lg:p-12 overflow-y-auto overflow-x-hidden flex-1">
               {children}
             </div>
           </motion.div>

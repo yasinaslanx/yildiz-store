@@ -88,7 +88,7 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} maxWidth="4xl">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl p-2 bg-white rounded-[2rem] overflow-hidden">
         {/* Left: Image */}
         <div className="relative aspect-square md:aspect-auto md:h-[500px] bg-stone-50 rounded-[1.5rem] overflow-hidden">

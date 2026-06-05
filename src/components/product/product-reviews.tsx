@@ -101,7 +101,7 @@ export function ProductReviews({ productSlug, productId }: { productSlug: string
   }
 
   return (
-    <div className="mt-32 space-y-20">
+    <div id="reviews" className="mt-32 space-y-20 scroll-mt-32">
       <div className="flex items-center gap-6">
         <h2 className="text-4xl font-black uppercase tracking-tighter text-stone-900 italic">Değerlendirmeler</h2>
         <div className="h-px flex-1 bg-stone-100" />
