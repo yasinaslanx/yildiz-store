@@ -77,6 +77,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [user?.id]);
 
   const addItem = (item: Omit<CartItem, "quantity">) => {
+    // Optimistic Update: Hemen state'i güncelle
+    setItems((prev) => {
+      const existing = prev.find((x) => x.variantId === item.variantId);
+      if (existing) {
+        return prev.map((x) =>
+          x.variantId === item.variantId
+            ? { ...x, quantity: x.quantity + 1 }
+            : x,
+        );
+      }
+      return [...prev, { ...item, quantity: 1, id: item.id || `${item.productId}-${item.variantId}` }];
+    });
+    
+    toast.success("Ürün sepetinize eklendi.");
+
+    // Arka planda sunucuya istek at
     if (user?.id) {
       void addCartItemRequest({
         variantId: item.variantId,
@@ -85,115 +101,98 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         .then(async () => {
           const dbItems = await fetchCart();
           setItems(dbItems);
-          toast.success("Ürün sepetinize eklendi.");
         })
-        .catch((error) => {
+        .catch(async (error) => {
           console.error("Add Item Error:", error);
+          const dbItems = await fetchCart();
+          setItems(dbItems);
           toast.error(error instanceof Error ? error.message : "Ürün sepete eklenirken hata oluştu.");
         });
-      return;
     }
-
-    setItems((prev) => {
-      const existing = prev.find((x) => x.variantId === item.variantId);
-
-      if (existing) {
-        return prev.map((x) =>
-          x.variantId === item.variantId
-            ? { ...x, quantity: x.quantity + 1 }
-            : x,
-        );
-      }
-
-      return [...prev, { ...item, quantity: 1 }];
-    });
-
-    toast.success("Ürün sepetinize eklendi.");
   };
 
   const removeItem = (id: string) => {
+    // Optimistic Update
+    setItems((prev) => prev.filter((item) => item.id !== id));
+    toast.success("Ürün sepetinizden kaldırıldı.");
+
     if (user?.id) {
       void deleteCartItemRequest(id)
         .then(async () => {
           const dbItems = await fetchCart();
           setItems(dbItems);
-          toast.success("Ürün sepetinizden kaldırıldı.");
         })
         .catch(async (error) => {
           console.error("Remove Item Error:", error);
           const dbItems = await fetchCart();
           setItems(dbItems);
           
-          // Eğer hata "ürün bulunamadı" ise kullanıcı zaten silmiş demektir, hata gösterme
           if (error instanceof Error && (error.message.includes("bulunamadı") || error.message.includes("not found"))) {
             return;
           }
           
           toast.error(error instanceof Error ? error.message : "Ürün silinirken bir hata oluştu.");
         });
-      return;
     }
-
-    setItems((prev) => prev.filter((item) => item.id !== id));
-    toast.success("Ürün sepetinizden kaldırıldı.");
   };
 
   const increaseItem = (id: string) => {
-    if (user?.id) {
-      const item = items.find((x) => x.id === id);
-      if (item) {
-        void updateCartItemRequest(id, item.quantity + 1)
-          .then(async () => {
-            const dbItems = await fetchCart();
-            setItems(dbItems);
-          })
-          .catch(async (error) => {
-            console.error("Increase Item Error:", error);
-            const dbItems = await fetchCart();
-            setItems(dbItems);
-            toast.error(error instanceof Error ? error.message : "Miktar artırılamadı.");
-          });
-      }
-      return;
-    }
+    const currentItem = items.find((x) => x.id === id);
+    if (!currentItem) return;
 
+    // Optimistic Update
     setItems((prev) =>
       prev.map((item) =>
         item.id === id ? { ...item, quantity: item.quantity + 1 } : item,
       ),
     );
+
+    if (user?.id) {
+      void updateCartItemRequest(id, currentItem.quantity + 1)
+        .then(async () => {
+          const dbItems = await fetchCart();
+          setItems(dbItems);
+        })
+        .catch(async (error) => {
+          console.error("Increase Item Error:", error);
+          const dbItems = await fetchCart();
+          setItems(dbItems);
+          toast.error(error instanceof Error ? error.message : "Miktar artırılamadı.");
+        });
+    }
   };
 
   const decreaseItem = (id: string) => {
-    if (user?.id) {
-      const item = items.find((x) => x.id === id);
-      if (item && item.quantity > 1) {
-        void updateCartItemRequest(id, item.quantity - 1)
-          .then(async () => {
-            const dbItems = await fetchCart();
-            setItems(dbItems);
-          })
-          .catch(async (error) => {
-            console.error("Decrease Item Error:", error);
-            const dbItems = await fetchCart();
-            setItems(dbItems);
-            toast.error(error instanceof Error ? error.message : "Miktar azaltılamadı.");
-          });
-      } else if (item && item.quantity === 1) {
-        removeItem(id);
-      }
+    const currentItem = items.find((x) => x.id === id);
+    if (!currentItem) return;
+
+    if (currentItem.quantity === 1) {
+      removeItem(id);
       return;
     }
 
+    // Optimistic Update
     setItems((prev) =>
-      prev
-        .map((item) =>
-          item.id === id
-            ? { ...item, quantity: Math.max(1, item.quantity - 1) }
-            : item,
-        )
-        .filter((item) => item.quantity > 0),
+      prev.map((item) =>
+        item.id === id
+          ? { ...item, quantity: Math.max(1, item.quantity - 1) }
+          : item,
+      ),
     );
+
+    if (user?.id) {
+      void updateCartItemRequest(id, currentItem.quantity - 1)
+        .then(async () => {
+          const dbItems = await fetchCart();
+          setItems(dbItems);
+        })
+        .catch(async (error) => {
+          console.error("Decrease Item Error:", error);
+          const dbItems = await fetchCart();
+          setItems(dbItems);
+          toast.error(error instanceof Error ? error.message : "Miktar azaltılamadı.");
+        });
+    }
   };
 
   const clearCart = () => setItems([]);
