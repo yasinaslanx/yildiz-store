@@ -125,6 +125,60 @@ export const products: Product[] = [
       },
     ],
   },
+  {
+    id: "p4",
+    slug: "apple-magsafe-sarj-cihazi",
+    name: "Apple MagSafe Şarj Cihazı",
+    brand: "Apple",
+    category: "phone-accessories",
+    description: "Hızlı ve güvenilir kablosuz şarj deneyimi sunan orijinal MagSafe şarj cihazı.",
+    variants: [
+      {
+        id: "p4-v1",
+        color: "Beyaz",
+        price: 1299,
+        stock: 50,
+        sku: "APL-MGSF-WHT",
+        images: ["https://placehold.co/600x600/f5f5f4/a8a29e?text=MagSafe"],
+      },
+    ],
+  },
+  {
+    id: "p5",
+    slug: "spigen-ekran-koruyucu",
+    name: "Spigen Glas.tR EZ Fit Ekran Koruyucu",
+    brand: "Spigen",
+    category: "phone-accessories",
+    description: "Kolay kurulum aparatı ile gelen, çizilmelere karşı ultra dayanıklı kırılmaz cam ekran koruyucu.",
+    variants: [
+      {
+        id: "p5-v1",
+        color: "Şeffaf",
+        price: 499,
+        stock: 100,
+        sku: "SPG-GLS-EZ",
+        images: ["https://placehold.co/600x600/f5f5f4/a8a29e?text=Ekran+Koruyucu"],
+      },
+    ],
+  },
+  {
+    id: "p6",
+    slug: "anker-20w-hizli-sarj",
+    name: "Anker PowerPort III 20W Hızlı Şarj Adaptörü",
+    brand: "Anker",
+    category: "phone-accessories",
+    description: "Kompakt boyutlu, telefonunuzu ve tabletinizi güvenle şarj edebilen 20W hızlı şarj adaptörü.",
+    variants: [
+      {
+        id: "p6-v1",
+        color: "Beyaz",
+        price: 349,
+        stock: 35,
+        sku: "ANK-PPRT-20W",
+        images: ["https://placehold.co/600x600/f5f5f4/a8a29e?text=Sarz+Adaptoru"],
+      },
+    ],
+  }
 ];
 
 export function getFeaturedProducts() {

@@ -15,8 +15,8 @@ import { CurrencySelector } from "@/components/ui/currency-selector";
 const navItems = [
   { href: "/", label: "Ana Sayfa" },
   { href: "/products", label: "Tüm Ürünler" },
-  { href: "/products?category=phones", label: "Telefonlar" },
-  { href: "/products?category=phone-accessories", label: "Aksesuarlar" },
+  { href: "/products?category=telefonlar,phones", label: "Telefonlar" },
+  { href: "/products?category=phone-accessories,akilli-saat,bluetooth-kulaklik,kablolu-kulaklik,sarj-aleti,kablo,kapak-kilif,ekran-koruyucu,arac-sarj-fm-modulator,arac-telefon-tutucu,cevirici,depolamasd-urunleri,hoparlor,tasinabilir-pil,lensler,diger-aksesuarlar", label: "Aksesuarlar" },
 ];
 
 export function Navbar() {

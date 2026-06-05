@@ -204,6 +204,69 @@ async function main() {
         },
       ],
     },
+    {
+      categoryId: accessoriesCategory.id,
+      name: "Apple MagSafe Şarj Cihazı",
+      slug: "apple-magsafe-sarj-cihazi",
+      brand: "Apple",
+      featured: false,
+      description: "Hızlı ve güvenilir kablosuz şarj deneyimi sunan orijinal MagSafe şarj cihazı.",
+      images: [
+        "https://images.unsplash.com/photo-1615526675159-e248c3021d3f?q=80&w=1200"
+      ],
+      variants: [
+        {
+          sku: "APL-MGSF-WHT",
+          color: "White",
+          storage: null,
+          price: 1299,
+          stock: 50,
+          image: "https://images.unsplash.com/photo-1615526675159-e248c3021d3f?q=80&w=1200",
+        },
+      ],
+    },
+    {
+      categoryId: accessoriesCategory.id,
+      name: "Spigen Glas.tR EZ Fit Ekran Koruyucu",
+      slug: "spigen-ekran-koruyucu",
+      brand: "Spigen",
+      featured: false,
+      description: "Kolay kurulum aparatı ile gelen, çizilmelere karşı ultra dayanıklı kırılmaz cam ekran koruyucu.",
+      images: [
+        "https://images.unsplash.com/photo-1605648916361-9bc12ad6a569?q=80&w=1200"
+      ],
+      variants: [
+        {
+          sku: "SPG-GLS-EZ",
+          color: "Clear",
+          storage: null,
+          price: 499,
+          stock: 100,
+          image: "https://images.unsplash.com/photo-1605648916361-9bc12ad6a569?q=80&w=1200",
+        },
+      ],
+    },
+    {
+      categoryId: accessoriesCategory.id,
+      name: "Anker PowerPort III 20W",
+      slug: "anker-20w-hizli-sarj",
+      brand: "Anker",
+      featured: false,
+      description: "Kompakt boyutlu, telefonunuzu ve tabletinizi güvenle şarj edebilen 20W hızlı şarj adaptörü.",
+      images: [
+        "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?q=80&w=1200"
+      ],
+      variants: [
+        {
+          sku: "ANK-PPRT-20W",
+          color: "White",
+          storage: null,
+          price: 349,
+          stock: 35,
+          image: "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?q=80&w=1200",
+        },
+      ],
+    },
   ];
 
   for (const productData of products) {

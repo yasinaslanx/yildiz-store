@@ -99,7 +99,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Aksiyon Butonları */}
-         <div className="absolute right-8 top-8 z-20 flex flex-col gap-2 translate-y-4 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
+         <div className="absolute right-4 top-4 md:right-8 md:top-8 z-20 flex flex-col gap-2 translate-y-0 opacity-100 lg:translate-y-4 lg:opacity-0 transition-all duration-500 lg:group-hover:translate-y-0 lg:group-hover:opacity-100">
             <button
               onClick={handleToggleFavorite}
               className={`flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 ${favorite ? 'text-red-500' : 'text-stone-400 hover:text-stone-900'}`}

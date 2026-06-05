@@ -21,6 +21,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "sunixhub.com",
       },
+      {
+        protocol: "https",
+        hostname: "sunix.com.tr",
+      },
+      {
+        protocol: "https",
+        hostname: "sunix.tr",
+      },
     ],
   },
 };
