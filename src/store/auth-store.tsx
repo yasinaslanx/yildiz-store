@@ -13,7 +13,7 @@ import {
   registerRequest,
 } from "@/lib/auth-api";
 
-export type UserRole = "user" | "admin" | "dealer";
+export type UserRole = "user" | "admin" | "dealer" | "USER" | "ADMIN" | "DEALER";
 
 export type AuthUser = {
   id: string;
