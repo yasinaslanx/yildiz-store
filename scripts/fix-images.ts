@@ -1,53 +1,56 @@
-import "dotenv/config";
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import pg from "pg";
+import fs from 'fs';
+import path from 'path';
+import 'dotenv/config';
+import { prisma } from '../src/lib/prisma';
 
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
-
-async function main() {
-  const productsWithoutImages = await prisma.product.findMany({
-    where: {
-      images: {
-        none: {}
-      }
-    }
-  });
-
-  console.log("NO_IMAGE_PRODUCTS_COUNT:", productsWithoutImages.length);
-  if (productsWithoutImages.length > 0) {
-    console.log("Sample:", productsWithoutImages[0].name);
-    // Add placeholders to them
-    for (const prod of productsWithoutImages) {
-        // Find variant
-        const variant = await prisma.productVariant.findFirst({ where: { productId: prod.id } });
-        if (variant) {
-            await prisma.productImage.create({
-                data: {
-                    productId: prod.id,
-                    variantId: variant.id,
-                    url: "https://placehold.co/600x600/f5f5f4/a8a29e?text=" + encodeURIComponent(prod.name),
-                    order: 0
-                }
-            });
-            console.log(`Added image for ${prod.name}`);
-        }
-    }
+async function run() {
+  const sourceDir = path.join(process.cwd(), 'public', 'images', 'iphone17');
+  const targetDir = path.join(process.cwd(), 'public', 'products', 'iphone17');
+  
+  if (!fs.existsSync(targetDir)) {
+    fs.mkdirSync(targetDir, { recursive: true });
   }
 
-  const badImages2 = await prisma.productImage.findMany({
-    where: {
-       OR: [
-           { url: { startsWith: '/' } },
-           { url: { startsWith: 'data:image' } },
-           { url: { equals: '' } }
-       ]
-    }
-  });
-  console.log("BAD_URLS_COUNT:", badImages2.length);
+  // Copy files
+  fs.copyFileSync(path.join(sourceDir, 'İphone17ProMaxBeyaz.avif'), path.join(targetDir, 'white.avif'));
+  fs.copyFileSync(path.join(sourceDir, 'İphone17ProMaxMavi.webp'), path.join(targetDir, 'natural.webp'));
+  fs.copyFileSync(path.join(sourceDir, 'iphone17promax.avif'), path.join(targetDir, 'black.avif'));
+  fs.copyFileSync(path.join(sourceDir, 'iphone17promax.avif'), path.join(targetDir, 'desert.avif')); // using same as black for now since we don't have desert
 
+  const p = await prisma.product.findUnique({
+    where: { slug: 'iphone-17-pro-max' },
+    include: { variants: true }
+  });
+
+  if (!p) return;
+
+  const colorMap = {
+    'Siyah Titanyum': '/products/iphone17/black.avif',
+    'Beyaz Titanyum': '/products/iphone17/white.avif',
+    'Doğal Titanyum': '/products/iphone17/natural.webp',
+    'Çöl Titanyum': '/products/iphone17/desert.avif',
+    'Çöl Titanyumu': '/products/iphone17/desert.avif',
+  };
+
+  for (const v of p.variants) {
+    const url = colorMap[v.color];
+    if (!url) continue;
+
+    await prisma.productImage.deleteMany({
+      where: { variantId: v.id }
+    });
+
+    await prisma.productImage.create({
+      data: {
+        url,
+        order: 0,
+        variantId: v.id,
+        productId: p.id
+      }
+    });
+  }
+
+  console.log('Fixed DB and copied images!');
 }
 
-main().finally(() => prisma.$disconnect());
+run();
