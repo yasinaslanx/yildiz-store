@@ -8,6 +8,7 @@ import { ChevronDown } from "lucide-react";
 export function CurrencySelector() {
   const { currency, setCurrency } = useCurrency();
   const [isOpen, setIsOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const currencies: { code: Currency; symbol: string; label: string }[] = [
@@ -17,6 +18,7 @@ export function CurrencySelector() {
   ];
 
   useEffect(() => {
+    setIsMounted(true);
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
@@ -32,7 +34,7 @@ export function CurrencySelector() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-1.5 text-[9px] font-black text-stone-400 hover:text-stone-900 transition uppercase tracking-[0.2em]"
       >
-        <span>{currency}</span>
+        <span>{isMounted ? currency : "TRY"}</span>
         <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
       </button>
 

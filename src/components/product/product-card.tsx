@@ -146,13 +146,9 @@ export function ProductCard({ product }: ProductCardProps) {
              </h3>
            </Link>
            
-           <Link href={`/products/${product.slug}#reviews`} className="flex items-center gap-3 group/rating hover:opacity-80 transition-opacity">
-              <div className="flex text-stone-900">
-                 {[...Array(5)].map((_, i) => (
-                   <Star key={i} className={`h-2.5 w-2.5 ${i < Math.floor(rating) ? "fill-current" : "text-stone-100"}`} />
-                 ))}
-              </div>
-              <p className="text-[10px] font-black text-stone-900 underline underline-offset-4 tracking-widest uppercase italic group-hover/rating:text-stone-600">Yorumlar (1)</p>
+           <Link href={`/products/${product.slug}#reviews`} className="flex items-center gap-1 group/rating hover:opacity-80 transition-opacity mt-1">
+              <span className="text-sm font-medium text-stone-900">{rating.toFixed(1)}</span>
+              <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
            </Link>
         </div>
 
