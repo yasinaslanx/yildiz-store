@@ -142,10 +142,10 @@ export default function HomePage() {
                   `}</style>
                   <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
                      {sunixCategories.map((cat, i) => (
-                        <Link 
-                          key={i} 
-                          href={cat.url} 
-                          className={`relative flex items-center gap-[14px] pl-[10px] pr-[22px] py-[10px] rounded-[16px] border backdrop-blur-md transition-all duration-300 hover:translate-x-[3px] group overflow-hidden ${cat.isRed ? 'bg-white border-[#0d1e3a14]' : 'bg-white/65 hover:bg-white border-[#0d1e3a14] hover:border-[#0d1e3a38]'}`}
+                        <Link
+                           key={i}
+                           href={cat.url}
+                           className={`relative flex items-center gap-[14px] pl-[10px] pr-[22px] py-[10px] rounded-[16px] border backdrop-blur-md transition-all duration-300 hover:translate-x-[3px] group overflow-hidden ${cat.isRed ? 'bg-white border-[#0d1e3a14]' : 'bg-white/65 hover:bg-white border-[#0d1e3a14] hover:border-[#0d1e3a38]'}`}
                         >
                            {cat.isRed && (
                               <div className="absolute left-0 bottom-0 h-[2px] w-[40%] bg-gradient-to-r from-transparent via-[#e30613] to-transparent pointer-events-none" style={{ animation: 'sunix-new-slide 2.8s linear infinite' }} />
@@ -157,7 +157,7 @@ export default function HomePage() {
                                  </svg>
                               ) : cat.image ? (
                                  <div className="relative w-[80%] h-[80%]">
-                                   <Image src={cat.image} alt={cat.name} fill sizes="62px" className="object-contain scale-[1.3] mix-blend-multiply" />
+                                    <Image src={cat.image} alt={cat.name} fill sizes="62px" className="object-contain scale-[1.3] mix-blend-multiply" />
                                  </div>
                               ) : null}
                            </div>
@@ -181,7 +181,7 @@ export default function HomePage() {
             </div>
 
             <div className="grid md:h-[560px] grid-cols-1 gap-4 md:grid-cols-4 md:grid-rows-2">
-               <Link href="/products?category=telefonlar" className="group relative overflow-hidden rounded-[2.5rem] border-2 border-stone-100 md:col-span-2 md:row-span-2 shadow-sm hover:shadow-2xl transition-all duration-700 min-h-[420px]">
+               <Link href="/products?category=phones,telefonlar" className="group relative overflow-hidden rounded-[2.5rem] border-2 border-stone-100 md:col-span-2 md:row-span-2 shadow-sm hover:shadow-2xl transition-all duration-700 min-h-[420px]">
                   <Image
                      src="https://images.unsplash.com/photo-1616348436168-de43ad0db179?q=80&w=2000&auto=format&fit=crop"
                      alt="Telefonlar"
@@ -195,7 +195,7 @@ export default function HomePage() {
                   </div>
                </Link>
 
-               <Link href="/products?category=ses-muzik" className="group relative overflow-hidden rounded-[2.5rem] md:col-span-2 shadow-sm hover:shadow-2xl transition-all duration-700 min-h-[250px]">
+               <Link href="/products?category=bluetooth-kulaklik,kablolu-kulaklik,hoparlor" className="group relative overflow-hidden rounded-[2.5rem] md:col-span-2 shadow-sm hover:shadow-2xl transition-all duration-700 min-h-[250px]">
                   <Image
                      src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=2000&auto=format&fit=crop"
                      alt="Ses Sistemleri"
@@ -210,7 +210,7 @@ export default function HomePage() {
                   </div>
                </Link>
 
-               <Link href="/products?category=aksesuarlar" className="group relative overflow-hidden rounded-[2.5rem] md:col-span-1 shadow-sm hover:shadow-2xl transition-all duration-700 min-h-[220px]">
+               <Link href="/products?category=kapak-kilif,sarj-aleti,phone-accessories" className="group relative overflow-hidden rounded-[2.5rem] md:col-span-1 shadow-sm hover:shadow-2xl transition-all duration-700 min-h-[220px]">
                   <Image
                      src="https://images.unsplash.com/photo-1601593346740-925612772716?q=80&w=1200&auto=format&fit=crop"
                      alt="Aksesuarlar"
@@ -229,14 +229,14 @@ export default function HomePage() {
                      <SunixLogo asLink={false} style={{ fontSize: "10rem" }} />
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent" />
-                  
+
                   <div className="relative z-10 flex flex-col items-center justify-center text-center p-6 transform transition-transform duration-700 group-hover:-translate-y-2">
                      <div className="mb-4 rounded-full bg-stone-100 p-3 border border-stone-200">
                         <svg className="w-6 h-6 text-stone-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                      </div>
-                     <h3 className="text-xl font-black text-stone-900 uppercase tracking-tighter leading-tight drop-shadow-sm">Bayilik <br/> Başvurusu</h3>
+                     <h3 className="text-xl font-black text-stone-900 uppercase tracking-tighter leading-tight drop-shadow-sm">Bayilik <br /> Başvurusu</h3>
                      <p className="mt-2 text-[10px] font-bold text-stone-400 uppercase tracking-widest">Ailemize Katılın</p>
                   </div>
                </Link>
@@ -261,11 +261,11 @@ export default function HomePage() {
                </h2>
                <div className="mt-12 flex flex-col items-center gap-4">
                   <div className="relative flex h-20 w-20 items-center justify-center rounded-full border-4 border-white bg-stone-50 shadow-xl overflow-hidden hover:scale-110 transition-transform duration-500">
-                     <SunixLogo asLink={false} style={{ fontSize: "1.8rem" }} />
+                     <Image src="/images/remo.png" alt="Ramazan Yıldız" fill className="object-cover" />
                   </div>
                   <div>
-                     <p className="text-xs font-black uppercase tracking-widest text-stone-900">Yasin Yıldız</p>
-                     <p className="text-[10px] font-black text-stone-700 uppercase tracking-widest mt-0.5">Kurucu, Sunix Store</p>
+                     <p className="text-xs font-black uppercase tracking-widest text-stone-900">Ramazan Yıldız</p>
+                     <p className="text-[10px] font-black text-stone-700 uppercase tracking-widest mt-0.5">Kurucu,Siverek Sunix Store</p>
                   </div>
                </div>
             </div>
@@ -303,28 +303,28 @@ export default function HomePage() {
                         title: "Memnuniyet Garantisi",
                         desc: "Sunix markasını taşıyan ürünlerde memnuniyet garantisi sunuyoruz. Eğer aldığınız ürün sizi memnun edemediyse para iadesi yapıyoruz.",
                         icon: (
-                           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" /></svg>
                         )
                      },
                      {
                         title: "Ulaşılabilir Müşteri Hizmetleri",
-                        desc: "Ürünlerinizle ilgili herhangi bir sorun yaşadığınızda bize e-mail veya Instagram iletişim kanallarından ulaşabilirsiniz. Teknik destek talepleriniz için destek@sunixstore.com adresimize e-mail gönderebilirsiniz.",
+                        desc: "Ürünlerinizle ilgili herhangi bir sorun yaşadığınızda bize e-mail veya Instagram iletişim kanallarından ulaşabilirsiniz. Teknik destek talepleriniz için destek@sunixstore.net.tr adresimize e-mail gönderebilirsiniz.",
                         icon: (
-                           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+                           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6" /><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" /></svg>
                         )
                      },
                      {
                         title: "Kötü Ürün Garantisi",
                         desc: "Eğer elinize gelen ürünün defolu olduğunu düşünüyorsanız bizimle iletişime geçebilirsiniz. Paketinden defolu olarak çıkan her ürün için iade garantisi veriyoruz. Bu süreci olabildiğince hızlı gerçekleştiriyoruz.",
                         icon: (
-                           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+                           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="9 12 11 14 15 10" /></svg>
                         )
                      },
                      {
                         title: "Güvenli Ödeme",
                         desc: "Iyzico güvencesi ile ödeme bilgileriniz tarafımıza ulaşmaz ve ödeme işlemi %100 güvenli olarak gerçekleşir.",
                         icon: (
-                           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
                         )
                      }
                   ].map((f, i) => (
@@ -377,7 +377,7 @@ export default function HomePage() {
                            },
                            {
                               q: "Elime kusurlu bir ürün geçti, ne yapmalıyım?",
-                              a: "Eğer satın aldığınız ürünün kusurlu olduğuna inanıyorsanız, ürünün fotoğraflarını ve kısa tanımını destek@sunixstore.com adresine e-posta olarak gönderirseniz size kısa zamanda yardımcı olunacaktır."
+                              a: "Eğer satın aldığınız ürünün kusurlu olduğuna inanıyorsanız, ürünün fotoğraflarını ve kısa tanımını destek@sunixstore.net.tr adresine e-posta olarak gönderirseniz size kısa zamanda yardımcı olunacaktır."
                            }
                         ].map((item, i) => (
                            <details key={i} className="group border-b border-stone-200/60 last:border-0">
