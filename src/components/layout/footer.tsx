@@ -7,7 +7,7 @@ import { SunixLogo } from "./sunix-logo";
 const FOOTER_LINKS = {
   shop: [
     { label: "Telefonlar", href: "/phones" },
-    { label: "Aksesuarlar", href: "/phone-accessories" },
+    { label: "Aksesuarlar", href: "/products?category=kapak-kilif,sarj-aleti,ekran-koruyucu" },
     { label: "Ses & Müzik", href: "/products?category=ses-muzik" },
     { label: "İndirimli Ürünler", href: "/products?sort=price-asc" },
   ],

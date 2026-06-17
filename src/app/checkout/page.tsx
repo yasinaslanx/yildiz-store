@@ -492,9 +492,9 @@ export default function CheckoutPage() {
                     <span>Kargo</span>
                     <span className="text-green-600 font-black">ÜCRETSİZ</span>
                  </div>
-                 <div className="flex justify-between items-end pt-4">
-                    <span className="text-lg font-black text-stone-900 uppercase tracking-tighter leading-none">Toplam</span>
-                    <span className="text-3xl font-black text-stone-900 tracking-tighter leading-none">{formatPrice(totalAmount)}</span>
+                 <div className="flex justify-between items-end pt-4 gap-4">
+                    <span className="text-base sm:text-lg font-black text-stone-900 uppercase tracking-tighter leading-none">Toplam</span>
+                    <span className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tighter leading-none truncate text-right">{formatPrice(totalAmount)}</span>
                  </div>
               </div>
 

@@ -39,7 +39,7 @@ export default function CartPage() {
       {/* Header */}
       <div className="mb-12">
         <p className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400">Alışveriş</p>
-        <h1 className="mt-2 text-5xl font-black tracking-tighter text-stone-900 uppercase">Sepetim</h1>
+        <h1 className="mt-2 text-4xl md:text-5xl font-black tracking-tighter text-stone-900 uppercase">Sepetim</h1>
         <p className="mt-3 text-sm font-bold text-stone-400 uppercase tracking-widest">{items.length} ürün seçildi</p>
       </div>
 
@@ -138,9 +138,9 @@ export default function CartPage() {
             </div>
           </div>
 
-          <div className="flex items-end justify-between">
+          <div className="flex items-end justify-between gap-4">
             <span className="text-lg font-black uppercase tracking-tighter text-stone-900">Toplam</span>
-            <span className="text-3xl font-black tracking-tighter text-stone-900">{formatPrice(totalPrice)}</span>
+            <span className="text-2xl sm:text-3xl font-black tracking-tighter text-stone-900 truncate text-right">{formatPrice(totalPrice)}</span>
           </div>
 
           <Link

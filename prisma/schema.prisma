@@ -7,22 +7,22 @@ datasource db {
 }
 
 model User {
-  id           String     @id @default(cuid())
+  id           String             @id @default(cuid())
   firstName    String
   lastName     String
-  email        String     @unique
+  email        String             @unique
   passwordHash String
-  role         UserRole   @default(USER)
-  points       Int        @default(0)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  role         UserRole           @default(USER)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  points       Int                @default(0)
   addresses    Address[]
   cart         Cart?
+  dealerApp    DealerApplication?
   favorites    Favorite[]
   orders       Order[]
-  reviews      ProductReview[]
   questions    ProductQuestion[]
-  dealerApp    DealerApplication?
+  reviews      ProductReview[]
 }
 
 model Address {
@@ -57,41 +57,41 @@ model Category {
 }
 
 model Product {
-  id          String           @id @default(cuid())
+  id          String            @id @default(cuid())
   categoryId  String
   name        String
-  slug        String           @unique
+  slug        String            @unique
   description String
   brand       String
-  featured    Boolean          @default(false)
-  active      Boolean          @default(true)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  category    Category         @relation(fields: [categoryId], references: [id])
-  variants    ProductVariant[]
+  active      Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  featured    Boolean           @default(false)
+  category    Category          @relation(fields: [categoryId], references: [id])
   images      ProductImage[]
-  reviews     ProductReview[]
   questions   ProductQuestion[]
+  reviews     ProductReview[]
+  variants    ProductVariant[]
 }
 
 model ProductVariant {
-  id        String         @id @default(cuid())
-  productId String
+  id             String         @id @default(cuid())
+  productId      String
   sku            String         @unique
   color          String
   storage        String?
   price          Decimal        @db.Decimal(10, 2)
-  wholesalePrice Decimal?       @db.Decimal(10, 2)
-  oldPrice       Decimal?       @db.Decimal(10, 2)
   stock          Int            @default(0)
   active         Boolean        @default(true)
   createdAt      DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  cartItems  CartItem[]
-  favorites  Favorite[]
-  images     ProductImage[]
-  alerts     StockAlert[]
-  product    Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  updatedAt      DateTime       @updatedAt
+  oldPrice       Decimal?       @db.Decimal(10, 2)
+  wholesalePrice Decimal?       @db.Decimal(10, 2)
+  cartItems      CartItem[]
+  favorites      Favorite[]
+  images         ProductImage[]
+  product        Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  alerts         StockAlert[]
 }
 
 model ProductImage {
@@ -139,46 +139,37 @@ model Favorite {
 }
 
 model Order {
-  id          String @id @default(cuid())
-  orderNumber String @unique
-  userId      String
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  customerName  String
-  customerEmail String
-  customerPhone String
-
+  id                 String          @id @default(cuid())
+  orderNumber        String          @unique
+  userId             String
+  customerName       String
+  customerEmail      String
+  customerPhone      String
   shippingAddress    String
   shippingCity       String
   shippingDistrict   String
   shippingPostalCode String?
-
-  paymentMethod PaymentMethod @default(CASH_ON_DELIVERY)
-  paymentStatus PaymentStatus @default(UNPAID)
-  status        OrderStatus   @default(PENDING)
-
+  paymentMethod      PaymentMethod   @default(CASH_ON_DELIVERY)
+  paymentStatus      PaymentStatus   @default(UNPAID)
+  status             OrderStatus     @default(PENDING)
+  totalAmount        Decimal         @db.Decimal(10, 2)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
   shippingCarrier    String?
   trackingNumber     String?
   trackingUrl        String?
-
-  totalAmount Decimal @db.Decimal(10, 2)
-  currency    String  @default("TRY")
-  exchangeRate Decimal? @db.Decimal(10, 4)
-  earnedPoints Int     @default(0)
-  spentPoints  Int     @default(0)
-
-  items OrderItem[]
-  reviews ProductReview[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  earnedPoints       Int             @default(0)
+  spentPoints        Int             @default(0)
+  currency           String          @default("TRY")
+  exchangeRate       Decimal?        @db.Decimal(10, 4)
+  user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items              OrderItem[]
+  reviews            ProductReview[]
 }
 
 model OrderItem {
-  id      String @id @default(cuid())
-  orderId String
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
+  id          String   @id @default(cuid())
+  orderId     String
   productId   String
   variantId   String
   productName String
@@ -186,10 +177,10 @@ model OrderItem {
   color       String
   storage     String?
   image       String?
-  price       Decimal @db.Decimal(10, 2)
+  price       Decimal  @db.Decimal(10, 2)
   quantity    Int
-
-  createdAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model Payment {
@@ -218,10 +209,110 @@ model Coupon {
   updatedAt     DateTime  @updatedAt
 }
 
+model StockAlert {
+  id        String         @id @default(cuid())
+  email     String
+  variantId String
+  notified  Boolean        @default(false)
+  createdAt DateTime       @default(now())
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([email, variantId])
+}
+
+model ChatSession {
+  id            String        @id @default(cuid())
+  customerName  String
+  customerEmail String
+  lastMessage   String?
+  status        ChatStatus    @default(OPEN)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  messages      ChatMessage[]
+}
+
+model ChatMessage {
+  id        String      @id @default(cuid())
+  sessionId String
+  text      String
+  sender    ChatSender
+  createdAt DateTime    @default(now())
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  email     String
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  usedAt    DateTime?
+  tokenHash String    @unique
+
+  @@index([email])
+}
+
+model ProductReview {
+  id                 String       @id @default(cuid())
+  userId             String
+  productId          String
+  orderId            String?
+  rating             Int          @default(5)
+  title              String?
+  comment            String
+  status             ReviewStatus @default(PENDING)
+  isVerifiedPurchase Boolean      @default(false)
+  adminReply         String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  order              Order?       @relation(fields: [orderId], references: [id])
+  product            Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user               User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+}
+
+model ProductQuestion {
+  id        String         @id @default(cuid())
+  userId    String
+  productId String
+  question  String
+  answer    String?
+  status    QuestionStatus @default(PENDING)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  product   Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([userId])
+}
+
+model NewsletterSubscription {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model DealerApplication {
+  id          String            @id @default(cuid())
+  userId      String            @unique
+  companyName String
+  taxOffice   String
+  taxNumber   String
+  phone       String
+  address     String
+  status      ApplicationStatus @default(PENDING)
+  adminNote   String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 enum UserRole {
   USER
-  DEALER
   ADMIN
+  DEALER
 }
 
 enum OrderStatus {
@@ -240,42 +331,10 @@ enum PaymentStatus {
   REFUNDED
 }
 
-model StockAlert {
-  id        String   @id @default(cuid())
-  email     String
-  variantId String
-  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  notified  Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@unique([email, variantId])
-}
-
-
 enum PaymentMethod {
   CASH_ON_DELIVERY
   BANK_TRANSFER
   CREDIT_CARD
-}
-
-model ChatSession {
-  id            String    @id @default(cuid())
-  customerName  String
-  customerEmail String
-  lastMessage   String?
-  status        ChatStatus @default(OPEN)
-  messages      ChatMessage[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-}
-
-model ChatMessage {
-  id        String      @id @default(cuid())
-  sessionId String
-  text      String
-  sender    ChatSender
-  createdAt DateTime    @default(now())
-  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 enum ChatStatus {
@@ -289,55 +348,6 @@ enum ChatSender {
   BOT
 }
 
-model PasswordResetToken {
-  id        String   @id @default(cuid())
-  email     String
-  tokenHash String   @unique
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime @default(now())
-
-  @@index([email])
-}
-
-model ProductReview {
-  id                 String       @id @default(cuid())
-  userId             String
-  productId          String
-  orderId            String?
-  rating             Int          @default(5)
-  title              String?
-  comment            String       @db.Text
-  status             ReviewStatus @default(PENDING)
-  isVerifiedPurchase Boolean      @default(false)
-  adminReply         String?      @db.Text
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
-
-  @@unique([userId, productId])
-}
-
-model ProductQuestion {
-  id        String   @id @default(cuid())
-  userId    String
-  productId String
-  question  String   @db.Text
-  answer    String?  @db.Text
-  status    QuestionStatus @default(PENDING)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@index([productId])
-  @@index([userId])
-}
-
 enum QuestionStatus {
   PENDING
   ANSWERED
@@ -348,29 +358,6 @@ enum ReviewStatus {
   PENDING
   APPROVED
   REJECTED
-}
-
-model NewsletterSubscription {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-}
-
-model DealerApplication {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  companyName String
-  taxOffice   String
-  taxNumber   String
-  phone       String
-  address     String   @db.Text
-  status      ApplicationStatus @default(PENDING)
-  adminNote   String?  @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum ApplicationStatus {

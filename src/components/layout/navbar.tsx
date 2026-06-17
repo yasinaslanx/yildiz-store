@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useCart } from "@/store/cart-store";
@@ -16,7 +17,25 @@ const navItems = [
   { href: "/", label: "Ana Sayfa" },
   { href: "/products", label: "Tüm Ürünler" },
   { href: "/products?category=telefonlar,phones", label: "Telefonlar" },
-  { href: "/products?category=phone-accessories,akilli-saat,bluetooth-kulaklik,kablolu-kulaklik,sarj-aleti,kablo,kapak-kilif,ekran-koruyucu,arac-sarj-fm-modulator,arac-telefon-tutucu,cevirici,depolamasd-urunleri,hoparlor,tasinabilir-pil,lensler,diger-aksesuarlar", label: "Aksesuarlar" },
+  { href: "/products?category=kapak-kilif,sarj-aleti,ekran-koruyucu,akilli-saat,bluetooth-kulaklik,kablolu-kulaklik,kablo,arac-sarj-fm-modulator,arac-telefon-tutucu,cevirici,depolama-urunleri,hoparlor,tasinabilir-pil,lensler,diger-aksesuarlar", label: "Aksesuarlar" },
+];
+
+const sunixCategories = [
+   { name: "Yeni Ürünler", icon: "zap", url: "/products?sort=newest", isRed: true },
+   { name: "Akıllı Saat", image: "https://sunix.com.tr/uploads/urunler/urun_3688_renk_614_69d3b5e631cd4.jpg", url: "/products?category=akilli-saat" },
+   { name: "Araç Telefon Tutucu", image: "https://sunix.com.tr/uploads/urunler/urun_3738_69d636986c518.jpg", url: "/products?category=arac-telefon-tutucu" },
+   { name: "Araç Şarj & Fm Modülatör", image: "https://sunix.com.tr/uploads/urunler/53/resim1.jpg", url: "/products?category=arac-sarj-fm-modulator" },
+   { name: "Bluetooth Kulaklık", image: "https://sunix.com.tr/uploads/urunler/urun_3699_69d671a94d5b8.jpg", url: "/products?category=bluetooth-kulaklik" },
+   { name: "Çevirici", image: "https://sunix.com.tr/uploads/urunler/304/resim1.jpg", url: "/products?category=cevirici" },
+   { name: "Depolama(SD) Ürünleri", image: "https://sunix.com.tr/uploads/urunler/274/resim1.jpg", url: "/products?category=depolama-urunleri" },
+   { name: "Diğer Aksesuarlar", image: "https://sunix.com.tr/uploads/urunler/urun_3739_69df33d6b7c0b.jpg", url: "/products?category=diger-aksesuarlar" },
+   { name: "Ekran Koruyucu", image: "https://sunix.com.tr/uploads/urunler/urun_472_69dd1b0b68289.jpg", url: "/products?category=ekran-koruyucu" },
+   { name: "Hoparlör", image: "https://sunix.com.tr/uploads/urunler/urun_3665_69d63a570830c.jpg", url: "/products?category=hoparlor" },
+   { name: "Kablo", image: "https://sunix.com.tr/uploads/urunler/urun_3755_69dfb27fb0ebe.jpg", url: "/products?category=kablo" },
+   { name: "Şarj Aleti", image: "https://sunix.com.tr/uploads/urunler/urun_3725_6a056932b5ed6.jpg", url: "/products?category=sarj-aleti" },
+   { name: "Taşınabilir Pil", image: "https://sunix.com.tr/uploads/urunler/urun_3687_renk_612_69d75c44a3647.jpg", url: "/products?category=tasinabilir-pil" },
+   { name: "Lensler", image: "https://sunix.com.tr/uploads/urunler/urun_3660_69ddfc75aebd1.jpg", url: "/products?category=lensler" },
+   { name: "Kablolu Kulaklık", image: "https://sunix.com.tr/uploads/urunler/urun_3719_69ce6d0151c65.jpg", url: "/products?category=kablolu-kulaklik" },
 ];
 
 export function Navbar() {
@@ -100,7 +119,7 @@ export function Navbar() {
               {pathname === "/" && <span className="absolute -bottom-2 left-0 h-[3px] w-full rounded-full bg-stone-900 animate-in fade-in zoom-in-50 duration-500" />}
             </Link>
 
-            <div className="group relative">
+            <div className="group static">
               <Link href="/products" className={`flex items-center gap-1 text-[10px] font-black uppercase tracking-[0.25em] transition-all duration-300 hover:text-stone-900 ${pathname.startsWith("/products") ? "text-stone-900" : "text-stone-400"}`}>
                 Kategoriler
                 <svg className="w-3 h-3 group-hover:rotate-180 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" /></svg>
@@ -108,41 +127,53 @@ export function Navbar() {
               </Link>
 
               {/* Mega Menu Dropdown */}
-              <div className="absolute left-0 top-full pt-8 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-                <div className="w-[1050px] bg-white rounded-[2.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] border border-stone-100 p-12 grid grid-cols-4 gap-12">
-                   {/* Column 1 */}
-                   <div className="space-y-6">
-                      <h4 className="text-xs font-black uppercase tracking-[0.2em] text-stone-400 border-b border-stone-100 pb-4">Akıllı Telefonlar</h4>
-                      <ul className="space-y-5">
-                         <li><Link href="/products?category=phones" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Tüm Telefonlar</Link></li>
-                         <li><Link href="/products?brand=Apple" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Apple iPhone</Link></li>
-                         <li><Link href="/products?brand=Samsung" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Samsung Galaxy</Link></li>
-                      </ul>
+              <div className="absolute left-1/2 -translate-x-1/2 top-full pt-8 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                <div className="w-[1100px] bg-white/95 backdrop-blur-xl rounded-[2.5rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] border border-stone-100 p-8 flex gap-8">
+                   <style>{`
+                    @keyframes sunix-new-slide-nav {
+                      0%   { transform: translateX(-100%); }
+                      100% { transform: translateX(250%); }
+                    }
+                   `}</style>
+                   
+                   {/* Left: Category Grid */}
+                   <div className="flex-1 grid grid-cols-3 gap-[14px]">
+                     {sunixCategories.map((cat, i) => (
+                        <Link 
+                          key={i} 
+                          href={cat.url} 
+                          className={`relative flex items-center gap-[14px] pl-[10px] pr-[22px] py-[10px] rounded-[16px] border backdrop-blur-md transition-all duration-300 hover:translate-x-[3px] group/item overflow-hidden ${cat.isRed ? 'bg-white border-[#0d1e3a14]' : 'bg-white/65 hover:bg-white border-[#0d1e3a14] hover:border-[#0d1e3a38]'}`}
+                        >
+                           {cat.isRed && (
+                              <div className="absolute left-0 bottom-0 h-[2px] w-[40%] bg-gradient-to-r from-transparent via-[#e30613] to-transparent pointer-events-none" style={{ animation: 'sunix-new-slide-nav 2.8s linear infinite' }} />
+                           )}
+                           <div className="flex w-[62px] h-[62px] shrink-0 items-center justify-center rounded-full bg-white border border-[#0d1e3a0f] shadow-[0_10px_24px_-8px_rgba(13,30,58,0.18)] overflow-hidden transition-all duration-300 group-hover/item:shadow-[0_10px_24px_-8px_rgba(13,30,58,0.25)]">
+                              {cat.icon === "zap" ? (
+                                 <svg className="h-[22px] w-[22px] text-[#e30613] fill-current" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={0}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                 </svg>
+                              ) : cat.image ? (
+                                 <div className="relative w-[80%] h-[80%]">
+                                   <Image src={cat.image} alt={cat.name} fill sizes="62px" className="object-contain scale-[1.3] mix-blend-multiply" />
+                                 </div>
+                              ) : null}
+                           </div>
+                           <span className={`font-bold text-[14px] tracking-tight leading-snug ${cat.isRed ? 'text-[#e30613]' : 'text-[#0f172a]'}`}>
+                              {cat.name}
+                           </span>
+                        </Link>
+                     ))}
                    </div>
-                   {/* Column 2 */}
-                   <div className="space-y-6">
-                      <h4 className="text-xs font-black uppercase tracking-[0.2em] text-stone-400 border-b border-stone-100 pb-4">Aksesuarlar</h4>
-                      <ul className="space-y-5">
-                         <li><Link href="/products?category=phone-accessories" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Kılıflar & Kapaklar</Link></li>
-                         <li><Link href="/products?q=ekran" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Ekran Koruyucular</Link></li>
-                         <li><Link href="/products?q=şarj" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Şarj Aletleri & Kablolar</Link></li>
-                         <li><Link href="/products?q=powerbank" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Powerbank</Link></li>
-                      </ul>
-                   </div>
-                   {/* Column 3 */}
-                   <div className="space-y-6">
-                      <h4 className="text-xs font-black uppercase tracking-[0.2em] text-stone-400 border-b border-stone-100 pb-4">Ses ve Giyilebilir</h4>
-                      <ul className="space-y-5">
-                         <li><Link href="/products?q=kulaklık" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Bluetooth Kulaklık</Link></li>
-                         <li><Link href="/products?q=saat" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Akıllı Saatler</Link></li>
-                         <li><Link href="/products?q=hoparlör" className="text-sm font-bold text-stone-600 hover:text-stone-900 transition">Hoparlör</Link></li>
-                      </ul>
-                   </div>
-                   {/* Column 4 - Highlight */}
-                   <div className="bg-stone-50 rounded-3xl p-8 flex flex-col items-center justify-center text-center border border-stone-100 group/banner hover:border-black transition-colors cursor-pointer">
-                      <div className="bg-stone-900 text-white text-[9px] font-black px-3 py-1.5 rounded-md uppercase tracking-widest mb-5">ÖNE ÇIKAN</div>
-                      <h4 className="text-base font-black text-stone-900 uppercase italic tracking-tight mb-3">Sunix Premium Kılıf Serisi</h4>
-                      <Link href="/products?category=phone-accessories" className="mt-4 text-[10px] font-black uppercase tracking-widest text-stone-900 underline underline-offset-4 group-hover/banner:text-stone-500 transition">Hemen İncele</Link>
+
+                   {/* Right: Highlight Banner */}
+                   <div className="w-[300px] shrink-0 bg-stone-50 rounded-[2rem] p-8 flex flex-col items-center justify-center text-center border border-stone-100 group/banner hover:border-[#e30613]/30 transition-colors cursor-pointer relative overflow-hidden shadow-sm hover:shadow-xl">
+                      <Image src="https://images.unsplash.com/photo-1601593346740-925612772716?q=80&w=600&auto=format&fit=crop" alt="Highlight" fill className="object-cover opacity-10 group-hover/banner:opacity-25 transition-all duration-700 scale-105 group-hover/banner:scale-100" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-stone-50/80 to-transparent" />
+                      <div className="relative z-10 flex flex-col items-center">
+                        <div className="bg-[#1c1c1c] text-white text-[9px] font-black px-4 py-2 rounded-lg uppercase tracking-widest mb-6 shadow-md shadow-black/10">ÖNE ÇIKAN</div>
+                        <h4 className="text-[22px] font-black text-[#1c1c1c] uppercase italic tracking-tighter mb-4 leading-tight drop-shadow-sm">Sunix Premium<br/>Kılıf Serisi</h4>
+                        <Link href="/products?category=kapak-kilif" className="mt-4 text-[11px] font-black uppercase tracking-widest text-[#1c1c1c] underline underline-offset-4 group-hover/banner:text-[#e30613] transition-colors">Hemen İncele</Link>
+                      </div>
                    </div>
                 </div>
               </div>

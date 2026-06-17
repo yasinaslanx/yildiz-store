@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Sunix: akıllı saat, kulaklık, şarj, ekran koruyucu ve teknoloji aksesuarları. Premium kalite, Sunix güvencesi.">
+<title>Sunix — Teknolojinin Yeni Nesli</title>
+
+<script>(function(){try{var t=localStorage.getItem('sunix_yeni_tema')||'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+
+<link rel="stylesheet" href="/css/theme.css?v=1781617117">
+<link rel="stylesheet" href="/css/components.css?v=1781617117">
+<link rel="stylesheet" href="/css/home.css?v=1781617117">
+</head>
+<body data-header="floating">
+
+<header class="th-header th-header--floating">
+    <div class="th-header__inner">
+        <a href="/" class="th-logo" aria-label="Sunix Ana Sayfa">
+            <img src="https://sunix.tr/images/logo/logo.png" alt="Sunix" height="36" class="th-logo__img th-logo__img--dark">
+            <img src="https://www.sunixhub.com/images/logo/logo@2x.png" alt="Sunix" height="36" class="th-logo__img th-logo__img--light">
+        </a>
+
+        <nav class="th-nav" aria-label="Ana menü">
+            <a href="/" class="active">Ana Sayfa</a>
+            <div class="th-mega-wrap">
+                <a href="#urunler" class="th-has-mega ">
+                    Ürünler <i class="fas fa-chevron-down th-mega-arrow"></i>
+                </a>
+            </div>
+            <a href="/hakkimizda" class="">Kurumsal</a>
+            <a href="/bayilik-sistemi" class="">İş Ortaklığı</a>
+            <a href="/satis-noktalari" class="">Satış Noktaları</a>
+            <a href="/iletisim" class="">İletişim</a>
+        </nav>
+
+        <div class="th-actions">
+            <button class="th-icon-btn" id="thSearchOpen" aria-label="Ara"><i class="fas fa-search"></i></button>
+            <button class="th-icon-btn th-theme-toggle" id="thThemeToggle" aria-label="Tema değiştir" aria-pressed="false" title="Tema değiştir">
+                <i class="fas fa-moon th-theme-icon th-theme-icon--moon"></i>
+                <i class="fas fa-sun th-theme-icon th-theme-icon--sun"></i>
+            </button>
+            <a href="https://mysunix.com" target="_blank" rel="noopener" class="th-pill">
+                <i class="fas fa-user"></i><span>Bayi Girişi</span>
+            </a>
+            <button class="th-icon-btn th-mobile-toggle" id="thMobileToggle" aria-label="Menü">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- Mega drawer (Ürünler) — Pill Shape + Drifting Blobs -->
+<div class="th-megadrawer" id="thMegadrawer" aria-hidden="true">
+    <div class="th-megadrawer__bg"></div>
+    <div class="th-megadrawer__inner">
+        <div class="th-megadrawer__head">
+            <h4 class="th-megadrawer__title">Kategoriler</h4>
+            <a href="/kategori" class="th-megadrawer__all">
+                Tümünü gör <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        <div class="th-megadrawer__grid" role="menu">
+            <a href="/yeni-urunler" class="th-megadrawer__item th-megadrawer__item--new" role="menuitem">
+                <div class="th-megadrawer__item-img th-megadrawer__item-img--icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div class="th-megadrawer__item-title">Yeni Ürünler</div>
+            </a>
+                        <a href="/kategori/akilli-saat" class="th-megadrawer__item" role="menuitem">
+                <div class="th-megadrawer__item-img">
+                    <img src="/uploads/urunler/urun_3688_renk_614_69d3b5e631cd4.jpg" alt="Akıllı Saat" loading="lazy">
+                </div>
+                <div class="th-megadrawer__item-title">Akıllı Saat</div>
+            </a>
+                        <a href="/kategori/arac-telefon-tutucu" class="th-megadrawer__item" role="menuitem">
+                <div class="th-megadrawer__item-img">
+                    <img src="/uploads/urunler/urun_3738_69d636986c518.jpg" alt="Araç  Telefon Tutucu" loading="lazy">
+                </div>
+                <div class="th-megadrawer__item-title">Araç  Telefon Tutucu</div>
+            </a>
+                        <a href="/kategori/arac-sarj-fm-modulator" class="th-megadrawer__item" role="menuitem">
+                <div class="th-megadrawer__item-img">
+                    <img src="/uploads/urunler/53/resim1.jpg" alt="Araç Şarj &amp; Fm Modülatör" loading="lazy">
+                </div>
+                <div class="th-megadrawer__item-title">Araç Şarj &amp; Fm Modülatör</div>
+            </a>
+                        <a href="/kategori/bluetooth-kulaklik" class="th-megadrawer__item" role="menuitem">
+                <div class="th-megadrawer__item-img">
+                    <img src="/uploads/urunler/urun_3699_69d671a94d5b8.jpg" alt="Bluetooth Kulaklık" loading="lazy">
+                </div>
+                <div class="th-megadrawer__item-title">Bluetooth Kulaklık</div>
+            </a>
+                        <a href="/kategori/cevirici" class="th-megadrawer__item" role="menuitem">
+                <div class="th-megadrawer__item-img">
+                    <img src="/uploads/urunler/304/resim1.jpg" alt="Çevirici" loading="lazy">
+                </div>
+                <div class="th-megadrawer__item-title">Çevirici</div>
+            </a>
+                        <a href="/kategori.php?id=19" class="th-megadrawer__item" role="menuitem">
+                <div class="th-megadrawer__item-img">
+                    <img src="/uploads/urunler/274/resim1.jpg" alt="Depolama(SD) Ürünleri" loading="lazy">
+                </div>
+                <div class="th-megadrawer__item-title">Depolama(SD) Ürünleri</div>
+            </a>
+                        <a href="/kategori/diger-aksesuarlar" class="th-megadrawer__item" role="menuitem">
+                <div class="th-megadrawer__item-img">
+                    <img src="/uploads/urunler/urun_3739_69df33d6b7c0b.jpg" alt="Diğer Aksesuarlar" loading="lazy">
+                </div>
+                <div class="th-megadrawer__item-title">Diğer Aksesuarlar</div>
+            </a>
+                        <a href="/kategori/ekran-koruyucu" class="th-megadrawer__item" role="menuitem">
+                <div class="th-megadrawer__item-img">
+                    <img src="/uploads/urunler/urun_472_69dd1b0b68289.jpg" alt="Ekran Koruyucu" loading="lazy">
+                </div>
+                <div class="th-megadrawer__item-title">Ekran Koruyucu</div>
+            </a>
+                        <a href="/kategori/hoparlor" class="th-megadrawer__item" role="menuitem">
+                <div class="th-megadrawer__item-img">
+                    <img src="/uploads/urunler/urun_3665_69d63a570830c.jpg" alt="Hoparlör" loading="lazy">
+                </div>
+                <div class="th-megadrawer__item-title">Hoparlör</div>
+            </a>
+                        <a href="/kategori/kablo" class="th-megadrawer__item" role="menuitem">
+                <div class="th-megadrawer__item-img">
+                    <img src="/uploads/urunler/urun_3755_69dfb27fb0ebe.jpg" alt="Kablo" loading="lazy">
+                </div>
+                <div class="th-megadrawer__item-title">Kablo</div>
+            </a>
+                        <a href="/kategori/sarj-aleti" class="th-megadrawer__item" role="menuitem">
+                <div class="th-megadrawer__item-img">
+                    <img src="/uploads/urunler/urun_3725_6a056932b5ed6.jpg" alt="Şarj Aleti" loading="lazy">
+                </div>
+                <div class="th-megadrawer__item-title">Şarj Aleti</div>
+            </a>
+                        <a href="/kategori/tasinabilir-pil" class="th-megadrawer__item" role="menuitem">
+                <div class="th-megadrawer__item-img">
+                    <img src="/uploads/urunler/urun_3687_renk_612_69d75c44a3647.jpg" alt="Taşınabilir Pil" loading="lazy">
+                </div>
+                <div class="th-megadrawer__item-title">Taşınabilir Pil</div>
+            </a>
+                        <a href="/kategori.php?id=16" class="th-megadrawer__item" role="menuitem">
+                <div class="th-megadrawer__item-img">
+                    <img src="/uploads/urunler/urun_3660_69ddfc75aebd1.jpg" alt="Lensler" loading="lazy">
+                </div>
+                <div class="th-megadrawer__item-title">Lensler</div>
+            </a>
+                        <a href="/kategori.php?id=18" class="th-megadrawer__item" role="menuitem">
+                <div class="th-megadrawer__item-img">
+                    <img src="/uploads/urunler/urun_3719_69ce6d0151c65.jpg" alt="Kablolu Kulaklık" loading="lazy">
+                </div>
+                <div class="th-megadrawer__item-title">Kablolu Kulaklık</div>
+            </a>
+                    </div>
+    </div>
+</div>
+
+<!-- Mobile menü drawer -->
+<div class="th-mobile-drawer" id="thMobileDrawer" aria-hidden="true">
+    <div class="th-mobile-drawer__head">
+        <span>Menü</span>
+        <button class="th-icon-btn" id="thMobileClose" aria-label="Kapat"><i class="fas fa-times"></i></button>
+    </div>
+    <nav class="th-mobile-nav">
+        <a href="/">Ana Sayfa</a>
+        <details class="th-mobile-accordion">
+            <summary>Ürünler <i class="fas fa-chevron-down"></i></summary>
+            <div class="th-mobile-sub">
+                <a href="/yeni-urunler" class="th-mobile-sub-new">
+                    <i class="fas fa-bolt"></i> Yeni Ürünler
+                </a>
+                                <a href="/kategori/akilli-saat">Akıllı Saat</a>
+                                <a href="/kategori/arac-telefon-tutucu">Araç  Telefon Tutucu</a>
+                                <a href="/kategori/arac-sarj-fm-modulator">Araç Şarj &amp; Fm Modülatör</a>
+                                <a href="/kategori/bluetooth-kulaklik">Bluetooth Kulaklık</a>
+                                <a href="/kategori/cevirici">Çevirici</a>
+                                <a href="/kategori.php?id=19">Depolama(SD) Ürünleri</a>
+                                <a href="/kategori/diger-aksesuarlar">Diğer Aksesuarlar</a>
+                                <a href="/kategori/ekran-koruyucu">Ekran Koruyucu</a>
+                                <a href="/kategori/hoparlor">Hoparlör</a>
+                                <a href="/kategori/kablo">Kablo</a>
+                                <a href="/kategori/sarj-aleti">Şarj Aleti</a>
+                                <a href="/kategori/tasinabilir-pil">Taşınabilir Pil</a>
+                                <a href="/kategori.php?id=16">Lensler</a>
+                                <a href="/kategori.php?id=18">Kablolu Kulaklık</a>
+                            </div>
+        </details>
+        <a href="/hakkimizda">Kurumsal</a>
+        <a href="/bayilik-sistemi">İş Ortaklığı</a>
+        <a href="/satis-noktalari">Satış Noktaları</a>
+        <a href="/iletisim">İletişim</a>
+        <a href="https://mysunix.com" target="_blank" rel="noopener" class="th-mobile-pill">
+            <i class="fas fa-user"></i> Bayi Girişi
+        </a>
+    </nav>
+</div>
+<div class="th-mobile-backdrop" id="thMobileBackdrop"></div>
+
+<!-- Fullscreen arama -->
+<div class="th-search-overlay" id="thSearchOverlay" aria-hidden="true">
+    <button class="th-search-overlay__close" id="thSearchClose" aria-label="Kapat"><i class="fas fa-times"></i></button>
+    <form action="/kategori" method="GET" class="th-search-form">
+        <div class="th-search-form__label">Ne aramıştın?</div>
+        <input type="text" name="arama" placeholder="Ürün adı, kodu, kategori..." autocomplete="off">
+        <button type="submit" aria-label="Ara"><i class="fas fa-arrow-right"></i></button>
+    </form>
+</div>
+
+
+<!-- ========== HERO SLIDER (Swiper) ========== -->
+<section class="home-hero">
+    <div class="swiper home-hero__swiper">
+        <div class="swiper-wrapper">
+                        <div class="swiper-slide">
+                <div class="th-hero-slide th-hero-slide--lifestyle" data-img-pos="right">
+                    <div class="th-hero-slide__inner">
+                        <div class="home-hero__text">
+                            <h1 class="home-hero__title">
+                                <span class="home-hero__title-gradient">Gücünü<br>Yanında Taşı</span>
+                            </h1>
+                            <p class="home-hero__desc">10.000 mAh kapasite, dahili kablolar ve hızlı şarj teknolojisi. Sunix PowerBank ile enerjin hiç bitmesin.</p>
+                            <div class="home-hero__actions">
+                                <a href="/kategori/tasinabilir-pil" class="th-btn th-btn--primary">
+                                    Ürünleri Keşfet <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="home-hero__hero-img">
+                                                        <img src="/slider/slider1.png?v=1781617117" alt="" loading="eager">
+                        </div>
+                    </div>
+                </div>
+            </div>
+                        <div class="swiper-slide">
+                <div class="th-hero-slide th-hero-slide--lifestyle" data-img-pos="left">
+                    <div class="th-hero-slide__inner">
+                        <div class="home-hero__text">
+                            <h1 class="home-hero__title">
+                                <span class="home-hero__title-gradient">Ritmini Saatin<br>Belirlesin</span>
+                            </h1>
+                            <p class="home-hero__desc">Nabız takibi, bildirimler ve şık tasarım bir arada. Sunix akıllı saatlerle teknoloji bileğinde.</p>
+                            <div class="home-hero__actions">
+                                <a href="/kategori/akilli-saat" class="th-btn th-btn--primary">
+                                    Ürünleri Keşfet <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="home-hero__hero-img">
+                                                        <img src="/slider/slider2.png?v=1781617117" alt="" loading="lazy">
+                        </div>
+                    </div>
+                </div>
+            </div>
+                        <div class="swiper-slide">
+                <div class="th-hero-slide th-hero-slide--lifestyle" data-img-pos="right">
+                    <div class="th-hero-slide__inner">
+                        <div class="home-hero__text">
+                            <h1 class="home-hero__title">
+                                <span class="home-hero__title-gradient">Koruma<br>Hep Yanında</span>
+                            </h1>
+                            <p class="home-hero__desc">Günlük kullanım için geliştirilen güçlü ve şık ekran koruyucu teknolojisi.</p>
+                            <div class="home-hero__actions">
+                                <a href="/kategori/ekran-koruyucu" class="th-btn th-btn--primary">
+                                    Ürünleri Keşfet <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="home-hero__hero-img">
+                                                        <img src="/slider/slider3.png?v=1781617117" alt="" loading="lazy">
+                        </div>
+                    </div>
+                </div>
+            </div>
+                        <div class="swiper-slide">
+                <div class="th-hero-slide th-hero-slide--lifestyle" data-img-pos="left">
+                    <div class="th-hero-slide__inner">
+                        <div class="home-hero__text">
+                            <h1 class="home-hero__title">
+                                <span class="home-hero__title-gradient">Gözlerini Kapat<br>Dinle</span>
+                            </h1>
+                            <p class="home-hero__desc">Müziğin içinde kaybol, ritmi sadece hisset.</p>
+                            <div class="home-hero__actions">
+                                <a href="/kategori/bluetooth-kulaklik" class="th-btn th-btn--primary">
+                                    Ürünleri Keşfet <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="home-hero__hero-img">
+                                                        <img src="/slider/slider4.png?v=1781617117" alt="" loading="lazy">
+                        </div>
+                    </div>
+                </div>
+            </div>
+                        <div class="swiper-slide">
+                <div class="th-hero-slide th-hero-slide--lifestyle" data-img-pos="right">
+                    <div class="th-hero-slide__inner">
+                        <div class="home-hero__text">
+                            <h1 class="home-hero__title">
+                                <span class="home-hero__title-gradient">Şarjın Hayatına<br>Yetişsin</span>
+                            </h1>
+                            <p class="home-hero__desc">Hızlı yaşam temposuna uyum sağlayan 45W şarj teknolojisi.</p>
+                            <div class="home-hero__actions">
+                                <a href="/kategori/sarj-aleti" class="th-btn th-btn--primary">
+                                    Ürünleri Keşfet <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="home-hero__hero-img">
+                                                        <img src="/slider/slider5.png?v=1781617117" alt="" loading="lazy">
+                        </div>
+                    </div>
+                </div>
+            </div>
+                        <div class="swiper-slide">
+                <div class="th-hero-slide th-hero-slide--lifestyle" data-img-pos="left">
+                    <div class="th-hero-slide__inner">
+                        <div class="home-hero__text">
+                            <h1 class="home-hero__title">
+                                <span class="home-hero__title-gradient">Müziği Her<br>Yere Taşı</span>
+                            </h1>
+                            <p class="home-hero__desc">Her ortamda enerjiyi yükselten güçlü bir ses deneyimi.</p>
+                            <div class="home-hero__actions">
+                                <a href="/kategori/hoparlor" class="th-btn th-btn--primary">
+                                    Ürünleri Keşfet <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="home-hero__hero-img">
+                                                        <img src="/slider/slider6.png?v=1781617117" alt="" loading="lazy">
+                        </div>
+                    </div>
+                </div>
+            </div>
+                    </div>
+    </div>
+
+    <div class="home-hero__controls">
+        <div class="home-hero__nav">
+            <button data-hero-prev aria-label="Önceki"><i class="fas fa-arrow-left"></i></button>
+            <button data-hero-next aria-label="Sonraki"><i class="fas fa-arrow-right"></i></button>
+            <div class="home-hero__pager">
+                <strong data-hero-cur>01</strong> / <span data-hero-total>06</span>
+            </div>
+        </div>
+        <div class="home-hero__dots">
+                        <div class="th-hero-dot active"></div>
+                        <div class="th-hero-dot"></div>
+                        <div class="th-hero-dot"></div>
+                        <div class="th-hero-dot"></div>
+                        <div class="th-hero-dot"></div>
+                        <div class="th-hero-dot"></div>
+                    </div>
+    </div>
+</section>
+
+<!-- ========== ÜRÜNLERİ KEŞFET ========== -->
+<section class="th-section" id="kategoriler">
+    <div class="th-container">
+        <div class="th-section__head">
+            <div class="th-section__head-main">
+                <div class="th-eyebrow">Kategoriler</div>
+                <h2 class="th-h2">Ürünleri keşfet</h2>
+            </div>
+            <a href="/kategori" class="th-link-arrow">Tümünü gör <i class="fas fa-arrow-right"></i></a>
+        </div>
+
+        <div class="home-cats">
+            <a href="/yeni-urunler" class="home-cats__row home-cats__row--new">
+                <div class="home-cats__img">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div class="home-cats__info">
+                    <span class="home-cats__name">Yeni Ürünler</span>
+                    <span class="home-cats__count">Son eklenenler</span>
+                </div>
+                <div class="home-cats__go"><i class="fas fa-arrow-right"></i></div>
+            </a>
+                        <a href="/kategori/akilli-saat" class="home-cats__row">
+                <div class="home-cats__img">
+                    <img src="/uploads/urunler/urun_3688_renk_614_69d3b5e631cd4.jpg" alt="Akıllı Saat" loading="lazy">
+                </div>
+                <div class="home-cats__info">
+                    <span class="home-cats__name">Akıllı Saat</span>
+                    <span class="home-cats__count">4 ürün</span>
+                </div>
+                <div class="home-cats__go"><i class="fas fa-arrow-right"></i></div>
+            </a>
+                        <a href="/kategori/arac-telefon-tutucu" class="home-cats__row">
+                <div class="home-cats__img">
+                    <img src="/uploads/urunler/urun_3738_69d636986c518.jpg" alt="Araç  Telefon Tutucu" loading="lazy">
+                </div>
+                <div class="home-cats__info">
+                    <span class="home-cats__name">Araç  Telefon Tutucu</span>
+                    <span class="home-cats__count">21 ürün</span>
+                </div>
+                <div class="home-cats__go"><i class="fas fa-arrow-right"></i></div>
+            </a>
+                        <a href="/kategori/arac-sarj-fm-modulator" class="home-cats__row">
+                <div class="home-cats__img">
+                    <img src="/uploads/urunler/53/resim1.jpg" alt="Araç Şarj &amp; Fm Modülatör" loading="lazy">
+                </div>
+                <div class="home-cats__info">
+                    <span class="home-cats__name">Araç Şarj &amp; Fm Modülatör</span>
+                    <span class="home-cats__count">13 ürün</span>
+                </div>
+                <div class="home-cats__go"><i class="fas fa-arrow-right"></i></div>
+            </a>
+                        <a href="/kategori/bluetooth-kulaklik" class="home-cats__row">
+                <div class="home-cats__img">
+                    <img src="/uploads/urunler/urun_3699_69d671a94d5b8.jpg" alt="Bluetooth Kulaklık" loading="lazy">
+                </div>
+                <div class="home-cats__info">
+                    <span class="home-cats__name">Bluetooth Kulaklık</span>
+                    <span class="home-cats__count">20 ürün</span>
+                </div>
+                <div class="home-cats__go"><i class="fas fa-arrow-right"></i></div>
+            </a>
+                        <a href="/kategori/cevirici" class="home-cats__row">
+                <div class="home-cats__img">
+                    <img src="/uploads/urunler/304/resim1.jpg" alt="Çevirici" loading="lazy">
+                </div>
+                <div class="home-cats__info">
+                    <span class="home-cats__name">Çevirici</span>
+                    <span class="home-cats__count">8 ürün</span>
+                </div>
+                <div class="home-cats__go"><i class="fas fa-arrow-right"></i></div>
+            </a>
+                        <a href="/kategori.php?id=19" class="home-cats__row">
+                <div class="home-cats__img">
+                    <img src="/uploads/urunler/274/resim1.jpg" alt="Depolama(SD) Ürünleri" loading="lazy">
+                </div>
+                <div class="home-cats__info">
+                    <span class="home-cats__name">Depolama(SD) Ürünleri</span>
+                    <span class="home-cats__count">4 ürün</span>
+                </div>
+                <div class="home-cats__go"><i class="fas fa-arrow-right"></i></div>
+            </a>
+                        <a href="/kategori/diger-aksesuarlar" class="home-cats__row">
+                <div class="home-cats__img">
+                    <img src="/uploads/urunler/urun_3739_69df33d6b7c0b.jpg" alt="Diğer Aksesuarlar" loading="lazy">
+                </div>
+                <div class="home-cats__info">
+                    <span class="home-cats__name">Diğer Aksesuarlar</span>
+                    <span class="home-cats__count">76 ürün</span>
+                </div>
+                <div class="home-cats__go"><i class="fas fa-arrow-right"></i></div>
+            </a>
+                        <a href="/kategori/ekran-koruyucu" class="home-cats__row">
+                <div class="home-cats__img">
+                    <img src="/uploads/urunler/urun_472_69dd1b0b68289.jpg" alt="Ekran Koruyucu" loading="lazy">
+                </div>
+                <div class="home-cats__info">
+                    <span class="home-cats__name">Ekran Koruyucu</span>
+                    <span class="home-cats__count">18 ürün</span>
+                </div>
+                <div class="home-cats__go"><i class="fas fa-arrow-right"></i></div>
+            </a>
+                        <a href="/kategori/hoparlor" class="home-cats__row">
+                <div class="home-cats__img">
+                    <img src="/uploads/urunler/urun_3665_69d63a570830c.jpg" alt="Hoparlör" loading="lazy">
+                </div>
+                <div class="home-cats__info">
+                    <span class="home-cats__name">Hoparlör</span>
+                    <span class="home-cats__count">39 ürün</span>
+                </div>
+                <div class="home-cats__go"><i class="fas fa-arrow-right"></i></div>
+            </a>
+                        <a href="/kategori/kablo" class="home-cats__row">
+                <div class="home-cats__img">
+                    <img src="/uploads/urunler/urun_3755_69dfb27fb0ebe.jpg" alt="Kablo" loading="lazy">
+                </div>
+                <div class="home-cats__info">
+                    <span class="home-cats__name">Kablo</span>
+                    <span class="home-cats__count">47 ürün</span>
+                </div>
+                <div class="home-cats__go"><i class="fas fa-arrow-right"></i></div>
+            </a>
+                        <a href="/kategori/sarj-aleti" class="home-cats__row">
+                <div class="home-cats__img">
+                    <img src="/uploads/urunler/urun_3725_6a056932b5ed6.jpg" alt="Şarj Aleti" loading="lazy">
+                </div>
+                <div class="home-cats__info">
+                    <span class="home-cats__name">Şarj Aleti</span>
+                    <span class="home-cats__count">39 ürün</span>
+                </div>
+                <div class="home-cats__go"><i class="fas fa-arrow-right"></i></div>
+            </a>
+                        <a href="/kategori/tasinabilir-pil" class="home-cats__row">
+                <div class="home-cats__img">
+                    <img src="/uploads/urunler/urun_3687_renk_612_69d75c44a3647.jpg" alt="Taşınabilir Pil" loading="lazy">
+                </div>
+                <div class="home-cats__info">
+                    <span class="home-cats__name">Taşınabilir Pil</span>
+                    <span class="home-cats__count">19 ürün</span>
+                </div>
+                <div class="home-cats__go"><i class="fas fa-arrow-right"></i></div>
+            </a>
+                        <a href="/kategori.php?id=16" class="home-cats__row">
+                <div class="home-cats__img">
+                    <img src="/uploads/urunler/urun_3660_69ddfc75aebd1.jpg" alt="Lensler" loading="lazy">
+                </div>
+                <div class="home-cats__info">
+                    <span class="home-cats__name">Lensler</span>
+                    <span class="home-cats__count">5 ürün</span>
+                </div>
+                <div class="home-cats__go"><i class="fas fa-arrow-right"></i></div>
+            </a>
+                        <a href="/kategori.php?id=18" class="home-cats__row">
+                <div class="home-cats__img">
+                    <img src="/uploads/urunler/urun_3719_69ce6d0151c65.jpg" alt="Kablolu Kulaklık" loading="lazy">
+                </div>
+                <div class="home-cats__info">
+                    <span class="home-cats__name">Kablolu Kulaklık</span>
+                    <span class="home-cats__count">13 ürün</span>
+                </div>
+                <div class="home-cats__go"><i class="fas fa-arrow-right"></i></div>
+            </a>
+                    </div>
+    </div>
+</section>
+
+<!-- ========== YENİ GELENLER ========== -->
+<section class="th-section th-section--tight" id="yeni-gelenler" style="background: var(--c-off);">
+    <div class="th-container">
+        <div class="th-section__head">
+            <div class="th-section__head-main">
+                <div class="th-eyebrow">Yeni Sezon</div>
+                <h2 class="th-h2">Yeni gelen ürünler</h2>
+                <p class="th-lead">En son koleksiyona eklenen Sunix ürünleri.</p>
+            </div>
+        </div>
+
+                <div class="th-product-grid">
+                        <a href="/urun-detay.php?id=3850" class="th-product-card">
+                <div class="th-product-card__media">
+                                        <span class="th-product-card__badge">Yeni</span>
+                                        <img src="/uploads/urunler/urun_3850_6a2fd54db0f1c.jpg" alt="Saat Ceramic Ekran Koruyucu" loading="lazy">
+                </div>
+                <div class="th-product-card__body">
+                    <div class="th-product-card__cat">Ekran Koruyucu</div>
+                    <div class="th-product-card__name">Saat Ceramic Ekran Koruyucu</div>
+                    <div class="th-product-card__foot">
+                        <span class="th-product-card__more">Ürünü İncele</span>
+                        <div class="th-product-card__arrow"><i class="fas fa-arrow-right"></i></div>
+                    </div>
+                </div>
+            </a>
+                        <a href="/urun-detay.php?id=3836" class="th-product-card">
+                <div class="th-product-card__media">
+                                        <span class="th-product-card__badge">Yeni</span>
+                                        <img src="/uploads/urunler/urun_3836_6a2fd6b13e12a.jpg" alt="Sunproof Lens" loading="lazy">
+                </div>
+                <div class="th-product-card__body">
+                    <div class="th-product-card__cat">Lensler</div>
+                    <div class="th-product-card__name">Sunproof Lens</div>
+                    <div class="th-product-card__foot">
+                        <span class="th-product-card__more">Ürünü İncele</span>
+                        <div class="th-product-card__arrow"><i class="fas fa-arrow-right"></i></div>
+                    </div>
+                </div>
+            </a>
+                        <a href="/urun-detay.php?id=3809" class="th-product-card">
+                <div class="th-product-card__media">
+                                        <span class="th-product-card__badge">Yeni</span>
+                                        <img src="/uploads/urunler/urun_3809_6a1d9cd016b23.jpg" alt="Tablet Kılıfı" loading="lazy">
+                </div>
+                <div class="th-product-card__body">
+                    <div class="th-product-card__cat">Kapak / Kılıf</div>
+                    <div class="th-product-card__name">Tablet Kılıfı</div>
+                    <div class="th-product-card__foot">
+                        <span class="th-product-card__more">Ürünü İncele</span>
+                        <div class="th-product-card__arrow"><i class="fas fa-arrow-right"></i></div>
+                    </div>
+                </div>
+            </a>
+                        <a href="/urun-detay.php?id=3750" class="th-product-card">
+                <div class="th-product-card__media">
+                                        <span class="th-product-card__badge">Yeni</span>
+                                        <img src="/uploads/urunler/urun_3750_6a01fed377195.jpg" alt="M-70 Pro Lightning Bluetooth Bağlantılı Kulaklık" loading="lazy">
+                </div>
+                <div class="th-product-card__body">
+                    <div class="th-product-card__cat">Kablolu Kulaklık</div>
+                    <div class="th-product-card__name">M-70 Pro Lightning Bluetooth Bağlantılı Kulaklık</div>
+                    <div class="th-product-card__foot">
+                        <span class="th-product-card__more">Ürünü İncele</span>
+                        <div class="th-product-card__arrow"><i class="fas fa-arrow-right"></i></div>
+                    </div>
+                </div>
+            </a>
+                        <a href="/urun-detay.php?id=3749" class="th-product-card">
+                <div class="th-product-card__media">
+                                        <span class="th-product-card__badge">Yeni</span>
+                                        <img src="/uploads/urunler/urun_3749_6a01fe97439cc.jpg" alt="M-60 Type-C Kulaklık" loading="lazy">
+                </div>
+                <div class="th-product-card__body">
+                    <div class="th-product-card__cat">Kablolu Kulaklık</div>
+                    <div class="th-product-card__name">M-60 Type-C Kulaklık</div>
+                    <div class="th-product-card__foot">
+                        <span class="th-product-card__more">Ürünü İncele</span>
+                        <div class="th-product-card__arrow"><i class="fas fa-arrow-right"></i></div>
+                    </div>
+                </div>
+            </a>
+                        <a href="/urun/stand-21" class="th-product-card">
+                <div class="th-product-card__media">
+                                        <span class="th-product-card__badge">Yeni</span>
+                                        <img src="/uploads/urunler/urun_3739_69df33d6b7c0b.jpg" alt="Stand-21 Telefon Standı" loading="lazy">
+                </div>
+                <div class="th-product-card__body">
+                    <div class="th-product-card__cat">Diğer Aksesuarlar</div>
+                    <div class="th-product-card__name">Stand-21 Telefon Standı</div>
+                    <div class="th-product-card__foot">
+                        <span class="th-product-card__more">Ürünü İncele</span>
+                        <div class="th-product-card__arrow"><i class="fas fa-arrow-right"></i></div>
+                    </div>
+                </div>
+            </a>
+                        <a href="/urun/mt-30-telefon-tutucu" class="th-product-card">
+                <div class="th-product-card__media">
+                                        <span class="th-product-card__badge">Yeni</span>
+                                        <img src="/uploads/urunler/urun_3738_69d636986c518.jpg" alt="MT-30 Telefon Tutucu" loading="lazy">
+                </div>
+                <div class="th-product-card__body">
+                    <div class="th-product-card__cat">Araç Telefon Tutucu</div>
+                    <div class="th-product-card__name">MT-30 Telefon Tutucu</div>
+                    <div class="th-product-card__foot">
+                        <span class="th-product-card__more">Ürünü İncele</span>
+                        <div class="th-product-card__arrow"><i class="fas fa-arrow-right"></i></div>
+                    </div>
+                </div>
+            </a>
+                        <a href="/urun/up-270-set-sarj" class="th-product-card">
+                <div class="th-product-card__media">
+                                        <span class="th-product-card__badge">Yeni</span>
+                                        <img src="/uploads/urunler/urun_3725_6a056932b5ed6.jpg" alt="UP-270 Set Şarj" loading="lazy">
+                </div>
+                <div class="th-product-card__body">
+                    <div class="th-product-card__cat">Şarj Aleti</div>
+                    <div class="th-product-card__name">UP-270 Set Şarj</div>
+                    <div class="th-product-card__foot">
+                        <span class="th-product-card__more">Ürünü İncele</span>
+                        <div class="th-product-card__arrow"><i class="fas fa-arrow-right"></i></div>
+                    </div>
+                </div>
+            </a>
+                    </div>
+            </div>
+</section>
+
+<!-- ========== BAYİLİK DAVETİ CTA ========== -->
+<section class="home-cta">
+    <div class="home-cta__bg"></div>
+    <div class="th-container home-cta__inner">
+        <div class="home-cta__text">
+            <div class="th-eyebrow th-eyebrow--light">Sunix Bayiliği</div>
+            <h2 class="th-h2">Bayimiz olun, kazançlı ortaklığa adım atın</h2>
+            <p class="th-lead">Türkiye'nin dört bir yanında Sunix bayileri kazanıyor. Siz de ağa katılın: güçlü marka, uygun toptan fiyatlar, hızlı tedarik.</p>
+        </div>
+        <div class="home-cta__actions">
+            <a href="/bayilik-sistemi" class="th-btn th-btn--primary th-btn--lg">
+                Başvur <i class="fas fa-arrow-right"></i>
+            </a>
+            <a href="https://mysunix.com" target="_blank" rel="noopener" class="th-btn th-btn--ghost-light th-btn--lg">
+                Bayi Girişi
+            </a>
+        </div>
+    </div>
+</section>
+
+<footer class="th-footer">
+    <div class="th-footer__inner">
+        <div class="th-footer__grid">
+            <div class="th-footer__col th-footer__col--brand">
+                <a href="/" class="th-footer__logo">
+                    <img src="https://sunix.tr/images/logo/logo.png" alt="Sunix" height="40" class="th-logo__img th-logo__img--dark">
+                    <img src="https://www.sunixhub.com/images/logo/logo@2x.png" alt="Sunix" height="40" class="th-logo__img th-logo__img--light">
+                </a>
+                <p class="th-footer__tagline">
+                    2006 yılından bu yana Türkiye'nin lider mobil aksesuar markası. 500+ ürün çeşidi ve 21+ satış noktası ile hizmetinizdeyiz.
+                </p>
+                <div class="th-footer__social">
+                    <a href="https://www.instagram.com/sunix.tr/" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="https://www.facebook.com/sunixcomtr/" target="_blank" rel="noopener" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://www.youtube.com/@sunixcomtr" target="_blank" rel="noopener" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    <a href="https://www.twitter.com/sunixcomtr/" target="_blank" rel="noopener" aria-label="Twitter / X"><i class="fab fa-x-twitter"></i></a>
+                </div>
+            </div>
+
+            <div class="th-footer__col">
+                <h4 class="th-footer__title">Kurumsal</h4>
+                <ul class="th-footer__list">
+                    <li><a href="/">Ana Sayfa</a></li>
+                    <li><a href="/hakkimizda">Hakkımızda</a></li>
+                    <li><a href="/bayilik-sistemi">Bayilik Başvurusu</a></li>
+                    <li><a href="/satis-noktalari">Satış Noktaları</a></li>
+                    <li><a href="/iletisim">İletişim</a></li>
+                </ul>
+            </div>
+
+            <div class="th-footer__col">
+                <h4 class="th-footer__title">Kategoriler</h4>
+                <ul class="th-footer__list">
+                                        <li><a href="/kategori/akilli-saat">Akıllı Saat</a></li>
+                                        <li><a href="/kategori/arac-telefon-tutucu">Araç  Telefon Tutucu</a></li>
+                                        <li><a href="/kategori/arac-sarj-fm-modulator">Araç Şarj &amp; Fm Modülatör</a></li>
+                                        <li><a href="/kategori/bluetooth-kulaklik">Bluetooth Kulaklık</a></li>
+                                        <li><a href="/kategori/cevirici">Çevirici</a></li>
+                                    </ul>
+            </div>
+
+            <div class="th-footer__col">
+                <h4 class="th-footer__title">İletişim</h4>
+                <ul class="th-footer__list th-footer__list--contact">
+                    <li>
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Üniversite Mah. Bağlariçi Cad. No:35<br>Avcılar / İstanbul / Türkiye</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-phone"></i>
+                        <a href="tel:08503073323">0 (850) 307 33 23</a>
+                    </li>
+                    <li>
+                        <i class="fas fa-envelope"></i>
+                        <a href="mailto:info&#64;sunix&#46;com&#46;tr">info&#64;sunix&#46;com&#46;tr</a>
+                    </li>
+                </ul>
+                <a href="https://mysunix.com" target="_blank" rel="noopener" class="th-footer__cta">
+                    Bayi Girişi <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="th-footer__bottom">
+            <span>© 2026 <strong>Mobista Telekom Elektronik İç ve Dış Tic. Ltd. Şti.</strong> — Tüm hakları saklıdır.</span>
+            <span class="th-footer__legal">
+                <a href="#">Gizlilik Politikası</a>
+                <span class="dot">·</span>
+                <a href="#">Kullanım Koşulları</a>
+                <span class="dot">·</span>
+                <a href="#">KVKK</a>
+            </span>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" defer></script>
+<script src="/js/tema.js?v=1781617117" defer></script>
+<script src="/js/form-gonder.js" defer></script>
+</body>
+</html>

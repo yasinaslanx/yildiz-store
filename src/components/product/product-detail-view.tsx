@@ -188,11 +188,11 @@ export function ProductDetailView({ product }: { product: Product }) {
             </div>
 
             <div className="space-y-4 lg:space-y-6">
-               <h1 className="text-4xl lg:text-7xl font-black tracking-tighter text-stone-900 uppercase leading-[0.9] italic">
+               <h1 className="text-3xl md:text-5xl lg:text-7xl font-black tracking-tighter text-stone-900 uppercase leading-[0.9] italic break-words">
                  {product.name}
                </h1>
                
-               <div className="flex items-center gap-8 border-y border-stone-50 py-6">
+               <div className="flex flex-wrap items-center gap-4 lg:gap-8 border-y border-stone-50 py-6">
                   <div className="flex items-center gap-3">
                      <span className="text-2xl font-black text-stone-900 italic tracking-tighter">{rating.toFixed(1)}</span>
                      <div className="flex text-stone-900">
@@ -223,16 +223,16 @@ export function ProductDetailView({ product }: { product: Product }) {
                
                <div className="flex flex-col gap-1">
                   {selectedVariant.oldPrice && selectedVariant.oldPrice > selectedVariant.price ? (
-                    <span className="text-xl font-bold text-stone-300 line-through decoration-stone-200 tracking-tighter">
+                    <span className="text-lg lg:text-xl font-bold text-stone-300 line-through decoration-stone-200 tracking-tighter break-words">
                       {formatPrice(selectedVariant.oldPrice)}
                     </span>
                   ) : (
-                    <span className="text-xl font-bold text-stone-300 line-through decoration-stone-200 tracking-tighter">
+                    <span className="text-lg lg:text-xl font-bold text-stone-300 line-through decoration-stone-200 tracking-tighter break-words">
                       {formatPrice(selectedVariant.price * 1.25)}
                     </span>
                   )}
-                  <div className="flex items-baseline gap-6">
-                    <span className="text-7xl font-black tracking-tighter text-stone-900 italic">
+                  <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6 mt-1">
+                    <span className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter text-stone-900 italic break-words">
                       {formatPrice(selectedVariant.price)}
                     </span>
                     <div className="flex flex-col gap-2">

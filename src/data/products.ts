@@ -88,7 +88,7 @@ export const products: Product[] = [
     slug: "iphone-16-pro-max-kilif",
     name: "iPhone 16 Pro Max Deri Kılıf",
     brand: "Apple",
-    category: "phone-accessories",
+    category: "kilif",
     description: "Premium yüzeyli, cihaz uyumlu koruyucu deri kılıf.",
     variants: [
       {
@@ -124,7 +124,7 @@ export const products: Product[] = [
     slug: "apple-magsafe-sarj-cihazi",
     name: "Apple MagSafe Şarj Cihazı",
     brand: "Apple",
-    category: "phone-accessories",
+    category: "sarj-aleti",
     description: "Hızlı ve güvenilir kablosuz şarj deneyimi sunan orijinal MagSafe şarj cihazı.",
     variants: [
       {
@@ -142,7 +142,7 @@ export const products: Product[] = [
     slug: "spigen-ekran-koruyucu",
     name: "Spigen Glas.tR EZ Fit Ekran Koruyucu",
     brand: "Spigen",
-    category: "phone-accessories",
+    category: "ekran-koruyucu",
     description: "Kolay kurulum aparatı ile gelen, çizilmelere karşı ultra dayanıklı kırılmaz cam ekran koruyucu.",
     variants: [
       {
@@ -160,7 +160,7 @@ export const products: Product[] = [
     slug: "anker-20w-hizli-sarj",
     name: "Anker PowerPort III 20W Hızlı Şarj Adaptörü",
     brand: "Anker",
-    category: "phone-accessories",
+    category: "sarj-aleti",
     description: "Kompakt boyutlu, telefonunuzu ve tabletinizi güvenle şarj edebilen 20W hızlı şarj adaptörü.",
     variants: [
       {

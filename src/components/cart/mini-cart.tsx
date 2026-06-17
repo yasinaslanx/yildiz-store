@@ -134,9 +134,9 @@ export function MiniCart() {
             {/* Footer */}
             {items.length > 0 && (
               <div className="border-t border-stone-100 p-8 space-y-6">
-                <div className="flex items-end justify-between">
+                <div className="flex items-end justify-between gap-4">
                   <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Toplam Tutar</p>
-                  <p className="text-3xl font-black tracking-tighter text-stone-900 italic">
+                  <p className="text-2xl sm:text-3xl font-black tracking-tighter text-stone-900 italic truncate text-right">
                     {formatPrice(totalPrice)}
                   </p>
                 </div>

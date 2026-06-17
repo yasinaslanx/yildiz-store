@@ -11,6 +11,24 @@ export const metadata: Metadata = {
    description: "Sunix Store ile premium teknoloji deneyimine adım atın. En yeni Sunix ürünleri ve aksesuarları keşfedin.",
 };
 
+const sunixCategories = [
+   { name: "Yeni Ürünler", icon: "zap", url: "/products?sort=newest", isRed: true },
+   { name: "Akıllı Saat", image: "https://sunix.com.tr/uploads/urunler/urun_3688_renk_614_69d3b5e631cd4.jpg", url: "/products?category=akilli-saat" },
+   { name: "Araç Telefon Tutucu", image: "https://sunix.com.tr/uploads/urunler/urun_3738_69d636986c518.jpg", url: "/products?category=arac-telefon-tutucu" },
+   { name: "Araç Şarj & Fm Modülatör", image: "https://sunix.com.tr/uploads/urunler/53/resim1.jpg", url: "/products?category=arac-sarj-fm-modulator" },
+   { name: "Bluetooth Kulaklık", image: "https://sunix.com.tr/uploads/urunler/urun_3699_69d671a94d5b8.jpg", url: "/products?category=bluetooth-kulaklik" },
+   { name: "Çevirici", image: "https://sunix.com.tr/uploads/urunler/304/resim1.jpg", url: "/products?category=cevirici" },
+   { name: "Depolama(SD) Ürünleri", image: "https://sunix.com.tr/uploads/urunler/274/resim1.jpg", url: "/products?category=depolama-urunleri" },
+   { name: "Diğer Aksesuarlar", image: "https://sunix.com.tr/uploads/urunler/urun_3739_69df33d6b7c0b.jpg", url: "/products?category=diger-aksesuarlar" },
+   { name: "Ekran Koruyucu", image: "https://sunix.com.tr/uploads/urunler/urun_472_69dd1b0b68289.jpg", url: "/products?category=ekran-koruyucu" },
+   { name: "Hoparlör", image: "https://sunix.com.tr/uploads/urunler/urun_3665_69d63a570830c.jpg", url: "/products?category=hoparlor" },
+   { name: "Kablo", image: "https://sunix.com.tr/uploads/urunler/urun_3755_69dfb27fb0ebe.jpg", url: "/products?category=kablo" },
+   { name: "Şarj Aleti", image: "https://sunix.com.tr/uploads/urunler/urun_3725_6a056932b5ed6.jpg", url: "/products?category=sarj-aleti" },
+   { name: "Taşınabilir Pil", image: "https://sunix.com.tr/uploads/urunler/urun_3687_renk_612_69d75c44a3647.jpg", url: "/products?category=tasinabilir-pil" },
+   { name: "Lensler", image: "https://sunix.com.tr/uploads/urunler/urun_3660_69ddfc75aebd1.jpg", url: "/products?category=lensler" },
+   { name: "Kablolu Kulaklık", image: "https://sunix.com.tr/uploads/urunler/urun_3719_69ce6d0151c65.jpg", url: "/products?category=kablolu-kulaklik" },
+];
+
 export default function HomePage() {
    return (
       <div className="flex flex-col gap-0 bg-white overflow-hidden transition-colors duration-500">
@@ -105,6 +123,51 @@ export default function HomePage() {
                      <span className="h-3 w-3 rounded-full bg-stone-100 flex-shrink-0" />
                   </div>
                ))}
+            </div>
+         </section>
+
+         {/* --- YENİ SUNIX KATEGORİLERİ --- */}
+         <section className="bg-[#f9fafb] py-20 overflow-hidden border-y border-stone-100">
+            <div className="mx-auto max-w-[1440px] px-6 lg:px-20">
+               <div className="mb-10">
+                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400">Keşfet</p>
+                  <h2 className="mt-2 text-4xl font-black tracking-tighter text-stone-900 uppercase">Tüm Kategoriler</h2>
+               </div>
+               <div className="flex flex-col lg:flex-row gap-6">
+                  <style>{`
+                    @keyframes sunix-new-slide {
+                      0%   { transform: translateX(-100%); }
+                      100% { transform: translateX(250%); }
+                    }
+                  `}</style>
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                     {sunixCategories.map((cat, i) => (
+                        <Link 
+                          key={i} 
+                          href={cat.url} 
+                          className={`relative flex items-center gap-[14px] pl-[10px] pr-[22px] py-[10px] rounded-[16px] border backdrop-blur-md transition-all duration-300 hover:translate-x-[3px] group overflow-hidden ${cat.isRed ? 'bg-white border-[#0d1e3a14]' : 'bg-white/65 hover:bg-white border-[#0d1e3a14] hover:border-[#0d1e3a38]'}`}
+                        >
+                           {cat.isRed && (
+                              <div className="absolute left-0 bottom-0 h-[2px] w-[40%] bg-gradient-to-r from-transparent via-[#e30613] to-transparent pointer-events-none" style={{ animation: 'sunix-new-slide 2.8s linear infinite' }} />
+                           )}
+                           <div className="flex w-[62px] h-[62px] shrink-0 items-center justify-center rounded-full bg-white border border-[#0d1e3a0f] shadow-[0_10px_24px_-8px_rgba(13,30,58,0.18)] overflow-hidden transition-all duration-300 group-hover:shadow-[0_10px_24px_-8px_rgba(13,30,58,0.25)]">
+                              {cat.icon === "zap" ? (
+                                 <svg className="h-[22px] w-[22px] text-[#e30613] fill-current" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={0}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                 </svg>
+                              ) : cat.image ? (
+                                 <div className="relative w-[80%] h-[80%]">
+                                   <Image src={cat.image} alt={cat.name} fill sizes="62px" className="object-contain scale-[1.3] mix-blend-multiply" />
+                                 </div>
+                              ) : null}
+                           </div>
+                           <span className={`font-bold text-[14px] tracking-tight leading-snug ${cat.isRed ? 'text-[#e30613]' : 'text-[#0f172a]'}`}>
+                              {cat.name}
+                           </span>
+                        </Link>
+                     ))}
+                  </div>
+               </div>
             </div>
          </section>
 
