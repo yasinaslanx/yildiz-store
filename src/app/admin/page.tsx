@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { fetchAdminDashboard } from "@/lib/api";
 import Link from "next/link";
+import DashboardCharts from "@/components/admin/dashboard-charts";
 
 type DashboardData = {
   stats: {
@@ -12,6 +13,10 @@ type DashboardData = {
     totalUsers: number;
     totalRevenue: number;
     todayRevenue: number;
+  };
+  chartData: {
+    salesTrend: { date: string; amount: number }[];
+    revenueDistribution: { name: string; value: number }[];
   };
   lowStockVariants: {
     id: string;
@@ -59,9 +64,10 @@ export default function AdminDashboardPage() {
       <main className="mx-auto max-w-7xl px-6 py-20">
          <div className="space-y-12">
             <div className="h-12 w-64 bg-stone-100 rounded-full animate-pulse" />
-            <div className="grid gap-6 md:grid-cols-3">
-               {[1,2,3].map(i => <div key={i} className="h-40 rounded-[2.5rem] bg-stone-50 animate-pulse" />)}
+            <div className="grid gap-6 md:grid-cols-3 xl:grid-cols-6">
+               {[1,2,3,4,5,6].map(i => <div key={i} className="h-40 rounded-[2.5rem] bg-stone-50 animate-pulse" />)}
             </div>
+            <div className="h-[400px] w-full rounded-[2.5rem] bg-stone-50 animate-pulse" />
          </div>
       </main>
     );
@@ -133,6 +139,10 @@ export default function AdminDashboardPage() {
           </div>
         ))}
       </section>
+
+      {data.chartData && (
+        <DashboardCharts data={data.chartData} />
+      )}
 
       <section className="grid gap-12 lg:grid-cols-[1fr_450px]">
         {/* Son Siparişler */}

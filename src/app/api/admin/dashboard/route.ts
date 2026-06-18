@@ -80,6 +80,47 @@ export async function GET() {
       }),
     ]);
 
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const thirtyDaysOrders = await prisma.order.findMany({
+      where: {
+        paymentStatus: "PAID",
+        createdAt: {
+          gte: thirtyDaysAgo,
+        },
+      },
+      include: {
+        user: {
+          select: { role: true },
+        },
+      },
+    });
+
+    const salesByDayMap = new Map<string, number>();
+    const revenueByRole = { B2B: 0, B2C: 0 };
+
+    // Initialize last 30 days with 0 revenue
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toLocaleDateString("tr-TR", { day: "2-digit", month: "short" });
+      salesByDayMap.set(dateStr, 0);
+    }
+
+    thirtyDaysOrders.forEach((order) => {
+      const dateStr = order.createdAt.toLocaleDateString("tr-TR", { day: "2-digit", month: "short" });
+      if (salesByDayMap.has(dateStr)) {
+        salesByDayMap.set(dateStr, salesByDayMap.get(dateStr)! + Number(order.totalAmount));
+      }
+
+      if (order.user?.role === "DEALER") {
+        revenueByRole.B2B += Number(order.totalAmount);
+      } else {
+        revenueByRole.B2C += Number(order.totalAmount);
+      }
+    });
+
     return NextResponse.json({
       success: true,
       data: {
@@ -90,6 +131,16 @@ export async function GET() {
           totalUsers,
           totalRevenue: Number(totalRevenueResult._sum.totalAmount ?? 0),
           todayRevenue: Number(todayRevenueResult._sum.totalAmount ?? 0),
+        },
+        chartData: {
+          salesTrend: Array.from(salesByDayMap.entries()).map(([date, amount]) => ({
+            date,
+            amount,
+          })),
+          revenueDistribution: [
+            { name: "Bayi (B2B)", value: revenueByRole.B2B },
+            { name: "Perakende (B2C)", value: revenueByRole.B2C },
+          ]
         },
         lowStockVariants: lowStockVariants.map((variant) => ({
           id: variant.id,

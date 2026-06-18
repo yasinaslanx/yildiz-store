@@ -70,11 +70,13 @@ model Product {
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   featured    Boolean           @default(false)
-  category    Category          @relation(fields: [categoryId], references: [id])
-  images      ProductImage[]
-  questions   ProductQuestion[]
-  reviews     ProductReview[]
-  variants    ProductVariant[]
+  category        Category          @relation(fields: [categoryId], references: [id])
+  images          ProductImage[]
+  questions       ProductQuestion[]
+  reviews         ProductReview[]
+  variants        ProductVariant[]
+  bundleTriggers  BundleDeal[]      @relation("BundleTrigger")
+  bundleTargets   BundleDeal[]      @relation("BundleTarget")
 }
 
 model ProductVariant {
@@ -380,4 +382,19 @@ enum ApplicationStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+model BundleDeal {
+  id               String    @id @default(cuid())
+  name             String
+  triggerProductId String
+  bundleProductId  String
+  discountPercent  Int
+  active           Boolean   @default(true)
+  startsAt         DateTime?
+  expiresAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  triggerProduct   Product   @relation("BundleTrigger", fields: [triggerProductId], references: [id])
+  bundleProduct    Product   @relation("BundleTarget", fields: [bundleProductId], references: [id])
 }

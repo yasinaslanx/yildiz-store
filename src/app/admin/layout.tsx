@@ -12,6 +12,7 @@ const adminMenu = [
   { href: "/admin/warehouse", label: "Depo Yönetimi", icon: "🏠" },
   { href: "/admin/categories", label: "Kategori Yönetimi", icon: "📁" },
   { href: "/admin/coupons", label: "Kuponlar", icon: "🎟️" },
+  { href: "/admin/bundles", label: "Bundle Kampanyaları", icon: "🎁" },
   { href: "/admin/stock-alerts", label: "Stok Bekleyenler", icon: "🔔" },
   { href: "/admin/support", label: "Canlı Destek", icon: "💬" },
   { href: "/admin/dealers", label: "Bayi Yönetimi", icon: "🤝" },
@@ -62,7 +63,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               if (item.href === "/admin/products" || item.href === "/admin/categories" || item.href === "/admin/stock-alerts") return p.includes("PRODUCTS");
               if (item.href === "/admin/dealers" || item.href === "/admin/users") return p.includes("USERS");
               if (item.href === "/admin/support") return p.includes("SUPPORT");
-              if (item.href === "/admin/coupons") return p.includes("MARKETING");
+              if (item.href === "/admin/coupons" || item.href === "/admin/bundles") return p.includes("MARKETING");
               if (item.href === "/admin/warehouse") return p.includes("WAREHOUSE");
 
               return false;

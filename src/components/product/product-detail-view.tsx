@@ -16,6 +16,7 @@ import { useUi } from "@/store/ui-store";
 import { Modal } from "@/components/ui/modal";
 import { InstallmentTable } from "@/components/product/installment-table";
 import { toast } from "react-hot-toast";
+import BundleOffer from "@/components/product/bundle-offer";
 import Link from "next/link";
 import { 
   ShieldCheck, 
@@ -331,6 +332,41 @@ export function ProductDetailView({ product }: { product: Product }) {
                    <p className="text-[11px] font-black uppercase tracking-[0.3em] text-stone-300 italic">Tükendi / Yakında Gelecek</p>
                 </div>
               )}
+
+              {/* Bundle Offers */}
+              <BundleOffer
+                productSlug={product.slug}
+                mainProductPrice={finalPrice}
+                onAddBundle={(bundleVariantId, _discount, _bundleDealId) => {
+                  // Add main product to cart
+                  addItem({
+                    id: selectedVariant.id,
+                    productId: product.id,
+                    productName: product.name,
+                    brand: product.brand,
+                    variantId: selectedVariant.id,
+                    color: selectedVariant.color,
+                    storage: selectedVariant.storage ?? undefined,
+                    price: selectedVariant.price,
+                    image: selectedVariant.images[0]?.url ?? product.image,
+                    slug: product.slug,
+                  });
+                  // Add bundle product to cart
+                  addItem({
+                    id: bundleVariantId,
+                    productId: bundleVariantId,
+                    productName: "Paket Ürünü",
+                    brand: "",
+                    variantId: bundleVariantId,
+                    color: "",
+                    price: 0,
+                    image: "",
+                    slug: "",
+                  });
+                  toast.success("Paket sepete eklendi! 🎁");
+                  openCart();
+                }}
+              />
 
               <div className="grid grid-cols-2 gap-6 pt-8">
                   <div className="space-y-2">
