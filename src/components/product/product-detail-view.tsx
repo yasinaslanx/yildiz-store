@@ -124,7 +124,7 @@ export function ProductDetailView({ product }: { product: Product }) {
     }
     
     // Eğer bu renkte hiç resim yoksa, ürünün ilk varyantının resimlerini fallback olarak kullan
-    if (allImages.length === 0 && product.variants[0]?.images) {
+    if (allImages.length === 0 && product.variants[0]?.images && product.variants[0].images.length > 0) {
       return product.variants[0].images;
     }
     

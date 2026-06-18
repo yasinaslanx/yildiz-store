@@ -26,7 +26,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const firstVariant = product.variants[0];
   const imageObj = firstVariant?.images?.[0] || (product as any).images?.[0] || product.image;
-  const firstImage = (typeof imageObj === 'string' ? imageObj : (imageObj as any)?.url) || "https://placehold.co/600x600/f5f5f4/a8a29e?text=Gorsel+Yok";
+  const firstImage = (typeof imageObj === 'string' ? imageObj : (imageObj as any)?.url) || "https://placehold.co/600x600/f5f5f4/a8a29e.png?text=Gorsel+Yok";
   
   const favorite = isFavorite(firstVariant?.id || product.id);
   

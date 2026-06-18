@@ -68,23 +68,23 @@ export default function HomePage() {
                <div className="flex-1 relative animate-in zoom-in-95 duration-1000">
                   <div className="relative aspect-square w-full max-w-[600px] mx-auto rounded-[4rem] border-2 border-stone-100 bg-stone-50/50 p-12 overflow-hidden shadow-2xl shadow-stone-100 group">
                      <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/40 to-white/0" />
-                     <div className="absolute inset-0 overflow-hidden rounded-[4rem]">
-                        <video
-                           autoPlay
-                           loop
-                           muted
-                           playsInline
-                           className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                           src="/videos/iphone17pro-max.mp4"
+                     <div className="absolute inset-0 overflow-hidden rounded-[4rem] bg-white">
+                        <Image
+                           src="/MySunix-BayiPortalı_files/urun_3836_6a2fd6b13e12a.jpg"
+                           alt="Sunproof Lens"
+                           fill
+                           quality={100}
+                           sizes="(max-width: 768px) 100vw, 800px"
+                           className="object-contain p-2 md:p-4 scale-[1.1] transition-transform duration-1000 group-hover:scale-[1.15]"
                         />
                         {/* Karanlık gradyan overlay, metinlerin ve butonun okunmasını sağlar */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent pointer-events-none" />
                      </div>
                      <div className="absolute bottom-12 right-12 flex flex-col items-end z-10">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-white/70">Model</p>
-                        <p className="text-3xl font-black text-white uppercase tracking-tighter mb-4 drop-shadow-lg">iPhone 17 Pro Max</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-white/70">Yeni Ürün</p>
+                        <p className="text-3xl font-black text-white uppercase tracking-tighter mb-4 drop-shadow-lg">Sunproof Lens</p>
                         <Link
-                           href="/products/iphone-17-pro-max"
+                           href="/products/sunproof-lens-3739"
                            className="rounded-full bg-white px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-stone-900 transition hover:scale-105 hover:bg-stone-100 shadow-xl"
                         >
                            Ürüne Git

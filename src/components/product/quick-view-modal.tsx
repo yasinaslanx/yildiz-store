@@ -58,8 +58,8 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
   }, [product.variants, selectedColor, selectedStorage, product]);
 
   const favorite = isFavorite(selectedVariant.id);
-  const imageObj = selectedVariant?.images?.[0];
-  const displayImage = (typeof imageObj === 'string' ? imageObj : imageObj?.url) || product.image || "https://placehold.co/600x600/f5f5f4/a8a29e?text=Gorsel+Yok";
+  const imageObj = selectedVariant?.images?.[0] || (product as any).images?.[0];
+  const displayImage = (typeof imageObj === 'string' ? imageObj : imageObj?.url) || product.image || "https://placehold.co/600x600/f5f5f4/a8a29e.png?text=Gorsel+Yok";
 
   const isDealer = user?.role === "DEALER" || user?.role === "dealer";
   const finalPrice = selectedVariant ? (isDealer && (selectedVariant as any).wholesalePrice ? Number((selectedVariant as any).wholesalePrice) : Number(selectedVariant.price)) : Number(product.price || 0);

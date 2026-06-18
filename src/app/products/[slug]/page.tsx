@@ -23,6 +23,7 @@ async function getProduct(slug: string) {
     },
     include: {
       category: true,
+      images: { orderBy: { order: "asc" } },
       variants: {
         where: { active: true },
         include: {
@@ -39,6 +40,7 @@ async function getProduct(slug: string) {
     ...product,
     price: Number(product.variants[0]?.price || 0),
     stock: product.variants.reduce((acc, v) => acc + v.stock, 0),
+    image: (product as any).images?.[0]?.url || product.variants?.[0]?.images?.[0]?.url || "",
     category: product.category ? {
       id: product.category.id,
       name: product.category.name,
