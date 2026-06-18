@@ -148,8 +148,11 @@ export async function POST(request: Request) {
         }
       }
 
+      const isDealer = user.role === "DEALER";
+
       let totalAmount = cart.items.reduce((sum, item) => {
-        return sum + Number(item.variant.price) * item.quantity;
+        const price = isDealer && item.variant.wholesalePrice ? Number(item.variant.wholesalePrice) : Number(item.variant.price);
+        return sum + price * item.quantity;
       }, 0);
 
       let appliedCoupon = null;
@@ -186,6 +189,8 @@ export async function POST(request: Request) {
         const variant = item.variant;
         const product = variant.product;
 
+        const price = isDealer && variant.wholesalePrice ? Number(variant.wholesalePrice) : Number(variant.price);
+
         return {
           productId: product.id,
           variantId: variant.id,
@@ -194,7 +199,7 @@ export async function POST(request: Request) {
           color: variant.color,
           storage: variant.storage ?? null,
           image: variant.images?.[0]?.url ?? product.images?.[0]?.url ?? "",
-          price: new Prisma.Decimal(variant.price),
+          price: new Prisma.Decimal(price),
           quantity: item.quantity,
         };
       });

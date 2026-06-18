@@ -66,10 +66,19 @@ export async function GET(request: Request) {
 
     const skip = (page - 1) * limit;
 
+    const earlyAccess = searchParams.get("earlyAccess") === "true";
+    const canSeeEarlyAccess = user?.role === "DEALER" || user?.role === "ADMIN" || user?.role === "dealer" || user?.role === "admin";
+
     const where: any = {
       active: true,
       ...(excludeId ? { id: { not: excludeId } } : {}),
     };
+
+    if (earlyAccess && canSeeEarlyAccess) {
+      where.isEarlyAccess = true;
+    } else if (!canSeeEarlyAccess) {
+      where.isEarlyAccess = false;
+    }
 
     // If price filters are applied, the product must have at least one active variant matching the price
     if (minPrice !== undefined || maxPrice !== undefined) {

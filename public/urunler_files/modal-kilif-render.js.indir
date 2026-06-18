@@ -1,0 +1,597 @@
+/**
+ * Form - Kılıf Tablo Render: Model×Renk Grid
+ */
+(function() {
+    'use strict';
+
+    var F = window.Form;
+
+    F.ModalKilif = F.ModalKilif || {};
+
+    // State
+    F.ModalKilif.ST = {
+        mode: 'karma',        // karma|ayri
+        paketAdet: 20,
+        birimFiyat: 0,
+        urunData: null,
+        satirId: null,
+        renkler: [],           // [{id, renk_adi, renk_kodu, resim_url}]
+        modeller: [],          // [{id, model_adi, marka_id, marka_adi, marka_renk, marka_logo, stok:{renkId:miktar}}]
+        q: {}                  // {modelId_renkId: miktar}
+    };
+
+    var container = null;
+
+    /**
+     * Ana render
+     */
+    F.ModalKilif.render = function(cont, urunData, satirId) {
+        container = cont;
+        var ST = F.ModalKilif.ST;
+        ST.urunData = urunData;
+        ST.satirId = satirId;
+        ST.mode = (urunData.paket_sablon && urunData.paket_sablon.paket_tipi) || 'karma';
+        ST.birimFiyat = urunData.fiyat || 0;
+        ST.fiyatKurali = null;
+        ST.normalBirimFiyat = urunData.fiyat || 0;
+        ST.q = {};
+
+        // Edit modda: mevcut satırdan varyant miktarları ve fiyat kuralı yükle
+        if (satirId) {
+            var mevcutSatirKilif = F.State.satirBul(satirId);
+            if (mevcutSatirKilif) {
+                // Varyant miktarlarını geri yükle
+                if (mevcutSatirKilif.varyantlar && mevcutSatirKilif.varyantlar.length > 0) {
+                    // Build modelId lookup map: tm.id → utm.id (grid key'leri utm.id kullanır)
+                    var kilifModelMap = {};
+                    var kilifModeller = urunData.modeller || [];
+                    for (var ki = 0; ki < kilifModeller.length; ki++) {
+                        var km = kilifModeller[ki];
+                        if (km.telefon_model_id) kilifModelMap[km.telefon_model_id] = km.id;
+                        kilifModelMap[km.id] = km.id; // identity
+                    }
+                    for (var vi = 0; vi < mevcutSatirKilif.varyantlar.length; vi++) {
+                        var vr = mevcutSatirKilif.varyantlar[vi];
+                        if (vr.modelId && vr.renkId && vr.miktar > 0) {
+                            var resolvedModelId = kilifModelMap[vr.modelId] || vr.modelId;
+                            ST.q[resolvedModelId + '_' + vr.renkId] = vr.miktar;
+                        }
+                    }
+                }
+                // Fiyat kuralı yükle (0 fiyat geçerli değerdir)
+                if (mevcutSatirKilif.fiyatKurali) {
+                    ST.fiyatKurali = mevcutSatirKilif.fiyatKurali;
+                    ST.birimFiyat = (mevcutSatirKilif.birimFiyat != null) ? mevcutSatirKilif.birimFiyat : ST.birimFiyat;
+                    ST.normalBirimFiyat = (mevcutSatirKilif.normalBirimFiyat != null) ? mevcutSatirKilif.normalBirimFiyat : (urunData.fiyat || 0);
+                }
+            }
+        }
+
+        // Fiyat listesi varsa fiyat hesapla (yeni + düzenleme)
+        if (F.State.fiyatGrubuId) {
+            F.Fiyat.urunFiyatHesapla(urunData.id, function(sonuc) {
+                if (sonuc && sonuc.kuralVar) {
+                    if (!satirId) {
+                        // Yeni ekleme: API fiyatını kullan
+                        ST.birimFiyat = sonuc.hesaplananFiyat;
+                        ST.normalBirimFiyat = sonuc.birimFiyat;
+                    }
+                    // Hem yeni hem düzenleme: kuralı güncelle
+                    ST.fiyatKurali = sonuc.kural;
+                    if (F.ModalKilifInput && F.ModalKilifInput.calc) {
+                        F.ModalKilifInput.calc();
+                    }
+                }
+            });
+        }
+
+        // Paket bilgisi
+        if (urunData.paket_sablon) {
+            ST.paketAdet = urunData.paket_sablon.paket_adet || 20;
+            ST.renkler = urunData.paket_sablon.detaylar || [];
+        } else {
+            ST.renkler = urunData.renkler || [];
+        }
+        ST.modeller = urunData.modeller || [];
+
+        var esc = F.Helpers.escHtml;
+        var N = ST.renkler.length;
+
+        var html = '';
+
+        // Modal wrapper (flex-column, max-height, border-radius, shadow)
+        html += '<div class="frm-km-modal">';
+
+        // Header
+        html += '<div class="frm-km-hdr">';
+        html += '<div class="frm-km-hdr-title">Kılıf/Kapak Sipariş Girişi</div>';
+        html += '<div class="frm-km-hdr-controls">';
+        html += '<div class="frm-km-tip-toggle">';
+        html += '<button class="frm-km-tip-b' + (ST.mode === 'karma' ? ' on' : '') + '" data-tip="karma" disabled>Karma</button>';
+        html += '<button class="frm-km-tip-b' + (ST.mode === 'ayri' ? ' on' : '') + '" data-tip="ayri" disabled>Ayrı</button>';
+        html += '</div></div>';
+        html += '<div class="frm-km-hdr-right">';
+        html += F.Helpers.depoOnizlemeSelectHtml();
+        html += '<div class="frm-km-pill pcs"><i class="icon-package" style="font-size:12px"></i> 1 Paket = <strong>' + ST.paketAdet + '</strong> Adet</div>';
+        html += '<div class="frm-km-pill urun"><strong>' + esc(urunData.urun_adi || '') + '</strong></div>';
+        html += '</div></div>';
+
+        // Body
+        html += '<div class="frm-km-body"><div class="frm-km-card"><div class="frm-km-tw">';
+        html += '<table id="frmKmTbl"' + (ST.mode === 'ayri' ? ' class="frm-km-amod"' : '') + '>';
+
+        // Thead
+        html += '<thead><tr>';
+        html += '<th class="frm-km-th-m"><div class="frm-km-th-m-inner">';
+        html += '<div class="frm-km-th-m-title">Model</div>';
+        html += '<div class="frm-km-th-search-wrap"><i class="icon-search"></i>';
+        html += '<input type="text" class="frm-km-th-search" id="frmKmModelAra" autocomplete="off" placeholder="Model ara..."></div>';
+        html += '</div></th>';
+
+        for (var c = 0; c < N; c++) {
+            var r = ST.renkler[c];
+            html += '<th class="frm-km-th-c"><div class="frm-km-dh">';
+            if (r.resim_url) {
+                html += '<div class="frm-km-dh-img-wrap"><img src="' + esc(resimUrl(r.resim_url)) + '" class="frm-km-dh-img"></div>';
+            } else {
+                html += '<div class="frm-km-dh-img-wrap"><div class="frm-km-dh-placeholder"><i class="icon-image"></i></div></div>';
+            }
+            html += '<span class="frm-km-dh-badge"><span class="frm-km-dh-dot" style="background:' + esc(r.renk_kodu || '#ccc') + '"></span>' + esc(r.renk_adi) + '</span>';
+            html += '</div></th>';
+        }
+        html += '<th class="frm-km-th-t">Toplam</th>';
+        html += '</tr></thead>';
+
+        // Tbody
+        html += '<tbody>';
+        var lastMarkaId = null;
+
+        for (var m = 0; m < ST.modeller.length; m++) {
+            var model = ST.modeller[m];
+
+            // Marka satırı
+            if (model.marka_id !== lastMarkaId) {
+                lastMarkaId = model.marka_id;
+                html += '<tr class="frm-km-brand-row" style="--br-color:' + esc(model.marka_renk || '#c0c3c9') + '">';
+                html += '<td colspan="' + (N + 2) + '"><div class="frm-km-br-inner">';
+                if (model.marka_logo) {
+                    html += '<img src="' + esc(resimUrl(model.marka_logo)) + '" class="frm-km-br-logo">';
+                } else {
+                    html += '<span class="frm-km-br-name">' + esc(model.marka_adi) + '</span>';
+                }
+                html += '</div></td></tr>';
+            }
+
+            // Model satırı
+            html += '<tr data-model-id="' + model.id + '"' + (m % 2 === 1 ? ' class="frm-km-even"' : '') + '>';
+            html += '<td class="frm-km-td-m"><div class="frm-km-m-wrap"><span class="frm-km-model-pill"><span class="frm-km-model-name">' + esc(model.model_adi) + '</span></span></div></td>';
+
+            // Renk hücreleri
+            for (var c2 = 0; c2 < N; c2++) {
+                var renk = ST.renkler[c2];
+                var stokDepoData = (!F.State.isIade && !F.Config.isOnSiparis && !F.State.onTalepAktif && !F.Config.isCinSiparis && model.depo_stok_map) ? model.depo_stok_map[renk.id] : null;
+                var stok = (F.State.isIade || F.Config.isOnSiparis || F.State.onTalepAktif || F.Config.isCinSiparis) ? '-' : F.Helpers.getDepoStok(stokDepoData, (model.stok && model.stok[renk.id]) || 0);
+                var stokLabel = F.State.isIade ? 'İade' : F.Helpers.getDepoLabel();
+                html += '<td><div class="frm-km-qg">';
+                if (!(F.Config.isOnSiparis || F.State.onTalepAktif || F.Config.isCinSiparis)) {
+                html += '<div class="frm-km-qg-stk' + (stokDepoData && stokDepoData.length ? ' frm-stk-tt-wrap' : '') + '"><span class="frm-km-qg-stk-l">' + stokLabel + '</span><span class="frm-km-qg-stk-v">' + stok + '</span>';
+                html += F.Helpers.depoTooltipHtml(stokDepoData);
+                html += '</div>';
+                }
+                var cellKey = model.id + '_' + renk.id;
+                var cellVal = ST.q[cellKey] || '';
+                html += '<input class="frm-km-qi" inputmode="numeric" autocomplete="off" placeholder="0" data-c="' + c2 + '" data-model="' + model.id + '" data-renk="' + renk.id + '" value="' + cellVal + '">';
+                html += '<button class="frm-km-qg-btn" title="Detay"><i class="icon-more-vertical"></i></button>';
+                html += '<button class="frm-km-qg-clear" data-model="' + model.id + '" data-renk="' + renk.id + '"' + (cellVal ? '' : ' style="display:none"') + '><i class="icon-x"></i></button>';
+                html += '</div><span class="frm-km-ct">0</span></td>';
+            }
+
+            // Toplam sütunu
+            html += '<td><span class="frm-km-rt" data-rt>0</span>';
+            html += '<div class="frm-km-qg frm-km-qg-t">';
+            if (!(F.Config.isOnSiparis || F.State.onTalepAktif || F.Config.isCinSiparis)) {
+            html += '<div class="frm-km-qg-stk"><span class="frm-km-qg-stk-l">' + (F.State.isIade ? 'İade' : F.Helpers.getDepoLabel()) + '</span><span class="frm-km-qg-stk-v" data-ts>' + (F.State.isIade ? '-' : '0') + '</span></div>';
+            }
+            html += '<input class="frm-km-qi" inputmode="numeric" autocomplete="off" placeholder="0" data-model="' + model.id + '" data-total="1">';
+            html += '<button class="frm-km-qg-btn" title="Detay"><i class="icon-more-vertical"></i></button>';
+            html += '</div></td>';
+            html += '</tr>';
+        }
+        html += '</tbody>';
+
+        // Tfoot
+        html += '<tfoot><tr><td class="frm-km-tf-l">Genel Toplam</td>';
+        for (var c3 = 0; c3 < N; c3++) {
+            html += '<td data-ct="' + c3 + '">0</td>';
+        }
+        html += '<td class="frm-km-tg" data-gt>0</td></tr></tfoot>';
+
+        html += '</table></div></div></div>';
+
+        // Footer
+        html += '<div class="frm-km-footer">';
+        html += '<div class="frm-km-summary">';
+        if (!(F.Config.isOnSiparis || F.State.onTalepAktif || F.Config.isCinSiparis)) {
+            html += '<div class="frm-km-st frm-km-st-total"><span class="frm-km-st-l">Tutar</span><span class="frm-km-st-v"><span class="frm-km-tutar-eski" id="frmKmTutarEski" style="display:none"></span><span id="frmKmTutar">$0.00</span></span></div>';
+        }
+        html += '<div class="frm-km-st"><span class="frm-km-st-l">Toplam Adet</span><span class="frm-km-st-v" id="frmKmToplamAdet">0</span></div>';
+        html += '<div class="frm-km-st"><span class="frm-km-st-l">Paket</span><span class="frm-km-st-v" id="frmKmPaketSayisi">0</span></div>';
+        html += '</div>';
+        html += '<div class="frm-km-acts-btns">';
+        html += '<button class="frm-km-abtn s" id="frmKmIptal"><i class="icon-x-circle"></i> İptal</button>';
+        var kmBtnText = F.State.onTalepAktif ? 'Ön Talep Kaydet' : 'Sepete Ekle';
+        html += '<button class="frm-km-abtn p" id="frmKmSepeteEkle"><i class="icon-plus-circle"></i> ' + kmBtnText + '</button>';
+        html += '</div></div>';
+
+        html += '</div>'; // /frm-km-modal
+
+        container.innerHTML = html;
+
+        // Stok tooltip event delegation başlat
+        F.Helpers.stokTooltipInit(container);
+
+        // Modal genişliğini sütun sayısına göre hesapla
+        // Az sütunda geniş, çok sütunda orantılı
+        var modalW = Math.max(800, 300 + N * 150);
+        modalW = Math.min(modalW, window.innerWidth * 0.95);
+        var modal = container.querySelector('.frm-km-modal');
+        if (modal) modal.style.width = modalW + 'px';
+
+        // Marka rengini alt satırlara aktar + toplam stok hesapla
+        F.ModalKilif.initBrandColors();
+
+        // Event binding
+        F.ModalKilif.bindEvents();
+
+        // Input binding
+        F.ModalKilifInput.bindInputs();
+
+        // Klavye navigasyonu ve highlight
+        F.ModalKilifNav.init();
+        F.ModalKilifNav.initHighlight();
+
+        // İlk hesaplama
+        F.ModalKilifInput.calc();
+    };
+
+    /**
+     * Marka rengi ve toplam stok init
+     */
+    F.ModalKilif.initBrandColors = function() {
+        var tbl = document.getElementById('frmKmTbl');
+        if (!tbl) return;
+
+        var color = '#c0c3c9';
+        var rows = tbl.querySelectorAll('tbody tr');
+        rows.forEach(function(r) {
+            if (r.classList.contains('frm-km-brand-row')) {
+                color = getComputedStyle(r).getPropertyValue('--br-color').trim() || '#c0c3c9';
+            } else {
+                r.style.setProperty('--br-color', color);
+                // Toplam stok
+                var ts = 0;
+                r.querySelectorAll('.frm-km-qg:not(.frm-km-qg-t) .frm-km-qg-stk-v').forEach(function(v) {
+                    ts += parseInt(v.textContent) || 0;
+                });
+                var tsEl = r.querySelector('[data-ts]');
+                if (tsEl) tsEl.textContent = ts;
+            }
+        });
+    };
+
+    /**
+     * Event binding
+     */
+    F.ModalKilif.bindEvents = function() {
+        // Kapat (iptal butonu)
+        var iptalBtn = document.getElementById('frmKmIptal');
+        if (iptalBtn) iptalBtn.addEventListener('click', function() { F.Modal.guvenliKapat(); });
+
+        // Tip toggle
+        container.querySelectorAll('.frm-km-tip-b').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var tip = this.getAttribute('data-tip');
+                F.ModalKilif.setTip(tip);
+            });
+        });
+
+        // Sepete ekle
+        var sepetBtn = document.getElementById('frmKmSepeteEkle');
+        if (sepetBtn) sepetBtn.addEventListener('click', function() { F.ModalKilif.sepeteEkle(); });
+
+        // Üç nokta butonları → Detay overlay aç
+        container.querySelectorAll('.frm-km-qg-btn').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var qg = this.closest('.frm-km-qg');
+                var inp = qg ? qg.querySelector('.frm-km-qi') : null;
+                if (!inp) return;
+
+                var modelId = inp.getAttribute('data-model');
+                var renkId = inp.getAttribute('data-renk');
+                var urunData = F.ModalKilif.ST.urunData;
+                if (!urunData || !F.Modal.acDetay) return;
+
+                var varyantInfo = buildKilifVaryantInfo(modelId, renkId);
+                if (varyantInfo) {
+                    varyantInfo.varyantId = 'km_' + modelId + '_' + (renkId || '0');
+                }
+
+                F.Modal.acDetay(urunData, varyantInfo);
+            });
+        });
+
+        // Model arama
+        var araInput = document.getElementById('frmKmModelAra');
+        if (araInput) {
+            araInput.addEventListener('input', function() {
+                F.ModalKilifNav.filterRows(this.value);
+            });
+        }
+
+        // Depo önizleme select
+        var depoSel = container.querySelector('#frmDepoOzSelect');
+        if (depoSel) {
+            depoSel.addEventListener('change', function() {
+                F.State.depoOnizleme = this.value === 'tumu' ? 'tumu' : parseInt(this.value);
+                F.ModalKilif.depoStokGuncelle();
+            });
+        }
+    };
+
+    /**
+     * Depo önizleme değiştiğinde stok değerlerini güncelle
+     */
+    F.ModalKilif.depoStokGuncelle = function() {
+        var ST = F.ModalKilif.ST;
+        var tbl = document.getElementById('frmKmTbl');
+        if (!tbl) return;
+        var label = F.Helpers.getDepoLabel();
+
+        var rows = tbl.querySelectorAll('tbody tr[data-model-id]');
+        rows.forEach(function(row) {
+            var modelId = row.getAttribute('data-model-id');
+            var model = null;
+            for (var i = 0; i < ST.modeller.length; i++) {
+                if (ST.modeller[i].id == modelId) { model = ST.modeller[i]; break; }
+            }
+            if (!model) return;
+
+            var cells = row.querySelectorAll('.frm-km-qg:not(.frm-km-qg-t)');
+            var totalStok = 0;
+            cells.forEach(function(cell, idx) {
+                if (idx >= ST.renkler.length) return;
+                var renk = ST.renkler[idx];
+                var stokDepoData = model.depo_stok_map ? model.depo_stok_map[renk.id] : null;
+                var toplamStok = (model.stok && model.stok[renk.id]) || 0;
+                var stok = F.Helpers.getDepoStok(stokDepoData, toplamStok);
+                var valEl = cell.querySelector('.frm-km-qg-stk-v');
+                var lblEl = cell.querySelector('.frm-km-qg-stk-l');
+                if (valEl) valEl.textContent = stok;
+                if (lblEl && !F.State.isIade) lblEl.textContent = label;
+                totalStok += stok;
+            });
+
+            var tsEl = row.querySelector('[data-ts]');
+            if (tsEl && !F.State.isIade) tsEl.textContent = totalStok;
+            var tsLblEl = row.querySelector('.frm-km-qg-t .frm-km-qg-stk-l');
+            if (tsLblEl && !F.State.isIade) tsLblEl.textContent = label;
+        });
+    };
+
+    /**
+     * Paket tipi değiştir
+     */
+    F.ModalKilif.setTip = function(tip) {
+        F.ModalKilif.ST.mode = tip;
+        container.querySelectorAll('.frm-km-tip-b').forEach(function(b) {
+            b.classList.toggle('on', b.getAttribute('data-tip') === tip);
+        });
+        var tbl = document.getElementById('frmKmTbl');
+        if (tbl) tbl.classList.toggle('frm-km-amod', tip === 'ayri');
+        F.ModalKilifInput.calc();
+    };
+
+    /**
+     * Kılıf modal için varyant bilgisi oluştur (detay overlay'e gönderilir)
+     */
+    function buildKilifVaryantInfo(modelId, renkId) {
+        var ST = F.ModalKilif.ST;
+        var model = null, renk = null;
+
+        for (var i = 0; i < ST.modeller.length; i++) {
+            if (ST.modeller[i].id == modelId) { model = ST.modeller[i]; break; }
+        }
+
+        if (renkId) {
+            for (var j = 0; j < ST.renkler.length; j++) {
+                if (ST.renkler[j].id == renkId) { renk = ST.renkler[j]; break; }
+            }
+        }
+
+        if (!model) return null;
+
+        var info = {
+            tip: renkId ? 'model_renk' : 'model',
+            modelAdi: model.model_adi,
+            markaAdi: model.marka_adi || '',
+            markaRenk: model.marka_renk || '#103595'
+        };
+
+        if (renk) {
+            info.adi = model.model_adi + ' — ' + renk.renk_adi;
+            info.renkAdi = renk.renk_adi;
+            info.renkKodu = renk.renk_kodu || '';
+        } else {
+            info.adi = model.model_adi;
+        }
+
+        return info;
+    }
+
+    /**
+     * Sepete ekle
+     */
+    F.ModalKilif.sepeteEkle = function() {
+        var ST = F.ModalKilif.ST;
+        var toplamAdet = 0;
+        var varyantlar = [];
+
+        // Tüm input'lardan veri topla
+        var tbl = document.getElementById('frmKmTbl');
+        if (!tbl) return;
+
+        // Renk ve model lookup'ları oluştur
+        var renkLookup = {};
+        for (var ri = 0; ri < ST.renkler.length; ri++) {
+            renkLookup[ST.renkler[ri].id] = ST.renkler[ri];
+        }
+
+        tbl.querySelectorAll('tbody tr:not(.frm-km-brand-row)').forEach(function(row) {
+            var modelId = row.getAttribute('data-model-id');
+            // Model verisi bul
+            var modelData = null;
+            for (var mi = 0; mi < ST.modeller.length; mi++) {
+                if (ST.modeller[mi].id == modelId) { modelData = ST.modeller[mi]; break; }
+            }
+
+            row.querySelectorAll('.frm-km-qi[data-c]').forEach(function(inp) {
+                var val = parseInt(inp.value) || 0;
+                if (val > 0) {
+                    var renkId = inp.getAttribute('data-renk');
+                    var renkData = renkLookup[renkId] || null;
+                    var vItem = {
+                        tip: 'kilif',
+                        id: renkId,
+                        modelId: modelId,
+                        renkId: renkId,
+                        telefonModelId: modelData ? (modelData.telefon_model_id || null) : null,
+                        miktar: val,
+                        birimFiyat: (F.Config.isOnSiparis || F.State.onTalepAktif || F.Config.isCinSiparis) ? 0 : ST.birimFiyat,
+                        adi: renkData ? renkData.renk_adi : '',
+                        modelAdi: modelData ? modelData.model_adi : '',
+                        renkAdi: renkData ? renkData.renk_adi : '',
+                        renkKodu: renkData ? (renkData.renk_kodu || '') : '',
+                        markaAdi: modelData ? (modelData.marka_adi || '') : '',
+                        markaRenk: modelData ? (modelData.marka_renk || '') : '',
+                        markaLogo: modelData ? (modelData.marka_logo || '') : ''
+                    };
+                    if (ST.fiyatKurali && ST.normalBirimFiyat) {
+                        vItem.normalBirimFiyat = ST.normalBirimFiyat;
+                    }
+                    varyantlar.push(vItem);
+                    toplamAdet += val;
+                }
+            });
+        });
+
+        if (toplamAdet === 0) {
+            if (ST.satirId) {
+                F.Tablo.satirSil(ST.satirId);
+                F.Modal.kapat();
+                return;
+            }
+            Swal.fire({ icon: 'warning', title: 'Uyarı', text: 'En az 1 adet giriniz.', confirmButtonColor: '#103595' });
+            return;
+        }
+
+        // Cam Depo kontrolü (kılıfta varsayılan depo kullanılır)
+        if (F.StokKontrol && !F.Config.isIade && F.StokKontrol.camDepoMu(F.State.seciliDepoId)) {
+            F.StokKontrol.camDepoUyariGoster(ST.urunData.urun_adi).then(function(onaylandi) {
+                if (onaylandi) kilifSepeteEkleDevam(ST, toplamAdet, varyantlar);
+            });
+            return;
+        }
+
+        // Stok kontrolü (kılıf: model bazında toplam kontrol)
+        // Kılıf ürünlerinde paket sablon ID'si ≠ telefon_model_renk_id, bu yüzden
+        // model bazında toplam stok kontrolü yapılır (her model için girilenlerin toplamı)
+        if (F.StokKontrol && !F.Config.isIade && !F.Config.isOnSiparis && !F.Config.isSevkiyat && !F.Config.isCinSiparis && !F.State.onTalepAktif) {
+            // Model bazında miktarları topla
+            var modelMiktarlar = {};
+            for (var vi = 0; vi < varyantlar.length; vi++) {
+                var vr = varyantlar[vi];
+                var mId = vr.modelId;
+                if (!mId) continue;
+                if (!modelMiktarlar[mId]) modelMiktarlar[mId] = { miktar: 0, modelAdi: vr.modelAdi || '' };
+                modelMiktarlar[mId].miktar += vr.miktar;
+            }
+
+            var skKontroller = [];
+            for (var mk in modelMiktarlar) {
+                // Düzenleme modunda fark hesapla
+                var mkFark = F.StokKontrol.farkMiktarHesapla(ST.urunData.id, 'model', parseInt(mk), modelMiktarlar[mk].miktar);
+                if (mkFark <= 0) continue;
+                modelMiktarlar[mk].fark = mkFark;
+                if (!F.StokKontrol.onayliMi(ST.urunData.id, 'model', parseInt(mk))) {
+                    skKontroller.push({ urunId: ST.urunData.id, varyantTip: 'model', varyantId: parseInt(mk), miktar: mkFark, adi: modelMiktarlar[mk].modelAdi });
+                }
+            }
+
+            if (skKontroller.length > 0) {
+                var skTamamlanan = 0;
+                var skYetersizler = [];
+                skKontroller.forEach(function(skItem) {
+                    F.StokKontrol.anlikKontrol({
+                        urunId: skItem.urunId, varyantTip: skItem.varyantTip, varyantId: skItem.varyantId, miktar: skItem.miktar,
+                        callback: function(sonuc) {
+                            skTamamlanan++;
+                            if (!sonuc.yeterli) skYetersizler.push({ item: skItem, sonuc: sonuc });
+                            if (skTamamlanan === skKontroller.length) {
+                                if (skYetersizler.length === 0) {
+                                    kilifSepeteEkleDevam(ST, toplamAdet, varyantlar);
+                                } else {
+                                    var uyariListesi = skYetersizler.map(function(y) {
+                                        return { adi: y.item.adi, mevcut: y.sonuc.mevcut_stok, istenen: y.item.miktar };
+                                    });
+                                    F.StokKontrol.cokluUyariGoster(uyariListesi, ST.urunData).then(function(onaylandi) {
+                                        if (onaylandi) {
+                                            skYetersizler.forEach(function(y) {
+                                                F.StokKontrol.onayliIsaretle(y.item.urunId, y.item.varyantTip, y.item.varyantId);
+                                                F.StokKontrol.onayLogla(y.item.urunId, y.item.varyantTip, y.item.varyantId, y.sonuc.mevcut_stok, y.item.miktar);
+                                            });
+                                            kilifSepeteEkleDevam(ST, toplamAdet, varyantlar);
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    });
+                });
+                return;
+            }
+        }
+        kilifSepeteEkleDevam(ST, toplamAdet, varyantlar);
+    };
+
+    function kilifSepeteEkleDevam(ST, toplamAdet, varyantlar) {
+
+        var data = {
+            tip: 'kilif',
+            satirId: ST.satirId,
+            urunId: ST.urunData.id,
+            urunAdi: ST.urunData.urun_adi,
+            urunKodu: ST.urunData.urun_kodu,
+            resimUrl: ST.urunData.resim_url,
+            kategoriId: ST.urunData.kategori_id,
+            kategoriAdi: ST.urunData.kategori || (window.FormKategoriler && window.FormKategoriler[ST.urunData.kategori_id]) || 'Diğer',
+            miktar: toplamAdet,
+            birimFiyat: (F.Config.isOnSiparis || F.State.onTalepAktif || F.Config.isCinSiparis) ? 0 : ST.birimFiyat,
+            normalBirimFiyat: (F.Config.isOnSiparis || F.State.onTalepAktif || F.Config.isCinSiparis) ? 0 : ((ST.normalBirimFiyat != null) ? ST.normalBirimFiyat : ST.birimFiyat),
+            fiyatKurali: (F.Config.isOnSiparis || F.State.onTalepAktif || F.Config.isCinSiparis) ? null : (ST.fiyatKurali || null),
+            kdvOrani: (F.Config.isOnSiparis || F.State.onTalepAktif || F.Config.isCinSiparis) ? 0 : F.Config.aktifKdvOrani(),
+            paketAdet: ST.paketAdet,
+            paketSayisi: Math.floor(toplamAdet / ST.paketAdet),
+            paketBilgi: {
+                tipLabel: ST.mode === 'karma' ? 'Karma' : 'Ayrı',
+                paketAdet: ST.paketAdet,
+                paketSayisi: Math.floor(toplamAdet / ST.paketAdet)
+            },
+            varyantlar: varyantlar
+        };
+
+        F.Events.emit('modal:onayla', data);
+        F.Modal.kapat();
+    }
+
+})();

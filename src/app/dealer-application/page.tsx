@@ -21,6 +21,8 @@ export default function DealerApplicationPage() {
     taxOffice: "",
     taxNumber: "",
     phone: "",
+    email: "",
+    password: "",
     address: "",
   });
 
@@ -92,22 +94,7 @@ export default function DealerApplicationPage() {
     );
   }
 
-  if (!isAuthenticated) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center p-6">
-        <div className="text-center space-y-6 max-w-md w-full bg-white p-12 rounded-[3rem] border border-stone-100 shadow-2xl shadow-stone-200/50">
-          <ShieldAlert className="w-16 h-16 text-stone-300 mx-auto" />
-          <h1 className="text-3xl font-black uppercase tracking-tighter text-stone-900">Giriş Yapın</h1>
-          <p className="text-stone-500 font-medium">Bayilik başvurusunda bulunmak için öncelikle üye olmalı veya giriş yapmalısınız.</p>
-          <div className="pt-4">
-            <Link href="/login" className="flex items-center justify-center w-full bg-stone-900 text-white rounded-2xl h-14 font-black uppercase tracking-widest hover:bg-black transition-colors" style={{ color: "#ffffff" }}>
-              Giriş / Kayıt
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+
 
   if (applicationStatus === "APPROVED") {
     return (
@@ -213,16 +200,43 @@ export default function DealerApplicationPage() {
             </div>
           </div>
 
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 ml-4">İletişim Telefonu (Zorunlu)</label>
+              <input
+                type="tel"
+                name="phone"
+                required
+                value={formData.phone}
+                onChange={handleChange}
+                className="w-full rounded-2xl border-2 border-stone-100 bg-stone-50 px-6 py-4 text-sm font-medium transition-all focus:border-stone-900 focus:bg-white focus:outline-none"
+                placeholder="0 (5XX) XXX XX XX"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 ml-4">E-posta (İsteğe Bağlı)</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full rounded-2xl border-2 border-stone-100 bg-stone-50 px-6 py-4 text-sm font-medium transition-all focus:border-stone-900 focus:bg-white focus:outline-none"
+                placeholder="Örn: info@firma.com"
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 ml-4">İletişim Telefonu</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 ml-4">Bayi Portalı Giriş Şifresi (Zorunlu)</label>
             <input
-              type="tel"
-              name="phone"
+              type="password"
+              name="password"
               required
-              value={formData.phone}
+              minLength={6}
+              value={formData.password}
               onChange={handleChange}
               className="w-full rounded-2xl border-2 border-stone-100 bg-stone-50 px-6 py-4 text-sm font-medium transition-all focus:border-stone-900 focus:bg-white focus:outline-none"
-              placeholder="0 (5XX) XXX XX XX"
+              placeholder="En az 6 karakterli bir şifre belirleyin"
             />
           </div>
 

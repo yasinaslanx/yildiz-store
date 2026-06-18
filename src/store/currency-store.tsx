@@ -34,13 +34,43 @@ const CURRENCY_STORAGE_KEY = "sunix-store-currency";
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   const [currency, setCurrencyState] = useState<Currency>("TRY");
-  const [rates] = useState<CurrencyRates>(DEFAULT_RATES);
+  const [rates, setRates] = useState<CurrencyRates>(DEFAULT_RATES);
+  const [isLoadingRates, setIsLoadingRates] = useState(true);
 
   useEffect(() => {
     const stored = localStorage.getItem(CURRENCY_STORAGE_KEY) as Currency | null;
     if (stored && ["TRY", "USD", "EUR"].includes(stored)) {
       setCurrencyState(stored);
     }
+
+    // Fetch live rates
+    const fetchRates = async () => {
+      try {
+        const response = await fetch("https://finans.truncgil.com/today.json");
+        const data = await response.json();
+        if (data.USD && data.USD.Satış) {
+          const usdRate = parseFloat(data.USD.Satış.replace(",", "."));
+          if (!isNaN(usdRate) && usdRate > 0) {
+            setRates((prev) => ({ ...prev, USD: usdRate }));
+          }
+        }
+        if (data.EUR && data.EUR.Satış) {
+          const eurRate = parseFloat(data.EUR.Satış.replace(",", "."));
+          if (!isNaN(eurRate) && eurRate > 0) {
+            setRates((prev) => ({ ...prev, EUR: eurRate }));
+          }
+        }
+      } catch (error) {
+        console.error("Döviz kurları alınamadı:", error);
+      } finally {
+        setIsLoadingRates(false);
+      }
+    };
+
+    fetchRates();
+    // Saatte bir güncelle
+    const interval = setInterval(fetchRates, 60 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
   const setCurrency = (c: Currency) => {

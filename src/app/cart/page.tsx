@@ -3,6 +3,10 @@
 import Link from "next/link";
 import { useCart } from "@/store/cart-store";
 import { useCurrency } from "@/store/currency-store";
+import { useAuth } from "@/store/auth-store";
+import { useUi } from "@/store/ui-store";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
   const {
@@ -13,6 +17,32 @@ export default function CartPage() {
     totalPrice,
   } = useCart();
   const { formatPrice } = useCurrency();
+  const { user } = useAuth();
+  const { showToast } = useUi();
+  const router = useRouter();
+  const [isRequestingQuote, setIsRequestingQuote] = useState(false);
+
+  const handleQuoteRequest = async () => {
+    setIsRequestingQuote(true);
+    try {
+      const response = await fetch("/api/dealer/quote-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items, totalAmount: totalPrice })
+      });
+      const data = await response.json();
+      if (data.success) {
+        showToast("İndirim talebiniz alındı. Yetkililerimiz size dönüş yapacaktır.", "success");
+        router.push("/bayi");
+      } else {
+        showToast(data.message || "Talep gönderilemedi.", "error");
+      }
+    } catch (error) {
+      showToast("Bir hata oluştu.", "error");
+    } finally {
+      setIsRequestingQuote(false);
+    }
+  };
 
   if (items.length === 0) {
     return (
@@ -149,6 +179,16 @@ export default function CartPage() {
           >
             Ödemeye Geç
           </Link>
+
+          {(user?.role === "DEALER" || user?.role === "dealer") && (
+            <button
+              onClick={handleQuoteRequest}
+              disabled={isRequestingQuote}
+              className="block w-full rounded-full border border-blue-600 bg-blue-50 py-4 text-center text-[10px] font-black uppercase tracking-widest text-blue-700 transition hover:bg-blue-100 active:scale-95 disabled:opacity-50"
+            >
+              {isRequestingQuote ? "Gönderiliyor..." : "Toplu Alım İçin İndirim İste"}
+            </button>
+          )}
 
           <div className="flex items-center gap-3 justify-center pt-2">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-stone-400">

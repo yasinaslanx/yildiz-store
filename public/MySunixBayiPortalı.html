@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<!-- saved from url=(0029)https://mysunix.com/index.php -->
+<html lang="tr" class="notranslate" translate="no"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>MySunix - Bayi Portalı</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="google" content="notranslate">
+
+    <!-- ============ Tema CSS (lokal kopyalar — ERP'den bağımsız) ============ -->
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/animate.min.css">
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/animation.css">
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/bootstrap.css">
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/bootstrap-select.min.css">
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/style.css">
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/modal-stili.css">
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/tablo-stili.css">
+
+    <!-- Select2 -->
+    <link href="./MySunixBayiPortalı_files/select2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/select2-custom.css">
+
+    <!-- DataTables -->
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/jquery.dataTables.min.css">
+
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/flatpickr.min.css">
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/flatpickr-airbnb.css">
+
+    <!-- Font Awesome (kategori ikonları) -->
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/all.min.css">
+
+    <!-- Lokal icon (CORS için zorunlu) -->
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/style(1).css">
+
+    <!-- Giriş Pop-up'ları (Radar + Stoğa Giren) ortak modern stil -->
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/giris-popup.css">
+
+        <link rel="stylesheet" href="./MySunixBayiPortalı_files/siparis-listesi.css">
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/tedarik-pano.css">
+    
+    <!-- ============ Google Fonts — self-host (same-origin) ============ -->
+    <!-- Eskiden fonts.googleapis/gstatic'ten yükleniyordu; Chrome Local Network Access
+         (antivirüs trafiği localhost'tan geçirince) CORS ile engelliyordu. Lokal woff2'ye taşındı. -->
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/fonts-local.css">
+
+    <!-- ============ Yeni v49 Layout CSS (EN SONDA — override için) ============ -->
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/variables.css">
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/base.css">
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/sidebar.css">
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/header.css">
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/bildirim-badge.css">
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/collapsed.css">
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/responsive.css">
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/tabs.css">
+    <link rel="stylesheet" href="./MySunixBayiPortalı_files/impersonation.css">
+
+    <!-- Eğitim Turu CSS (tamamlanmamış + impersonation değil) -->
+        <link rel="stylesheet" href="./MySunixBayiPortalı_files/tur.css">
+    
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://mysunix.com/images/favicon/favicon-96x96.png" sizes="96x96">
+    <link rel="shortcut icon" href="https://mysunix.com/images/favicon/favicon.ico">
+
+    <!-- jQuery (lokal kopya) -->
+    <script src="./MySunixBayiPortalı_files/jquery.min.js.indir"></script>
+
+    <script>
+    (function(){
+        var nav=window.navigation;
+        var apiVar=(nav&&typeof nav.canGoBack==='boolean');
+        window.sunixGeriMi=function(){
+            if(apiVar)return nav.canGoBack;
+            if(history.length<=1)return false;
+            var r=document.referrer;
+            if(r){try{var h=new URL(r).hostname;if(h===location.hostname)return true}catch(e){}}
+            try{var n=performance.getEntriesByType('navigation');if(n.length&&n[0].type==='navigate'&&history.length>1)return true}catch(e){}
+            return false
+        };
+        window.sunixGeriVeyaKapat=function(){
+            var geri=apiVar?nav.canGoBack:null;
+            if(geri===true){history.back();return}
+            if(geri===false){try{window.close()}catch(e){}setTimeout(function(){location.href='index.php?sayfa=pano'},300);return}
+            var txt=document.querySelector('[data-sunix-geri-text]');
+            if(txt&&txt.textContent.trim()==='Kapat'){try{window.close()}catch(e){}setTimeout(function(){location.href='index.php?sayfa=pano'},300)}
+            else{var t=Date.now();history.back();setTimeout(function(){if(Date.now()-t<1500)location.href='index.php?sayfa=pano'},600)}
+        };
+    })();
+    </script>
+<style>:root{--swal2-outline: 0 0 0 3px rgba(100, 150, 200, 0.5);--swal2-container-padding: 0.625em;--swal2-backdrop: rgba(0, 0, 0, 0.4);--swal2-backdrop-transition: background-color 0.15s;--swal2-width: 32em;--swal2-padding: 0 0 1.25em;--swal2-border: none;--swal2-border-radius: 0.3125rem;--swal2-background: white;--swal2-color: #545454;--swal2-show-animation: swal2-show 0.3s;--swal2-hide-animation: swal2-hide 0.15s forwards;--swal2-icon-zoom: 1;--swal2-title-padding: 0.8em 1em 0;--swal2-html-container-padding: 1em 1.6em 0.3em;--swal2-input-border: 1px solid #d9d9d9;--swal2-input-border-radius: 0.1875em;--swal2-input-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.06), 0 0 0 3px transparent;--swal2-input-background: transparent;--swal2-input-transition: border-color 0.2s, box-shadow 0.2s;--swal2-input-hover-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.06), 0 0 0 3px transparent;--swal2-input-focus-border: 1px solid #b4dbed;--swal2-input-focus-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.06), 0 0 0 3px rgba(100, 150, 200, 0.5);--swal2-progress-step-background: #add8e6;--swal2-validation-message-background: #f0f0f0;--swal2-validation-message-color: #666;--swal2-footer-border-color: #eee;--swal2-footer-background: transparent;--swal2-footer-color: inherit;--swal2-timer-progress-bar-background: rgba(0, 0, 0, 0.3);--swal2-close-button-position: initial;--swal2-close-button-inset: auto;--swal2-close-button-font-size: 2.5em;--swal2-close-button-color: #ccc;--swal2-close-button-transition: color 0.2s, box-shadow 0.2s;--swal2-close-button-outline: initial;--swal2-close-button-box-shadow: inset 0 0 0 3px transparent;--swal2-close-button-focus-box-shadow: inset var(--swal2-outline);--swal2-close-button-hover-transform: none;--swal2-actions-justify-content: center;--swal2-actions-width: auto;--swal2-actions-margin: 1.25em auto 0;--swal2-actions-padding: 0;--swal2-actions-border-radius: 0;--swal2-actions-background: transparent;--swal2-action-button-transition: background-color 0.2s, box-shadow 0.2s;--swal2-action-button-hover: black 10%;--swal2-action-button-active: black 10%;--swal2-confirm-button-box-shadow: none;--swal2-confirm-button-border-radius: 0.25em;--swal2-confirm-button-background-color: #7066e0;--swal2-confirm-button-color: #fff;--swal2-deny-button-box-shadow: none;--swal2-deny-button-border-radius: 0.25em;--swal2-deny-button-background-color: #dc3741;--swal2-deny-button-color: #fff;--swal2-cancel-button-box-shadow: none;--swal2-cancel-button-border-radius: 0.25em;--swal2-cancel-button-background-color: #6e7881;--swal2-cancel-button-color: #fff;--swal2-toast-show-animation: swal2-toast-show 0.5s;--swal2-toast-hide-animation: swal2-toast-hide 0.1s forwards;--swal2-toast-border: none;--swal2-toast-box-shadow: 0 0 1px hsl(0deg 0% 0% / 0.075), 0 1px 2px hsl(0deg 0% 0% / 0.075), 1px 2px 4px hsl(0deg 0% 0% / 0.075), 1px 3px 8px hsl(0deg 0% 0% / 0.075), 2px 4px 16px hsl(0deg 0% 0% / 0.075)}[data-swal2-theme=dark]{--swal2-dark-theme-black: #19191a;--swal2-dark-theme-white: #e1e1e1;--swal2-background: var(--swal2-dark-theme-black);--swal2-color: var(--swal2-dark-theme-white);--swal2-footer-border-color: #555;--swal2-input-background: color-mix(in srgb, var(--swal2-dark-theme-black), var(--swal2-dark-theme-white) 10%);--swal2-validation-message-background: color-mix( in srgb, var(--swal2-dark-theme-black), var(--swal2-dark-theme-white) 10% );--swal2-validation-message-color: var(--swal2-dark-theme-white);--swal2-timer-progress-bar-background: rgba(255, 255, 255, 0.7)}@media(prefers-color-scheme: dark){[data-swal2-theme=auto]{--swal2-dark-theme-black: #19191a;--swal2-dark-theme-white: #e1e1e1;--swal2-background: var(--swal2-dark-theme-black);--swal2-color: var(--swal2-dark-theme-white);--swal2-footer-border-color: #555;--swal2-input-background: color-mix(in srgb, var(--swal2-dark-theme-black), var(--swal2-dark-theme-white) 10%);--swal2-validation-message-background: color-mix( in srgb, var(--swal2-dark-theme-black), var(--swal2-dark-theme-white) 10% );--swal2-validation-message-color: var(--swal2-dark-theme-white);--swal2-timer-progress-bar-background: rgba(255, 255, 255, 0.7)}}body.swal2-shown:not(.swal2-no-backdrop,.swal2-toast-shown){overflow:hidden}body.swal2-height-auto{height:auto !important}body.swal2-no-backdrop .swal2-container{background-color:rgba(0,0,0,0) !important;pointer-events:none}body.swal2-no-backdrop .swal2-container .swal2-popup{pointer-events:auto}body.swal2-no-backdrop .swal2-container .swal2-modal{box-shadow:0 0 10px var(--swal2-backdrop)}body.swal2-toast-shown .swal2-container{box-sizing:border-box;width:360px;max-width:100%;background-color:rgba(0,0,0,0);pointer-events:none}body.swal2-toast-shown .swal2-container.swal2-top{inset:0 auto auto 50%;transform:translateX(-50%)}body.swal2-toast-shown .swal2-container.swal2-top-end,body.swal2-toast-shown .swal2-container.swal2-top-right{inset:0 0 auto auto}body.swal2-toast-shown .swal2-container.swal2-top-start,body.swal2-toast-shown .swal2-container.swal2-top-left{inset:0 auto auto 0}body.swal2-toast-shown .swal2-container.swal2-center-start,body.swal2-toast-shown .swal2-container.swal2-center-left{inset:50% auto auto 0;transform:translateY(-50%)}body.swal2-toast-shown .swal2-container.swal2-center{inset:50% auto auto 50%;transform:translate(-50%, -50%)}body.swal2-toast-shown .swal2-container.swal2-center-end,body.swal2-toast-shown .swal2-container.swal2-center-right{inset:50% 0 auto auto;transform:translateY(-50%)}body.swal2-toast-shown .swal2-container.swal2-bottom-start,body.swal2-toast-shown .swal2-container.swal2-bottom-left{inset:auto auto 0 0}body.swal2-toast-shown .swal2-container.swal2-bottom{inset:auto auto 0 50%;transform:translateX(-50%)}body.swal2-toast-shown .swal2-container.swal2-bottom-end,body.swal2-toast-shown .swal2-container.swal2-bottom-right{inset:auto 0 0 auto}@media print{body.swal2-shown:not(.swal2-no-backdrop,.swal2-toast-shown){overflow-y:scroll !important}body.swal2-shown:not(.swal2-no-backdrop,.swal2-toast-shown)>[aria-hidden=true]{display:none}body.swal2-shown:not(.swal2-no-backdrop,.swal2-toast-shown) .swal2-container{position:static !important}}div:where(.swal2-container){display:grid;position:fixed;z-index:1060;inset:0;box-sizing:border-box;grid-template-areas:"top-start     top            top-end" "center-start  center         center-end" "bottom-start  bottom-center  bottom-end";grid-template-rows:minmax(min-content, auto) minmax(min-content, auto) minmax(min-content, auto);height:100%;padding:var(--swal2-container-padding);overflow-x:hidden;transition:var(--swal2-backdrop-transition);-webkit-overflow-scrolling:touch}div:where(.swal2-container).swal2-backdrop-show,div:where(.swal2-container).swal2-noanimation{background:var(--swal2-backdrop)}div:where(.swal2-container).swal2-backdrop-hide{background:rgba(0,0,0,0) !important}div:where(.swal2-container).swal2-top-start,div:where(.swal2-container).swal2-center-start,div:where(.swal2-container).swal2-bottom-start{grid-template-columns:minmax(0, 1fr) auto auto}div:where(.swal2-container).swal2-top,div:where(.swal2-container).swal2-center,div:where(.swal2-container).swal2-bottom{grid-template-columns:auto minmax(0, 1fr) auto}div:where(.swal2-container).swal2-top-end,div:where(.swal2-container).swal2-center-end,div:where(.swal2-container).swal2-bottom-end{grid-template-columns:auto auto minmax(0, 1fr)}div:where(.swal2-container).swal2-top-start>.swal2-popup{align-self:start}div:where(.swal2-container).swal2-top>.swal2-popup{grid-column:2;place-self:start center}div:where(.swal2-container).swal2-top-end>.swal2-popup,div:where(.swal2-container).swal2-top-right>.swal2-popup{grid-column:3;place-self:start end}div:where(.swal2-container).swal2-center-start>.swal2-popup,div:where(.swal2-container).swal2-center-left>.swal2-popup{grid-row:2;align-self:center}div:where(.swal2-container).swal2-center>.swal2-popup{grid-column:2;grid-row:2;place-self:center center}div:where(.swal2-container).swal2-center-end>.swal2-popup,div:where(.swal2-container).swal2-center-right>.swal2-popup{grid-column:3;grid-row:2;place-self:center end}div:where(.swal2-container).swal2-bottom-start>.swal2-popup,div:where(.swal2-container).swal2-bottom-left>.swal2-popup{grid-column:1;grid-row:3;align-self:end}div:where(.swal2-container).swal2-bottom>.swal2-popup{grid-column:2;grid-row:3;place-self:end center}div:where(.swal2-container).swal2-bottom-end>.swal2-popup,div:where(.swal2-container).swal2-bottom-right>.swal2-popup{grid-column:3;grid-row:3;place-self:end end}div:where(.swal2-container).swal2-grow-row>.swal2-popup,div:where(.swal2-container).swal2-grow-fullscreen>.swal2-popup{grid-column:1/4;width:100%}div:where(.swal2-container).swal2-grow-column>.swal2-popup,div:where(.swal2-container).swal2-grow-fullscreen>.swal2-popup{grid-row:1/4;align-self:stretch}div:where(.swal2-container).swal2-no-transition{transition:none !important}div:where(.swal2-container)[popover]{width:auto;border:0}div:where(.swal2-container) div:where(.swal2-popup){display:none;position:relative;box-sizing:border-box;grid-template-columns:minmax(0, 100%);width:var(--swal2-width);max-width:100%;padding:var(--swal2-padding);border:var(--swal2-border);border-radius:var(--swal2-border-radius);background:var(--swal2-background);color:var(--swal2-color);font-family:inherit;font-size:1rem}div:where(.swal2-container) div:where(.swal2-popup):focus{outline:none}div:where(.swal2-container) div:where(.swal2-popup).swal2-loading{overflow-y:hidden}div:where(.swal2-container) div:where(.swal2-popup).swal2-draggable{cursor:grab}div:where(.swal2-container) div:where(.swal2-popup).swal2-draggable div:where(.swal2-icon){cursor:grab}div:where(.swal2-container) div:where(.swal2-popup).swal2-dragging{cursor:grabbing}div:where(.swal2-container) div:where(.swal2-popup).swal2-dragging div:where(.swal2-icon){cursor:grabbing}div:where(.swal2-container) h2:where(.swal2-title){position:relative;max-width:100%;margin:0;padding:var(--swal2-title-padding);color:inherit;font-size:1.875em;font-weight:600;text-align:center;text-transform:none;overflow-wrap:break-word;cursor:initial}div:where(.swal2-container) div:where(.swal2-actions){display:flex;z-index:1;box-sizing:border-box;flex-wrap:wrap;align-items:center;justify-content:var(--swal2-actions-justify-content);width:var(--swal2-actions-width);margin:var(--swal2-actions-margin);padding:var(--swal2-actions-padding);border-radius:var(--swal2-actions-border-radius);background:var(--swal2-actions-background)}div:where(.swal2-container) div:where(.swal2-loader){display:none;align-items:center;justify-content:center;width:2.2em;height:2.2em;margin:0 1.875em;animation:swal2-rotate-loading 1.5s linear 0s infinite normal;border-width:.25em;border-style:solid;border-radius:100%;border-color:#2778c4 rgba(0,0,0,0) #2778c4 rgba(0,0,0,0)}div:where(.swal2-container) button:where(.swal2-styled){margin:.3125em;padding:.625em 1.1em;transition:var(--swal2-action-button-transition);border:none;box-shadow:0 0 0 3px rgba(0,0,0,0);font-weight:500}div:where(.swal2-container) button:where(.swal2-styled):not([disabled]){cursor:pointer}div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-confirm){border-radius:var(--swal2-confirm-button-border-radius);background:initial;background-color:var(--swal2-confirm-button-background-color);box-shadow:var(--swal2-confirm-button-box-shadow);color:var(--swal2-confirm-button-color);font-size:1em}div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-confirm):hover{background-color:color-mix(in srgb, var(--swal2-confirm-button-background-color), var(--swal2-action-button-hover))}div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-confirm):active{background-color:color-mix(in srgb, var(--swal2-confirm-button-background-color), var(--swal2-action-button-active))}div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-deny){border-radius:var(--swal2-deny-button-border-radius);background:initial;background-color:var(--swal2-deny-button-background-color);box-shadow:var(--swal2-deny-button-box-shadow);color:var(--swal2-deny-button-color);font-size:1em}div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-deny):hover{background-color:color-mix(in srgb, var(--swal2-deny-button-background-color), var(--swal2-action-button-hover))}div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-deny):active{background-color:color-mix(in srgb, var(--swal2-deny-button-background-color), var(--swal2-action-button-active))}div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-cancel){border-radius:var(--swal2-cancel-button-border-radius);background:initial;background-color:var(--swal2-cancel-button-background-color);box-shadow:var(--swal2-cancel-button-box-shadow);color:var(--swal2-cancel-button-color);font-size:1em}div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-cancel):hover{background-color:color-mix(in srgb, var(--swal2-cancel-button-background-color), var(--swal2-action-button-hover))}div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-cancel):active{background-color:color-mix(in srgb, var(--swal2-cancel-button-background-color), var(--swal2-action-button-active))}div:where(.swal2-container) button:where(.swal2-styled):focus-visible{outline:none;box-shadow:var(--swal2-action-button-focus-box-shadow)}div:where(.swal2-container) button:where(.swal2-styled)[disabled]:not(.swal2-loading){opacity:.4}div:where(.swal2-container) button:where(.swal2-styled)::-moz-focus-inner{border:0}div:where(.swal2-container) div:where(.swal2-footer){margin:1em 0 0;padding:1em 1em 0;border-top:1px solid var(--swal2-footer-border-color);background:var(--swal2-footer-background);color:var(--swal2-footer-color);font-size:1em;text-align:center;cursor:initial}div:where(.swal2-container) .swal2-timer-progress-bar-container{position:absolute;right:0;bottom:0;left:0;grid-column:auto !important;overflow:hidden;border-bottom-right-radius:var(--swal2-border-radius);border-bottom-left-radius:var(--swal2-border-radius)}div:where(.swal2-container) div:where(.swal2-timer-progress-bar){width:100%;height:.25em;background:var(--swal2-timer-progress-bar-background)}div:where(.swal2-container) img:where(.swal2-image){max-width:100%;margin:2em auto 1em;cursor:initial}div:where(.swal2-container) button:where(.swal2-close){position:var(--swal2-close-button-position);inset:var(--swal2-close-button-inset);z-index:2;align-items:center;justify-content:center;width:1.2em;height:1.2em;margin-top:0;margin-right:0;margin-bottom:-1.2em;padding:0;overflow:hidden;transition:var(--swal2-close-button-transition);border:none;border-radius:var(--swal2-border-radius);outline:var(--swal2-close-button-outline);background:rgba(0,0,0,0);color:var(--swal2-close-button-color);font-family:monospace;font-size:var(--swal2-close-button-font-size);cursor:pointer;justify-self:end}div:where(.swal2-container) button:where(.swal2-close):hover{transform:var(--swal2-close-button-hover-transform);background:rgba(0,0,0,0);color:#f27474}div:where(.swal2-container) button:where(.swal2-close):focus-visible{outline:none;box-shadow:var(--swal2-close-button-focus-box-shadow)}div:where(.swal2-container) button:where(.swal2-close)::-moz-focus-inner{border:0}div:where(.swal2-container) div:where(.swal2-html-container){z-index:1;justify-content:center;margin:0;padding:var(--swal2-html-container-padding);overflow:auto;color:inherit;font-size:1.125em;font-weight:normal;line-height:normal;text-align:center;overflow-wrap:break-word;word-break:break-word;cursor:initial}div:where(.swal2-container) input:where(.swal2-input),div:where(.swal2-container) input:where(.swal2-file),div:where(.swal2-container) textarea:where(.swal2-textarea),div:where(.swal2-container) select:where(.swal2-select),div:where(.swal2-container) div:where(.swal2-radio),div:where(.swal2-container) label:where(.swal2-checkbox){margin:1em 2em 3px}div:where(.swal2-container) input:where(.swal2-input),div:where(.swal2-container) input:where(.swal2-file),div:where(.swal2-container) textarea:where(.swal2-textarea){box-sizing:border-box;width:auto;transition:var(--swal2-input-transition);border:var(--swal2-input-border);border-radius:var(--swal2-input-border-radius);background:var(--swal2-input-background);box-shadow:var(--swal2-input-box-shadow);color:inherit;font-size:1.125em}div:where(.swal2-container) input:where(.swal2-input).swal2-inputerror,div:where(.swal2-container) input:where(.swal2-file).swal2-inputerror,div:where(.swal2-container) textarea:where(.swal2-textarea).swal2-inputerror{border-color:#f27474 !important;box-shadow:0 0 2px #f27474 !important}div:where(.swal2-container) input:where(.swal2-input):hover,div:where(.swal2-container) input:where(.swal2-file):hover,div:where(.swal2-container) textarea:where(.swal2-textarea):hover{box-shadow:var(--swal2-input-hover-box-shadow)}div:where(.swal2-container) input:where(.swal2-input):focus,div:where(.swal2-container) input:where(.swal2-file):focus,div:where(.swal2-container) textarea:where(.swal2-textarea):focus{border:var(--swal2-input-focus-border);outline:none;box-shadow:var(--swal2-input-focus-box-shadow)}div:where(.swal2-container) input:where(.swal2-input)::placeholder,div:where(.swal2-container) input:where(.swal2-file)::placeholder,div:where(.swal2-container) textarea:where(.swal2-textarea)::placeholder{color:#ccc}div:where(.swal2-container) .swal2-range{margin:1em 2em 3px;background:var(--swal2-background)}div:where(.swal2-container) .swal2-range input{width:80%}div:where(.swal2-container) .swal2-range output{width:20%;color:inherit;font-weight:600;text-align:center}div:where(.swal2-container) .swal2-range input,div:where(.swal2-container) .swal2-range output{height:2.625em;padding:0;font-size:1.125em;line-height:2.625em}div:where(.swal2-container) .swal2-input{height:2.625em;padding:0 .75em}div:where(.swal2-container) .swal2-file{width:75%;margin-right:auto;margin-left:auto;background:var(--swal2-input-background);font-size:1.125em}div:where(.swal2-container) .swal2-textarea{height:6.75em;padding:.75em}div:where(.swal2-container) .swal2-select{min-width:50%;max-width:100%;padding:.375em .625em;background:var(--swal2-input-background);color:inherit;font-size:1.125em}div:where(.swal2-container) .swal2-radio,div:where(.swal2-container) .swal2-checkbox{align-items:center;justify-content:center;background:var(--swal2-background);color:inherit}div:where(.swal2-container) .swal2-radio label,div:where(.swal2-container) .swal2-checkbox label{margin:0 .6em;font-size:1.125em}div:where(.swal2-container) .swal2-radio input,div:where(.swal2-container) .swal2-checkbox input{flex-shrink:0;margin:0 .4em}div:where(.swal2-container) label:where(.swal2-input-label){display:flex;justify-content:center;margin:1em auto 0}div:where(.swal2-container) div:where(.swal2-validation-message){align-items:center;justify-content:center;margin:1em 0 0;padding:.625em;overflow:hidden;background:var(--swal2-validation-message-background);color:var(--swal2-validation-message-color);font-size:1em;font-weight:300}div:where(.swal2-container) div:where(.swal2-validation-message)::before{content:"!";display:inline-block;width:1.5em;min-width:1.5em;height:1.5em;margin:0 .625em;border-radius:50%;background-color:#f27474;color:#fff;font-weight:600;line-height:1.5em;text-align:center}div:where(.swal2-container) .swal2-progress-steps{flex-wrap:wrap;align-items:center;max-width:100%;margin:1.25em auto;padding:0;background:rgba(0,0,0,0);font-weight:600}div:where(.swal2-container) .swal2-progress-steps li{display:inline-block;position:relative}div:where(.swal2-container) .swal2-progress-steps .swal2-progress-step{z-index:20;flex-shrink:0;width:2em;height:2em;border-radius:2em;background:#2778c4;color:#fff;line-height:2em;text-align:center}div:where(.swal2-container) .swal2-progress-steps .swal2-progress-step.swal2-active-progress-step{background:#2778c4}div:where(.swal2-container) .swal2-progress-steps .swal2-progress-step.swal2-active-progress-step~.swal2-progress-step{background:var(--swal2-progress-step-background);color:#fff}div:where(.swal2-container) .swal2-progress-steps .swal2-progress-step.swal2-active-progress-step~.swal2-progress-step-line{background:var(--swal2-progress-step-background)}div:where(.swal2-container) .swal2-progress-steps .swal2-progress-step-line{z-index:10;flex-shrink:0;width:2.5em;height:.4em;margin:0 -1px;background:#2778c4}div:where(.swal2-icon){position:relative;box-sizing:content-box;justify-content:center;width:5em;height:5em;margin:2.5em auto .6em;zoom:var(--swal2-icon-zoom);border:.25em solid rgba(0,0,0,0);border-radius:50%;border-color:#000;font-family:inherit;line-height:5em;cursor:default;user-select:none}div:where(.swal2-icon) .swal2-icon-content{display:flex;align-items:center;font-size:3.75em}div:where(.swal2-icon).swal2-error{border-color:#f27474;color:#f27474}div:where(.swal2-icon).swal2-error .swal2-x-mark{position:relative;flex-grow:1}div:where(.swal2-icon).swal2-error [class^=swal2-x-mark-line]{display:block;position:absolute;top:2.3125em;width:2.9375em;height:.3125em;border-radius:.125em;background-color:#f27474}div:where(.swal2-icon).swal2-error [class^=swal2-x-mark-line][class$=left]{left:1.0625em;transform:rotate(45deg)}div:where(.swal2-icon).swal2-error [class^=swal2-x-mark-line][class$=right]{right:1em;transform:rotate(-45deg)}div:where(.swal2-icon).swal2-error.swal2-icon-show{animation:swal2-animate-error-icon .5s}div:where(.swal2-icon).swal2-error.swal2-icon-show .swal2-x-mark{animation:swal2-animate-error-x-mark .5s}div:where(.swal2-icon).swal2-warning{border-color:#f8bb86;color:#f8bb86}div:where(.swal2-icon).swal2-warning.swal2-icon-show{animation:swal2-animate-error-icon .5s}div:where(.swal2-icon).swal2-warning.swal2-icon-show .swal2-icon-content{animation:swal2-animate-i-mark .5s}div:where(.swal2-icon).swal2-info{border-color:#3fc3ee;color:#3fc3ee}div:where(.swal2-icon).swal2-info.swal2-icon-show{animation:swal2-animate-error-icon .5s}div:where(.swal2-icon).swal2-info.swal2-icon-show .swal2-icon-content{animation:swal2-animate-i-mark .8s}div:where(.swal2-icon).swal2-question{border-color:#87adbd;color:#87adbd}div:where(.swal2-icon).swal2-question.swal2-icon-show{animation:swal2-animate-error-icon .5s}div:where(.swal2-icon).swal2-question.swal2-icon-show .swal2-icon-content{animation:swal2-animate-question-mark .8s}div:where(.swal2-icon).swal2-success{border-color:#a5dc86;color:#a5dc86}div:where(.swal2-icon).swal2-success [class^=swal2-success-circular-line]{position:absolute;width:3.75em;height:7.5em;border-radius:50%}div:where(.swal2-icon).swal2-success [class^=swal2-success-circular-line][class$=left]{top:-0.4375em;left:-2.0635em;transform:rotate(-45deg);transform-origin:3.75em 3.75em;border-radius:7.5em 0 0 7.5em}div:where(.swal2-icon).swal2-success [class^=swal2-success-circular-line][class$=right]{top:-0.6875em;left:1.875em;transform:rotate(-45deg);transform-origin:0 3.75em;border-radius:0 7.5em 7.5em 0}div:where(.swal2-icon).swal2-success .swal2-success-ring{position:absolute;z-index:2;top:-0.25em;left:-0.25em;box-sizing:content-box;width:100%;height:100%;border:.25em solid rgba(165,220,134,.3);border-radius:50%}div:where(.swal2-icon).swal2-success .swal2-success-fix{position:absolute;z-index:1;top:.5em;left:1.625em;width:.4375em;height:5.625em;transform:rotate(-45deg)}div:where(.swal2-icon).swal2-success [class^=swal2-success-line]{display:block;position:absolute;z-index:2;height:.3125em;border-radius:.125em;background-color:#a5dc86}div:where(.swal2-icon).swal2-success [class^=swal2-success-line][class$=tip]{top:2.875em;left:.8125em;width:1.5625em;transform:rotate(45deg)}div:where(.swal2-icon).swal2-success [class^=swal2-success-line][class$=long]{top:2.375em;right:.5em;width:2.9375em;transform:rotate(-45deg)}div:where(.swal2-icon).swal2-success.swal2-icon-show .swal2-success-line-tip{animation:swal2-animate-success-line-tip .75s}div:where(.swal2-icon).swal2-success.swal2-icon-show .swal2-success-line-long{animation:swal2-animate-success-line-long .75s}div:where(.swal2-icon).swal2-success.swal2-icon-show .swal2-success-circular-line-right{animation:swal2-rotate-success-circular-line 4.25s ease-in}[class^=swal2]{-webkit-tap-highlight-color:rgba(0,0,0,0)}.swal2-show{animation:var(--swal2-show-animation)}.swal2-hide{animation:var(--swal2-hide-animation)}.swal2-noanimation{transition:none}.swal2-scrollbar-measure{position:absolute;top:-9999px;width:50px;height:50px;overflow:scroll}.swal2-rtl .swal2-close{margin-right:initial;margin-left:0}.swal2-rtl .swal2-timer-progress-bar{right:0;left:auto}.swal2-toast{box-sizing:border-box;grid-column:1/4 !important;grid-row:1/4 !important;grid-template-columns:min-content auto min-content;padding:1em;overflow-y:hidden;border:var(--swal2-toast-border);background:var(--swal2-background);box-shadow:var(--swal2-toast-box-shadow);pointer-events:auto}.swal2-toast>*{grid-column:2}.swal2-toast h2:where(.swal2-title){margin:.5em 1em;padding:0;font-size:1em;text-align:initial}.swal2-toast .swal2-loading{justify-content:center}.swal2-toast input:where(.swal2-input){height:2em;margin:.5em;font-size:1em}.swal2-toast .swal2-validation-message{font-size:1em}.swal2-toast div:where(.swal2-footer){margin:.5em 0 0;padding:.5em 0 0;font-size:.8em}.swal2-toast button:where(.swal2-close){grid-column:3/3;grid-row:1/99;align-self:center;width:.8em;height:.8em;margin:0;font-size:2em}.swal2-toast div:where(.swal2-html-container){margin:.5em 1em;padding:0;overflow:initial;font-size:1em;text-align:initial}.swal2-toast div:where(.swal2-html-container):empty{padding:0}.swal2-toast .swal2-loader{grid-column:1;grid-row:1/99;align-self:center;width:2em;height:2em;margin:.25em}.swal2-toast .swal2-icon{grid-column:1;grid-row:1/99;align-self:center;width:2em;min-width:2em;height:2em;margin:0 .5em 0 0}.swal2-toast .swal2-icon .swal2-icon-content{display:flex;align-items:center;font-size:1.8em;font-weight:bold}.swal2-toast .swal2-icon.swal2-success .swal2-success-ring{width:2em;height:2em}.swal2-toast .swal2-icon.swal2-error [class^=swal2-x-mark-line]{top:.875em;width:1.375em}.swal2-toast .swal2-icon.swal2-error [class^=swal2-x-mark-line][class$=left]{left:.3125em}.swal2-toast .swal2-icon.swal2-error [class^=swal2-x-mark-line][class$=right]{right:.3125em}.swal2-toast div:where(.swal2-actions){justify-content:flex-start;height:auto;margin:0;margin-top:.5em;padding:0 .5em}.swal2-toast button:where(.swal2-styled){margin:.25em .5em;padding:.4em .6em;font-size:1em}.swal2-toast .swal2-success{border-color:#a5dc86}.swal2-toast .swal2-success [class^=swal2-success-circular-line]{position:absolute;width:1.6em;height:3em;border-radius:50%}.swal2-toast .swal2-success [class^=swal2-success-circular-line][class$=left]{top:-0.8em;left:-0.5em;transform:rotate(-45deg);transform-origin:2em 2em;border-radius:4em 0 0 4em}.swal2-toast .swal2-success [class^=swal2-success-circular-line][class$=right]{top:-0.25em;left:.9375em;transform-origin:0 1.5em;border-radius:0 4em 4em 0}.swal2-toast .swal2-success .swal2-success-ring{width:2em;height:2em}.swal2-toast .swal2-success .swal2-success-fix{top:0;left:.4375em;width:.4375em;height:2.6875em}.swal2-toast .swal2-success [class^=swal2-success-line]{height:.3125em}.swal2-toast .swal2-success [class^=swal2-success-line][class$=tip]{top:1.125em;left:.1875em;width:.75em}.swal2-toast .swal2-success [class^=swal2-success-line][class$=long]{top:.9375em;right:.1875em;width:1.375em}.swal2-toast .swal2-success.swal2-icon-show .swal2-success-line-tip{animation:swal2-toast-animate-success-line-tip .75s}.swal2-toast .swal2-success.swal2-icon-show .swal2-success-line-long{animation:swal2-toast-animate-success-line-long .75s}.swal2-toast.swal2-show{animation:var(--swal2-toast-show-animation)}.swal2-toast.swal2-hide{animation:var(--swal2-toast-hide-animation)}@keyframes swal2-show{0%{transform:translate3d(0, -50px, 0) scale(0.9);opacity:0}100%{transform:translate3d(0, 0, 0) scale(1);opacity:1}}@keyframes swal2-hide{0%{transform:translate3d(0, 0, 0) scale(1);opacity:1}100%{transform:translate3d(0, -50px, 0) scale(0.9);opacity:0}}@keyframes swal2-animate-success-line-tip{0%{top:1.1875em;left:.0625em;width:0}54%{top:1.0625em;left:.125em;width:0}70%{top:2.1875em;left:-0.375em;width:3.125em}84%{top:3em;left:1.3125em;width:1.0625em}100%{top:2.8125em;left:.8125em;width:1.5625em}}@keyframes swal2-animate-success-line-long{0%{top:3.375em;right:2.875em;width:0}65%{top:3.375em;right:2.875em;width:0}84%{top:2.1875em;right:0;width:3.4375em}100%{top:2.375em;right:.5em;width:2.9375em}}@keyframes swal2-rotate-success-circular-line{0%{transform:rotate(-45deg)}5%{transform:rotate(-45deg)}12%{transform:rotate(-405deg)}100%{transform:rotate(-405deg)}}@keyframes swal2-animate-error-x-mark{0%{margin-top:1.625em;transform:scale(0.4);opacity:0}50%{margin-top:1.625em;transform:scale(0.4);opacity:0}80%{margin-top:-0.375em;transform:scale(1.15)}100%{margin-top:0;transform:scale(1);opacity:1}}@keyframes swal2-animate-error-icon{0%{transform:rotateX(100deg);opacity:0}100%{transform:rotateX(0deg);opacity:1}}@keyframes swal2-rotate-loading{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}@keyframes swal2-animate-question-mark{0%{transform:rotateY(-360deg)}100%{transform:rotateY(0)}}@keyframes swal2-animate-i-mark{0%{transform:rotateZ(45deg);opacity:0}25%{transform:rotateZ(-25deg);opacity:.4}50%{transform:rotateZ(15deg);opacity:.8}75%{transform:rotateZ(-5deg);opacity:1}100%{transform:rotateX(0);opacity:1}}@keyframes swal2-toast-show{0%{transform:translateY(-0.625em) rotateZ(2deg)}33%{transform:translateY(0) rotateZ(-2deg)}66%{transform:translateY(0.3125em) rotateZ(2deg)}100%{transform:translateY(0) rotateZ(0deg)}}@keyframes swal2-toast-hide{100%{transform:rotateZ(1deg);opacity:0}}@keyframes swal2-toast-animate-success-line-tip{0%{top:.5625em;left:.0625em;width:0}54%{top:.125em;left:.125em;width:0}70%{top:.625em;left:-0.25em;width:1.625em}84%{top:1.0625em;left:.75em;width:.5em}100%{top:1.125em;left:.1875em;width:.75em}}@keyframes swal2-toast-animate-success-line-long{0%{top:1.625em;right:1.375em;width:0}65%{top:1.25em;right:.9375em;width:0}84%{top:.9375em;right:0;width:1.125em}100%{top:.9375em;right:.1875em;width:1.375em}}</style></head>
+
+<body class="bp-app notranslate is-menu-collapsed" translate="no">
+    <!-- Flicker önlemek için: auto-collapse durumunu body render edilir edilmez uygula -->
+    <script>
+    (function () {
+        var w = window.innerWidth;
+        if (w <= 768) return; // mobilde drawer
+        var saved = null;
+        try { saved = localStorage.getItem('bp_menu_collapsed'); } catch (e) {}
+        var collapsed = (saved === 'true') || (saved === null && w > 768 && w <= 1600);
+        if (collapsed) document.body.classList.add('is-menu-collapsed');
+    })();
+    </script>
+
+    <div class="bp-layout">
+
+        <aside class="bp-sidebar">
+
+    <!-- ====== Marka (logo + bayi ismi) ====== -->
+        <a href="https://mysunix.com/index.php?sayfa=tedarik-pano" class="bp-sb-brand">
+        <img src="./MySunixBayiPortalı_files/logo.png" alt="Vizyon GSM Diyarbakır" class="bp-sb-brand-logo">
+        <span class="bp-sb-brand-name">Vizyon GSM Diyarbakır</span>
+    </a>
+
+    <!-- ====== Tab switcher (Mağazam ⇄ Sunix Merkez) ====== -->
+    
+    <!-- ====== Content (sekme panelleri) ====== -->
+    <div class="bp-sb-content">
+
+        
+        <!-- ============================================
+             SUNİX MERKEZ TAB
+             ============================================ -->
+        <div class="bp-sb-panel is-active" data-panel="sunix-merkez">
+            <div class="bp-sb-label">Sunix Merkez</div>
+            <ul class="bp-sb-menu bp-sb-grup--teal">
+                                                                <li class="bp-sb-item">
+                    <a href="https://mysunix.com/index.php?sayfa=sunix-siparis&amp;mod=siparis-yeni&amp;pos=1" data-hizli-tedarik="">
+                        <i class="icon-zap"></i><span>Hızlı Tedarik</span>
+                    </a>
+                </li>
+                <li class="bp-sb-item ">
+                    <a href="https://mysunix.com/index.php?sayfa=tedarik-pano">
+                        <i class="icon-shopping-cart"></i><span>Tedarik Pano</span>
+                                                <span class="bp-sb-badge" id="btaMenuNotifCount" title="Teslim bekleyen sipariş" style="display:none;background:#2563d9">0</span>
+                    </a>
+                </li>
+                <li class="bp-sb-item ">
+                    <a href="https://mysunix.com/index.php?sayfa=stoga-giren-urunler">
+                        <i class="icon-package"></i><span>Stoğa Giren Ürünler</span>
+                        <span class="bp-sb-badge" id="bsgMenuNotifCount" style="">26</span>
+                    </a>
+                </li>
+                                                                            </ul>
+
+            
+                    </div>
+
+    </div>
+
+    <!-- ====== Bakiye kartı (en altta) — cari-ekstre yetkisi varsa ====== -->
+    
+</aside>
+
+        <main class="bp-main">
+
+            
+
+<header class="bp-ph">
+
+    <!-- Sol: hamburger (mobil) + sayfa başlığı (icon kaldırıldı) -->
+    <div class="bp-ph-l">
+        <button type="button" class="bp-hamburger" aria-label="Menü">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="bp-ph-page-meta">
+            <div class="bp-ph-page-title">Tedarik Pano</div>
+        </div>
+    </div>
+
+    <!-- Orta: arama kutusu (ana ERP tarzı) -->
+    <div class="bp-ph-center">
+        <div class="bp-hw-search" id="bpHwSearch">
+            <div class="bp-hw-search-icon">
+                <i class="icon-search"></i>
+            </div>
+            <input type="text" class="bp-hw-search-input" placeholder="Aramak istediğinizi yazın..." autocomplete="off" aria-label="Ara">
+            <div class="bp-hw-search-shortcut">
+                <kbd>/</kbd>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sağ: widget grubu -->
+    <div class="bp-ph-r">
+
+        <!-- Bildirim Badge -->
+        <div class="bp-hw bp-hw-notif" id="bpHwNotif" style="">
+            <a href="https://mysunix.com/index.php?sayfa=on-talep-bildirimler" class="bp-hw-notif-link" title="Bildirimler">
+                <i class="icon-bell"></i>
+                <span class="bp-hw-notif-count" id="bpNotifCount">1</span>
+            </a>
+        </div>
+
+        <!-- Stoğa Giren Ürün Bildirimi -->
+        <div class="bp-hw bp-hw-notif" id="bpHwStokNotif" style="">
+            <a href="https://mysunix.com/index.php?sayfa=stoga-giren-urunler" class="bp-hw-notif-link" title="Stoğa Giren Ürünler">
+                <i class="icon-package"></i>
+                <span class="bp-hw-notif-count" id="bsgNotifCount">26</span>
+            </a>
+        </div>
+
+        <!-- Merkez Fiyat Değişim Bildirimi -->
+        <div class="bp-hw bp-hw-notif" id="bpHwFiyatNotif" style="display:none;">
+            <a href="https://mysunix.com/index.php?sayfa=merkez-fiyat-degisim" class="bp-hw-notif-link" title="Merkez Fiyat Değişimleri">
+                <i class="icon-trending-up"></i>
+                <span class="bp-hw-notif-count" id="mfdNotifCount">0</span>
+            </a>
+        </div>
+
+        <!-- Segmented grup: saat + USD + aksiyonlar tek pill içinde -->
+        <div class="bp-hw-segment">
+
+            <!-- Tarih-Saat (JS ile günceller) -->
+            <div class="bp-hw bp-hw-time">
+                <i class="icon-clock"></i>
+                <div class="bp-hw-time-meta">
+                    <div class="bp-hw-time-clock">14:41</div>
+                    <div class="bp-hw-time-date">18 Haziran 2026</div>
+                </div>
+            </div>
+
+            <!-- USD/TL — ana ERP tarzı tooltipli döviz widget'ı (HaremAltın kaynaklı) -->
+            <div class="bp-hw bp-hw-fx is-usd is-up" data-currency="USD">
+                <div class="bp-hw-fx-icon">$</div>
+                <div class="bp-hw-fx-body">
+                    <div class="bp-hw-fx-code">USD/TL</div>
+                    <div class="bp-hw-fx-rate">46.3400</div>
+                </div>
+
+                <!-- Tooltip — hover'da açılır -->
+                <div class="bp-hw-fx-tooltip">
+                    <div class="bp-hw-fx-tt-head">
+                        <span class="bp-hw-fx-tt-name">Amerikan Doları</span>
+                        <span class="bp-hw-fx-tt-badge" title="Kaynak">HaremAltın</span>
+                    </div>
+                    <div class="bp-hw-fx-tt-body">
+                        <div class="bp-hw-fx-tt-row">
+                            <span class="bp-hw-fx-tt-lbl">Alış</span>
+                            <span class="bp-hw-fx-tt-val is-buy">46.2410</span>
+                        </div>
+                        <div class="bp-hw-fx-tt-row">
+                            <span class="bp-hw-fx-tt-lbl">Satış</span>
+                            <span class="bp-hw-fx-tt-val is-sell">46.3400</span>
+                        </div>
+                        <div class="bp-hw-fx-tt-row">
+                            <span class="bp-hw-fx-tt-lbl">Değişim</span>
+                            <span class="bp-hw-fx-tt-val is-up">↗ +3.51%</span>
+                        </div>
+                    </div>
+                    <div class="bp-hw-fx-tt-foot">
+                        <span class="bp-hw-fx-tt-update"><i class="icon-clock"></i> Son güncelleme: 10:36</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Kullanıcı dropdown (segment dışında) -->
+        <div class="bp-hw-user" id="bpHwUser">
+            <div class="bp-hw-user-avatar">VG</div>
+            <div class="bp-hw-user-who">
+                <strong>Vizyon GSM Diyarbakır</strong>
+                                <small>SİVEREK</small>
+                            </div>
+            <i class="icon-chevron-down"></i>
+
+            <div class="bp-hw-user-menu">
+                                                                                                <a href="https://mysunix.com/index.php#" onclick="bayiCikisYap &amp;&amp; bayiCikisYap(); return false;" class="is-danger">
+                    <i class="icon-log-out"></i>
+                    <span>Çıkış Yap</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</header>
+
+            <section class="bp-pc">
+                <div class="main-content">
+                    <div class="main-content-inner">
+                        
+<script>window._bayiIndirimGizle = true;</script>
+
+<div class="main-content-wrap">
+    <div class="wg-box">
+        <!-- ÜST KISIM: Tab Bar + Sağ Buton -->
+        <div class="bp-tab-header">
+            <!-- Sol: Folder Sekmeler -->
+            <div class="bp-tabs">
+                <button class="bp-tab" data-sekme="aktif" onclick="tedarikSekmeDegistir(&#39;aktif&#39;)">
+                    <i class="icon-shopping-cart"></i>
+                    <span>Aktif Siparişlerim</span>
+                    <span class="bp-tab-count" id="count_aktif">0</span>
+                </button>
+                <button class="bp-tab" data-sekme="taslak" onclick="tedarikSekmeDegistir(&#39;taslak&#39;)">
+                    <i class="icon-file-text"></i>
+                    <span>Kayıtlı Sepetlerim</span>
+                    <span class="bp-tab-count" id="count_taslak">0</span>
+                </button>
+                <button class="bp-tab is-active" data-sekme="tamamlanan" onclick="tedarikSekmeDegistir(&#39;tamamlanan&#39;)">
+                    <i class="icon-check-circle"></i>
+                    <span>Tamamlanan Tedarikler</span>
+                    <span class="bp-tab-count" id="count_tamamlanan">52</span>
+                </button>
+                <button class="bp-tab" data-sekme="iptal" onclick="tedarikSekmeDegistir(&#39;iptal&#39;)">
+                    <i class="icon-x-circle"></i>
+                    <span>İptal Edilenler</span>
+                    <span class="bp-tab-count" id="count_iptal">0</span>
+                </button>
+            </div>
+
+            <!-- Sağ: Yeni Sipariş Butonu -->
+            <div class="bp-tab-tools">
+                <a href="https://mysunix.com/index.php?sayfa=sunix-siparis&amp;mod=siparis-yeni" class="yeni-siparis-btn">
+                    <i class="icon-plus-circle"></i>
+                    <span>Sunix'ten Yeni Sipariş</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="bp-tab-divider"></div>
+
+        <!-- AKTİF SİPARİŞLER İÇERİĞİ: Kanban Board -->
+        <div id="tedarik_aktif_icerik" style="display: none;">
+        <!-- Kanban Board -->
+        <div class="tedarik-kanban-board">
+            <!-- Onay Bekliyor Kolonu -->
+            <div class="tedarik-kanban-column" data-durum="onay_bekliyor">
+                <div class="tedarik-column-header onay_bekliyor">
+                    <div class="tedarik-header-info">
+                        <i class="icon-clock"></i>
+                        <span class="tedarik-column-title">Onay Bekliyor</span>
+                        <span class="tedarik-column-count" id="tedarik_count_onay_bekliyor">0</span>
+                    </div>
+                </div>
+                <div class="tedarik-column-body" id="tedarik_column_onay_bekliyor">
+                    <div class="tedarik-empty-state">
+                        <i class="icon-inbox"></i>
+                        <p>Sipariş yok</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hazırlanıyor Kolonu -->
+            <div class="tedarik-kanban-column" data-durum="hazirlaniyor">
+                <div class="tedarik-column-header hazirlaniyor">
+                    <div class="tedarik-header-info">
+                        <i class="icon-package"></i>
+                        <span class="tedarik-column-title">Hazırlanıyor</span>
+                        <span class="tedarik-column-count" id="tedarik_count_hazirlaniyor">0</span>
+                    </div>
+                </div>
+                <div class="tedarik-column-body" id="tedarik_column_hazirlaniyor">
+                    <div class="tedarik-empty-state">
+                        <i class="icon-inbox"></i>
+                        <p>Sipariş yok</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Faturalandırma Kolonu -->
+            <div class="tedarik-kanban-column" data-durum="muhasebe_onayi">
+                <div class="tedarik-column-header muhasebe_onayi">
+                    <div class="tedarik-header-info">
+                        <i class="icon-file-text"></i>
+                        <span class="tedarik-column-title">Faturalandırma</span>
+                        <span class="tedarik-column-count" id="tedarik_count_muhasebe_onayi">0</span>
+                    </div>
+                </div>
+                <div class="tedarik-column-body" id="tedarik_column_muhasebe_onayi">
+                    <div class="tedarik-empty-state">
+                        <i class="icon-inbox"></i>
+                        <p>Sipariş yok</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kargoya Verildi Kolonu -->
+            <div class="tedarik-kanban-column" data-durum="kargolandi">
+                <div class="tedarik-column-header kargolandi">
+                    <div class="tedarik-header-info">
+                        <i class="icon-truck"></i>
+                        <span class="tedarik-column-title">Kargoya Verildi</span>
+                        <span class="tedarik-column-count" id="tedarik_count_kargolandi">0</span>
+                    </div>
+                </div>
+                <div class="tedarik-column-body" id="tedarik_column_kargolandi">
+                    <div class="tedarik-empty-state">
+                        <i class="icon-inbox"></i>
+                        <p>Sipariş yok</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- TAMAMLANAN İÇERİĞİ: Tablo (satislar pattern'i — .sip-tablo) -->
+        <div id="tedarik_tamamlanan_icerik" class="sip-tablo" style="display: block;">
+            <div class="wg-table table-all-user">
+                <table>
+                    <thead>
+                        <tr>
+                            <th><span class="th-in"><i class="icon-hash"></i> Sipariş No</span></th>
+                            <th><span class="th-in"><i class="icon-package"></i> Ürün</span></th>
+                            <th><span class="th-in"><i class="icon-calendar"></i> Tarih</span></th>
+                            <th><span class="th-in"><i class="icon-dollar-sign"></i> Tutar</span></th>
+                            <th><span class="th-in"><i class="icon-info"></i> Durum</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tamamlanan_siparis_listesi">
+            <tr class="siparis-row" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=3105" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=3105&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#02178</span></td>
+                <td class="sip-tip">6 ürün</td>
+                <td class="sip-tarih">17.06.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$990.00</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row sip-even" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=3199" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=3199&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#02235</span></td>
+                <td class="sip-tip">30 ürün</td>
+                <td class="sip-tarih">17.06.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$1,649.00</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2885" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2885&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#02044</span></td>
+                <td class="sip-tip">20 ürün</td>
+                <td class="sip-tarih">13.06.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$5,326.90</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row sip-even" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2849" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2849&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#02008</span></td>
+                <td class="sip-tip">2 ürün</td>
+                <td class="sip-tarih">12.06.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$1,103.00</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2821" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2821&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01981</span></td>
+                <td class="sip-tip">7 ürün</td>
+                <td class="sip-tarih">11.06.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$1,458.50</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row sip-even" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2782" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2782&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01942</span></td>
+                <td class="sip-tip">31 ürün</td>
+                <td class="sip-tarih">11.06.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$5,597.00</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2726" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2726&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01888</span></td>
+                <td class="sip-tip">8 ürün</td>
+                <td class="sip-tarih">10.06.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$619.00</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row sip-even" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2646" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2646&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01808</span></td>
+                <td class="sip-tip">47 ürün</td>
+                <td class="sip-tarih">10.06.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$9,052.75</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2618" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2618&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01780</span></td>
+                <td class="sip-tip">4 ürün</td>
+                <td class="sip-tarih">08.06.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$258.00</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row sip-even" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2602" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2602&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01764</span></td>
+                <td class="sip-tip">4 ürün</td>
+                <td class="sip-tarih">05.06.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$1,287.00</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2519" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2519&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01681</span></td>
+                <td class="sip-tip">38 ürün</td>
+                <td class="sip-tarih">04.06.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$5,687.50</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row sip-even" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2407" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2407&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01569</span></td>
+                <td class="sip-tip">3 ürün</td>
+                <td class="sip-tarih">01.06.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$1,105.00</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2400" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2400&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01562</span></td>
+                <td class="sip-tip">1 ürün</td>
+                <td class="sip-tarih">01.06.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$227.50</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row sip-even" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2366" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2366&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01528</span></td>
+                <td class="sip-tip">8 ürün</td>
+                <td class="sip-tarih">01.06.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$2,639.00</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2362" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2362&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01524</span></td>
+                <td class="sip-tip">4 ürün</td>
+                <td class="sip-tarih">01.06.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$0.00</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row sip-even" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2360" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2360&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01522</span></td>
+                <td class="sip-tip">11 ürün</td>
+                <td class="sip-tarih">01.06.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$3,888.75</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2358" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2358&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01520</span></td>
+                <td class="sip-tip">9 ürün</td>
+                <td class="sip-tarih">01.06.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$2,862.80</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row sip-even" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2349" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2349&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01511</span></td>
+                <td class="sip-tip">92 ürün</td>
+                <td class="sip-tarih">01.06.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$15,462.50</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2285" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2285&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01447</span></td>
+                <td class="sip-tip">35 ürün</td>
+                <td class="sip-tarih">22.05.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$6,830.40</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row sip-even" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2149" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2149&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01311</span></td>
+                <td class="sip-tip">30 ürün</td>
+                <td class="sip-tarih">19.05.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$1,987.50</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2139" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2139&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01301</span></td>
+                <td class="sip-tip">1 ürün</td>
+                <td class="sip-tarih">19.05.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$380.00</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row sip-even" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2131" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2131&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01293</span></td>
+                <td class="sip-tip">57 ürün</td>
+                <td class="sip-tarih">19.05.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$8,550.00</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2129" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2129&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01291</span></td>
+                <td class="sip-tip">35 ürün</td>
+                <td class="sip-tarih">19.05.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$6,040.00</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row sip-even" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2059" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2059&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01224</span></td>
+                <td class="sip-tip">46 ürün</td>
+                <td class="sip-tarih">19.05.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$12,955.85</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        
+            <tr class="siparis-row" data-href="index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2001" onclick="window.open(&#39;index.php?sayfa=sunix-siparis&amp;mod=siparis-goruntule&amp;id=2001&#39;, &#39;_blank&#39;)" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">#01166</span></td>
+                <td class="sip-tip">46 ürün</td>
+                <td class="sip-tarih">15.05.2026</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">$814.00</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        </tbody>
+                </table>
+            </div>
+            <!-- Pagination -->
+            <div class="pagination-container" id="tamamlanan_pagination"><button class="pagination-btn" onclick="sayfaDegistir(0)" disabled="">
+        <i class="icon-chevron-left"></i>
+    </button><button class="pagination-btn active" onclick="sayfaDegistir(1)">1</button><button class="pagination-btn " onclick="sayfaDegistir(2)">2</button><button class="pagination-btn " onclick="sayfaDegistir(3)">3</button><button class="pagination-btn" onclick="sayfaDegistir(2)">
+        <i class="icon-chevron-right"></i>
+    </button></div>
+        </div>
+
+        <!-- TASLAK SİPARİŞLER İÇERİĞİ: Tablo (.sip-tablo pattern) -->
+        <div id="tedarik_taslak_icerik" class="sip-tablo" style="display: none;">
+            <!-- Birleştir Toolbar -->
+            <div id="taslak_toolbar" class="taslak-toolbar" style="display:none">
+                <div class="taslak-toolbar-sol">
+                    <span class="taslak-toolbar-bilgi"><span id="taslak_secili_sayisi">0</span> sepet seçili</span>
+                </div>
+                <button type="button" id="taslak_birlestir_btn" class="taslak-btn-birlestir" onclick="taslakBirlestirOnizle()">
+                    <i class="icon-layers"></i> Seçilenleri Birleştir
+                </button>
+            </div>
+            <div class="wg-table table-all-user">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="sip-cb"><input type="checkbox" id="taslak_tumunu_sec" onchange="taslakTumunuSec(this.checked)" title="Tümünü Seç"></th>
+                            <th><span class="th-in"><i class="icon-hash"></i> Sipariş No</span></th>
+                            <th><span class="th-in"><i class="icon-package"></i> Ürün</span></th>
+                            <th><span class="th-in"><i class="icon-calendar"></i> Tarih</span></th>
+                            <th><span class="th-in"><i class="icon-dollar-sign"></i> Tutar</span></th>
+                            <th><span class="th-in"><i class="icon-settings"></i> İşlemler</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="taslak_siparis_listesi">
+                        <tr>
+                            <td colspan="6" class="text-center">Yükleniyor...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination-container" id="taslak_pagination"></div>
+        </div>
+
+        <!-- İPTAL EDİLEN SİPARİŞLER İÇERİĞİ: Tablo (satislar pattern'i — .sip-tablo) -->
+        <div id="tedarik_iptal_icerik" class="sip-tablo" style="display: none;">
+            <div class="wg-table table-all-user">
+                <table>
+                    <thead>
+                        <tr>
+                            <th><span class="th-in"><i class="icon-hash"></i> Sipariş No</span></th>
+                            <th><span class="th-in"><i class="icon-package"></i> Ürün</span></th>
+                            <th><span class="th-in"><i class="icon-calendar"></i> Tarih</span></th>
+                            <th><span class="th-in"><i class="icon-dollar-sign"></i> Tutar</span></th>
+                            <th><span class="th-in"><i class="icon-info"></i> Durum</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="iptal_siparis_listesi">
+                        <tr>
+                            <td colspan="5" class="text-center">Yükleniyor...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Pagination -->
+            <div class="pagination-container" id="iptal_pagination"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Sipariş Detay Modal -->
+<div class="modal fade" id="tedarikDetayModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tedarikDetayModalTitle">Sipariş Detayı</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body" id="tedarikDetayModalBody">
+                <!-- AJAX ile yüklenecek -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="tf-button style-2" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Kargo Bilgileri Modal -->
+<div class="modal fade" id="tedarikKargoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tedarikKargoModalTitle">Kargo Bilgileri</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body" id="tedarikKargoModalBody">
+                <!-- AJAX ile yüklenecek -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="tf-button style-2" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Mağazam (tam yetkili) bayi mi? → kargolandi kartında "Teslim Al" butonu için
+window._bayiMagazamYetkili = false;
+// Aktif sekme
+let aktifTedarikSekme = 'aktif';
+let tamamlananSayfa = 1;
+let iptalSayfa = 1;
+let taslakSayfa = 1;
+let tamamlananVeriler = [];
+let iptalVeriler = [];
+let taslakVeriler = [];
+
+// Sekme değiştir
+function tedarikSekmeDegistir(sekme) {
+    aktifTedarikSekme = sekme;
+
+    // Butonları güncelle
+    document.querySelectorAll('.bp-tabs .bp-tab').forEach(btn => {
+        btn.classList.remove('is-active');
+    });
+    document.querySelector('.bp-tabs .bp-tab[data-sekme="' + sekme + '"]').classList.add('is-active');
+
+    // Tüm içerikleri gizle
+    document.getElementById('tedarik_aktif_icerik').style.display = 'none';
+    document.getElementById('tedarik_taslak_icerik').style.display = 'none';
+    document.getElementById('tedarik_tamamlanan_icerik').style.display = 'none';
+    document.getElementById('tedarik_iptal_icerik').style.display = 'none';
+
+    // Seçilen sekmenin içeriğini göster
+    if (sekme === 'aktif') {
+        document.getElementById('tedarik_aktif_icerik').style.display = 'flex';
+    } else if (sekme === 'taslak') {
+        document.getElementById('tedarik_taslak_icerik').style.display = 'block';
+        taslakSiparisleriYukle();
+    } else if (sekme === 'tamamlanan') {
+        document.getElementById('tedarik_tamamlanan_icerik').style.display = 'block';
+        tamamlananSiparisleriYukle();
+    } else if (sekme === 'iptal') {
+        document.getElementById('tedarik_iptal_icerik').style.display = 'block';
+        iptalSiparisleriYukle();
+    }
+}
+
+// Taslak siparişleri yükle
+function taslakSiparisleriYukle() {
+    const tbody = document.getElementById('taslak_siparis_listesi');
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center">Yükleniyor...</td></tr>';
+
+    $.ajax({
+        url: 'ajax/tedarik-taslak-listele.php',
+        type: 'POST',
+        data: { sayfa: taslakSayfa },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                taslakVeriler = response.data || [];
+                renderTaslakTablo(response.data, response.toplam, response.sayfa_sayisi);
+                $('#count_taslak').text(response.toplam || 0);
+            } else {
+                var errMsg = document.createElement('span');
+                errMsg.textContent = response.message || 'Bilinmeyen hata';
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">Hata: ' + errMsg.innerHTML + '</td></tr>';
+            }
+        },
+        error: function() {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Sunucu hatası</td></tr>';
+        }
+    });
+}
+
+// Taslak tablo render
+function renderTaslakTablo(siparisler, toplam, sayfaSayisi) {
+    const tbody = document.getElementById('taslak_siparis_listesi');
+
+    if (!siparisler || siparisler.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6">
+                    <div class="empty-state">
+                        <i class="icon-file-text"></i>
+                        <h4>Kayıtlı sepet yok</h4>
+                        <p>Sepete kaydettiğiniz siparişler burada görünecek.</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        document.getElementById('taslak_pagination').innerHTML = '';
+        document.getElementById('taslak_toolbar').style.display = 'none';
+        document.getElementById('taslak_tumunu_sec').checked = false;
+        return;
+    }
+
+    let html = '';
+    siparisler.forEach((siparis, index) => {
+        const tarih = formatTarihKisa(siparis.siparis_tarihi || siparis.olusturulma_tarihi, true);
+        const _orijTutar = parseFloat(siparis.ara_toplam || 0) + parseFloat(siparis.indirim_tutari || 0);
+        const tutarStr = formatPara(window._bayiIndirimGizle ? _orijTutar : (siparis.genel_toplam || 0));
+        const sembol = (siparis.para_birimi === 'TRY' || siparis.para_birimi === 'TL') ? '₺' : '$';
+        const evenClass = index % 2 === 1 ? ' sip-even' : '';
+        const noEsc = (siparis.siparis_no || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        const editHref = 'index.php?sayfa=sunix-siparis&mod=siparis-duzenle&id=' + siparis.id;
+
+        html += `
+            <tr class="siparis-row${evenClass}" data-href="${editHref}" onclick="if(!event.target.closest('.sip-cb') && !event.target.closest('.taslak-btn-sil') && !event.target.closest('.taslak-btn-duzenle')){window.location.href='${editHref}'}" style="cursor:pointer">
+                <td class="sip-cb" onclick="event.stopPropagation()">
+                    <input type="checkbox" class="taslak-sepet-cb" value="${siparis.id}" onchange="taslakCheckboxDegisti()">
+                </td>
+                <td class="sip-no"><span class="sip-no-link">${noEsc}</span></td>
+                <td class="sip-tip">${siparis.urun_kalemi_sayisi || 0} ürün</td>
+                <td class="sip-tarih">${tarih}</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">${sembol}${tutarStr}</span></td>
+                <td class="sip-islem">
+                    <a href="${editHref}" class="taslak-btn-duzenle" title="Düzenle" onclick="event.stopPropagation()">
+                        <i class="icon-edit"></i> Düzenle
+                    </a>
+                    <button type="button" class="taslak-btn-sil" title="Sil" onclick="event.stopPropagation();taslakSil(${siparis.id}, '${noEsc}')">
+                        <i class="icon-trash-2"></i> Sil
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+    document.getElementById('taslak_tumunu_sec').checked = false;
+    taslakCheckboxDegisti();
+
+    renderTaslakPagination(toplam, sayfaSayisi);
+}
+
+// Taslak/Sepet sil
+function taslakSil(id, siparisNo) {
+    Swal.fire({
+        title: 'Sepeti Sil',
+        html: '<strong>' + escHtml(siparisNo) + '</strong> numaralı sepet kalıcı olarak silinecek.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sil',
+        cancelButtonText: 'Vazgeç',
+        confirmButtonColor: '#dc2626'
+    }).then(function(result) {
+        if (!result.isConfirmed) return;
+        $.ajax({
+            url: 'ajax/tedarik-taslak-sil.php',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ id: id }),
+            dataType: 'json',
+            success: function(res) {
+                if (res.success) {
+                    Swal.fire({ icon: 'success', title: 'Silindi', text: res.message, timer: 1500, showConfirmButton: false }).then(function() {
+                        taslakSiparisleriYukle();
+                    });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Hata', text: res.message || 'Silme başarısız.', confirmButtonColor: '#103595' });
+                }
+            },
+            error: function() {
+                Swal.fire({ icon: 'error', title: 'Bağlantı Hatası', text: 'Sunucuya ulaşılamadı.', confirmButtonColor: '#103595' });
+            }
+        });
+    });
+}
+
+// Taslak → Siparişe dönüştür
+function taslakSipariseDonustur(id, siparisNo) {
+    Swal.fire({
+        title: 'Siparişi Gönder',
+        html: '<strong>' + escHtml(siparisNo) + '</strong> numaralı sepet Sunix\'e gönderilecek.<br><small style="color:#6b7280">Sipariş "Onay Bekliyor" durumuna geçer.</small>',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Evet, Gönder',
+        cancelButtonText: 'Vazgeç',
+        confirmButtonColor: '#103595',
+        cancelButtonColor: '#6b7280'
+    }).then(function(result) {
+        if (!result.isConfirmed) return;
+        Swal.fire({ title: 'Gönderiliyor...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+        $.ajax({
+            url: 'ajax/tedarik-taslak-donustur.php',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ id: id }),
+            dataType: 'json',
+            success: function(res) {
+                if (res.success) {
+                    Swal.fire({ icon: 'success', title: 'Gönderildi', text: res.message || 'Sipariş onay bekliyor durumuna geçti.', timer: 2000, showConfirmButton: false }).then(function() {
+                        taslakSiparisleriYukle();
+                    });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Hata', text: res.message || 'Dönüştürme başarısız.', confirmButtonColor: '#103595' });
+                }
+            },
+            error: function() {
+                Swal.fire({ icon: 'error', title: 'Bağlantı Hatası', text: 'Sunucuya ulaşılamadı.', confirmButtonColor: '#103595' });
+            }
+        });
+    });
+}
+
+// Taslak pagination render
+function renderTaslakPagination(toplam, sayfaSayisi) {
+    const container = document.getElementById('taslak_pagination');
+    if (sayfaSayisi <= 1) { container.innerHTML = ''; return; }
+    let html = '';
+    html += `<button class="pagination-btn" onclick="taslakSayfaDegistir(${taslakSayfa - 1})" ${taslakSayfa <= 1 ? 'disabled' : ''}><i class="icon-chevron-left"></i></button>`;
+    for (let i = 1; i <= sayfaSayisi; i++) {
+        if (i === 1 || i === sayfaSayisi || (i >= taslakSayfa - 2 && i <= taslakSayfa + 2)) {
+            html += `<button class="pagination-btn ${i === taslakSayfa ? 'active' : ''}" onclick="taslakSayfaDegistir(${i})">${i}</button>`;
+        } else if (i === taslakSayfa - 3 || i === taslakSayfa + 3) {
+            html += `<span class="pagination-btn" style="cursor: default;">...</span>`;
+        }
+    }
+    html += `<button class="pagination-btn" onclick="taslakSayfaDegistir(${taslakSayfa + 1})" ${taslakSayfa >= sayfaSayisi ? 'disabled' : ''}><i class="icon-chevron-right"></i></button>`;
+    container.innerHTML = html;
+}
+
+// Taslak sayfa değiştir
+function taslakSayfaDegistir(sayfa) {
+    if (sayfa < 1) return;
+    taslakSayfa = sayfa;
+    taslakSiparisleriYukle();
+}
+
+// Tamamlanan siparişleri yükle
+function tamamlananSiparisleriYukle() {
+    const tbody = document.getElementById('tamamlanan_siparis_listesi');
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Yükleniyor...</td></tr>';
+
+    $.ajax({
+        url: 'ajax/tedarik-tamamlanan-listele.php',
+        type: 'POST',
+        data: { sayfa: tamamlananSayfa },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                tamamlananVeriler = response.data || [];
+                renderTamamlananTablo(response.data, response.toplam, response.sayfa_sayisi);
+
+                // Sayacı güncelle
+                $('#count_tamamlanan').text(response.toplam || 0);
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">Hata: ' + (response.message || 'Bilinmeyen hata') + '</td></tr>';
+            }
+        },
+        error: function() {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Sunucu hatası</td></tr>';
+        }
+    });
+}
+
+// Tamamlanan tablo render (satislar pattern'i — .siparis-row, sip-* td class'ları, zebra)
+function renderTamamlananTablo(siparisler, toplam, sayfaSayisi) {
+    const tbody = document.getElementById('tamamlanan_siparis_listesi');
+
+    if (!siparisler || siparisler.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5">
+                    <div class="empty-state">
+                        <i class="icon-inbox"></i>
+                        <h4>Tamamlanan tedarik yok</h4>
+                        <p>Teslim edilen tedarikleriniz burada görünecek.</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        document.getElementById('tamamlanan_pagination').innerHTML = '';
+        return;
+    }
+
+    let html = '';
+    siparisler.forEach((siparis, index) => {
+        const tarih = formatTarihKisa(siparis.siparis_tarihi);
+        const _orijTutar = parseFloat(siparis.ara_toplam || 0) + parseFloat(siparis.indirim_tutari || 0);
+        const tutarStr = formatPara(window._bayiIndirimGizle ? _orijTutar : (siparis.genel_toplam || 0));
+        const sembol = (siparis.para_birimi === 'TRY' || siparis.para_birimi === 'TL') ? '₺' : '$';
+        const evenClass = index % 2 === 1 ? ' sip-even' : '';
+        const rowHref = `index.php?sayfa=sunix-siparis&mod=siparis-goruntule&id=${siparis.id}`;
+        const noEsc = (siparis.siparis_no || '').replace(/"/g, '&quot;');
+
+        // SD Badge — sipariş SD Kart içeriyorsa bilgi etiketi (indirim gizli yetkisinde gösterilmez)
+        let sdBadgeHtml = '';
+        const sdKart = parseFloat(siparis.sd_kart_toplam || 0);
+        if (!window._bayiIndirimGizle && sdKart > 0) {
+            sdBadgeHtml = `<span class="sip-sd-badge">SD İçeriyor</span>`;
+        }
+
+        html += `
+            <tr class="siparis-row${evenClass}" data-href="${rowHref}" onclick="window.open('${rowHref}', '_blank')" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">${noEsc}</span></td>
+                <td class="sip-tip">${siparis.urun_kalemi_sayisi || 0} ürün</td>
+                <td class="sip-tarih">${tarih}</td>
+                <td class="sip-tutar">${sdBadgeHtml}<span class="sip-tutar-deger">${sembol}${tutarStr}</span></td>
+                <td class="sip-durum"><span class="durum-badge teslim_edildi"><i class="icon-check-circle"></i> Teslim Edildi</span></td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+
+    // Pagination
+    renderPagination(toplam, sayfaSayisi);
+}
+
+// Pagination render
+function renderPagination(toplam, sayfaSayisi) {
+    const container = document.getElementById('tamamlanan_pagination');
+
+    if (sayfaSayisi <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+
+    let html = '';
+
+    // Önceki
+    html += `<button class="pagination-btn" onclick="sayfaDegistir(${tamamlananSayfa - 1})" ${tamamlananSayfa <= 1 ? 'disabled' : ''}>
+        <i class="icon-chevron-left"></i>
+    </button>`;
+
+    // Sayfa numaraları
+    for (let i = 1; i <= sayfaSayisi; i++) {
+        if (i === 1 || i === sayfaSayisi || (i >= tamamlananSayfa - 2 && i <= tamamlananSayfa + 2)) {
+            html += `<button class="pagination-btn ${i === tamamlananSayfa ? 'active' : ''}" onclick="sayfaDegistir(${i})">${i}</button>`;
+        } else if (i === tamamlananSayfa - 3 || i === tamamlananSayfa + 3) {
+            html += `<span class="pagination-btn" style="cursor: default;">...</span>`;
+        }
+    }
+
+    // Sonraki
+    html += `<button class="pagination-btn" onclick="sayfaDegistir(${tamamlananSayfa + 1})" ${tamamlananSayfa >= sayfaSayisi ? 'disabled' : ''}>
+        <i class="icon-chevron-right"></i>
+    </button>`;
+
+    container.innerHTML = html;
+}
+
+// Sayfa değiştir
+function sayfaDegistir(sayfa) {
+    if (sayfa < 1) return;
+    tamamlananSayfa = sayfa;
+    tamamlananSiparisleriYukle();
+}
+
+// İptal edilen siparişleri yükle
+function iptalSiparisleriYukle() {
+    const tbody = document.getElementById('iptal_siparis_listesi');
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Yükleniyor...</td></tr>';
+
+    $.ajax({
+        url: 'ajax/tedarik-iptal-listele.php',
+        type: 'POST',
+        data: { sayfa: iptalSayfa },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                iptalVeriler = response.data || [];
+                renderIptalTablo(response.data, response.toplam, response.sayfa_sayisi);
+
+                // Sayacı güncelle
+                $('#count_iptal').text(response.toplam || 0);
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">Hata: ' + (response.message || 'Bilinmeyen hata') + '</td></tr>';
+            }
+        },
+        error: function() {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Sunucu hatası</td></tr>';
+        }
+    });
+}
+
+// İptal tablo render (satislar pattern'i — .siparis-row, sip-* td class'ları, zebra)
+function renderIptalTablo(siparisler, toplam, sayfaSayisi) {
+    const tbody = document.getElementById('iptal_siparis_listesi');
+
+    if (!siparisler || siparisler.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5">
+                    <div class="empty-state">
+                        <i class="icon-x-circle"></i>
+                        <h4>İptal Edilen Sipariş Bulunamadı</h4>
+                        <p>İptal edilen siparişleriniz burada görünecek</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        document.getElementById('iptal_pagination').innerHTML = '';
+        return;
+    }
+
+    let html = '';
+    siparisler.forEach((siparis, index) => {
+        const tarih = formatTarihKisa(siparis.siparis_tarihi);
+        const _orijTutar = parseFloat(siparis.ara_toplam || 0) + parseFloat(siparis.indirim_tutari || 0);
+        const tutarStr = formatPara(window._bayiIndirimGizle ? _orijTutar : (siparis.genel_toplam || 0));
+        const sembol = (siparis.para_birimi === 'TRY' || siparis.para_birimi === 'TL') ? '₺' : '$';
+        const evenClass = index % 2 === 1 ? ' sip-even' : '';
+        const rowHref = `index.php?sayfa=sunix-siparis&mod=siparis-goruntule&id=${siparis.id}`;
+        const noEsc = (siparis.siparis_no || '').replace(/"/g, '&quot;');
+
+        html += `
+            <tr class="siparis-row${evenClass}" data-href="${rowHref}" onclick="window.open('${rowHref}', '_blank')" style="cursor:pointer">
+                <td class="sip-no"><span class="sip-no-link">${noEsc}</span></td>
+                <td class="sip-tip">${siparis.urun_kalemi_sayisi || 0} ürün</td>
+                <td class="sip-tarih">${tarih}</td>
+                <td class="sip-tutar"><span class="sip-tutar-deger">${sembol}${tutarStr}</span></td>
+                <td class="sip-durum"><span class="durum-badge iptal_edildi"><i class="icon-x-circle"></i> İptal Edildi</span></td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+
+    // Pagination
+    renderIptalPagination(toplam, sayfaSayisi);
+}
+
+// İptal Pagination render
+function renderIptalPagination(toplam, sayfaSayisi) {
+    const container = document.getElementById('iptal_pagination');
+
+    if (sayfaSayisi <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+
+    let html = '';
+
+    // Önceki
+    html += `<button class="pagination-btn" onclick="iptalSayfaDegistir(${iptalSayfa - 1})" ${iptalSayfa <= 1 ? 'disabled' : ''}>
+        <i class="icon-chevron-left"></i>
+    </button>`;
+
+    // Sayfa numaraları
+    for (let i = 1; i <= sayfaSayisi; i++) {
+        if (i === 1 || i === sayfaSayisi || (i >= iptalSayfa - 2 && i <= iptalSayfa + 2)) {
+            html += `<button class="pagination-btn ${i === iptalSayfa ? 'active' : ''}" onclick="iptalSayfaDegistir(${i})">${i}</button>`;
+        } else if (i === iptalSayfa - 3 || i === iptalSayfa + 3) {
+            html += `<span class="pagination-btn" style="cursor: default;">...</span>`;
+        }
+    }
+
+    // Sonraki
+    html += `<button class="pagination-btn" onclick="iptalSayfaDegistir(${iptalSayfa + 1})" ${iptalSayfa >= sayfaSayisi ? 'disabled' : ''}>
+        <i class="icon-chevron-right"></i>
+    </button>`;
+
+    container.innerHTML = html;
+}
+
+// İptal sayfa değiştir
+function iptalSayfaDegistir(sayfa) {
+    if (sayfa < 1) return;
+    iptalSayfa = sayfa;
+    iptalSiparisleriYukle();
+}
+
+// Kargo takip
+function kargoTakip(takipNo, firma) {
+    let url = '';
+    firma = (firma || '').toLowerCase();
+
+    if (firma.includes('yurtici') || firma.includes('yurtiçi')) {
+        url = 'https://www.yurticikargo.com/tr/online-servisler/gonderi-sorgula?code=' + takipNo;
+    } else if (firma.includes('aras')) {
+        url = 'https://www.araskargo.com.tr/trmGonderiTakip.aspx?q=' + takipNo;
+    } else if (firma.includes('mng')) {
+        url = 'https://www.mngkargo.com.tr/gonderi-takip/?q=' + takipNo;
+    } else if (firma.includes('ptt')) {
+        url = 'https://gonderitakip.ptt.gov.tr/Track/Verify?q=' + takipNo;
+    } else {
+        Swal.fire({
+            title: 'Kargo Takip',
+            html: '<p>Takip No: <strong>' + takipNo + '</strong></p>' + (firma ? '<p>Firma: <strong>' + firma + '</strong></p>' : ''),
+            icon: 'info'
+        });
+        return;
+    }
+    window.open(url, '_blank');
+}
+
+// URL hash'ine göre sekme aç (dış JS dosyaları yüklendikten sonra çalışmalı)
+$(document).ready(function() {
+    var hash = window.location.hash.replace('#', '');
+    if (hash && ['aktif', 'taslak', 'tamamlanan', 'iptal'].indexOf(hash) !== -1) {
+        tedarikSekmeDegistir(hash);
+    }
+});
+
+// ==========================================
+// SEPET BİRLEŞTİRME FONKSİYONLARI
+// ==========================================
+
+function taslakCheckboxDegisti() {
+    var checkboxes = document.querySelectorAll('.taslak-sepet-cb:checked');
+    var toolbar = document.getElementById('taslak_toolbar');
+    var sayiEl = document.getElementById('taslak_secili_sayisi');
+    var secili = checkboxes.length;
+
+    sayiEl.textContent = secili;
+    toolbar.style.display = secili >= 2 ? 'flex' : 'none';
+
+    // Tümünü seç checkbox durumu
+    var tumCb = document.querySelectorAll('.taslak-sepet-cb');
+    var headerCb = document.getElementById('taslak_tumunu_sec');
+    if (tumCb.length > 0 && secili === tumCb.length) {
+        headerCb.checked = true;
+        headerCb.indeterminate = false;
+    } else if (secili > 0) {
+        headerCb.checked = false;
+        headerCb.indeterminate = true;
+    } else {
+        headerCb.checked = false;
+        headerCb.indeterminate = false;
+    }
+}
+
+function taslakTumunuSec(checked) {
+    document.querySelectorAll('.taslak-sepet-cb').forEach(function(cb) {
+        cb.checked = checked;
+    });
+    taslakCheckboxDegisti();
+}
+
+function taslakSeciliIdler() {
+    var idler = [];
+    document.querySelectorAll('.taslak-sepet-cb:checked').forEach(function(cb) {
+        idler.push(parseInt(cb.value));
+    });
+    return idler;
+}
+
+function _birlestirFmt(t) {
+    return (parseFloat(t) || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function _birlestirOnizlemeRender(data) {
+    var pb = data.para_birimi || 'USD';
+    var sembol = (pb === 'TRY' || pb === 'TL') ? '₺' : '$';
+
+    var html = '<div class="sip-birlestir-onizleme">';
+    html += '<div class="sip-onizleme-baslik">';
+    html += '<span>' + data.sepet_sayisi + ' sepet birleştirilecek</span>';
+    html += '<span class="sip-onizleme-nolar">' + escHtml(data.sepet_nolar.join(', ')) + '</span>';
+    html += '</div>';
+
+    html += '<div class="sip-onizleme-ozet">';
+    html += '<div class="sip-onizleme-ozet-item"><span>Toplam Kalem</span><strong>' + data.toplam_kalem + '</strong></div>';
+    html += '<div class="sip-onizleme-ozet-item"><span>Toplam Adet</span><strong>' + data.toplam_miktar.toLocaleString('tr-TR') + '</strong></div>';
+    html += '<div class="sip-onizleme-ozet-item"><span>Toplam Tutar</span><strong>' + sembol + _birlestirFmt(data.toplam_tutar) + '</strong></div>';
+    html += '</div>';
+
+    // Kategori bazlı grupla
+    var katMap = {};
+    data.satirlar.forEach(function(s) {
+        var kat = s.kategori_adi || 'Diğer';
+        if (!katMap[kat]) katMap[kat] = [];
+        katMap[kat].push(s);
+    });
+
+    html += '<div class="sip-onizleme-tablo-wrap"><table class="sip-onizleme-tablo">';
+    html += '<thead><tr><th style="text-align:left">Ürün</th><th style="text-align:center;width:60px">Adet</th><th style="text-align:right;width:80px">Fiyat</th><th style="text-align:right;width:90px">Toplam</th></tr></thead>';
+    html += '<tbody>';
+
+    var rowIdx = 0;
+    Object.keys(katMap).sort(function(a, b) { return a.localeCompare(b, 'tr'); }).forEach(function(kat) {
+        var satirlar = katMap[kat];
+        html += '<tr class="sip-onizleme-kat-baslik"><td colspan="4"><i class="icon-grid"></i> ' + escHtml(kat) + ' <span class="sip-onizleme-kat-sayi">' + satirlar.length + '</span></td></tr>';
+
+        satirlar.forEach(function(satir) {
+            var evenCls = (rowIdx % 2 === 1) ? ' sip-onizleme-even' : '';
+            var varHtml = '';
+
+            if (satir.varyantlar && satir.varyantlar.length > 0 && satir.varyantlar.length <= 6) {
+                varHtml = '<div class="sip-onizleme-varyantlar">';
+                satir.varyantlar.forEach(function(v) {
+                    var dot = v.renk_kodu ? '<span class="sip-onizleme-vdot" style="background:' + v.renk_kodu + '"></span>' : '';
+                    var lbl = '';
+                    if (v.model_adi && v.renk_adi) lbl = escHtml(v.model_adi) + ' · ' + escHtml(v.renk_adi);
+                    else if (v.model_adi) lbl = escHtml(v.model_adi);
+                    else if (v.renk_adi) lbl = escHtml(v.renk_adi);
+                    if (lbl) varHtml += '<span class="sip-onizleme-vbadge">' + dot + lbl + ' ×' + v.miktar + '</span>';
+                });
+                varHtml += '</div>';
+            }
+
+            html += '<tr class="sip-onizleme-satir' + evenCls + '">';
+            html += '<td><div class="sip-onizleme-urun">' + escHtml(satir.urun_adi) + '</div>' + varHtml + '</td>';
+            html += '<td style="text-align:center">' + satir.miktar.toLocaleString('tr-TR') + '</td>';
+            html += '<td style="text-align:right">' + sembol + _birlestirFmt(satir.birim_fiyat) + '</td>';
+            html += '<td style="text-align:right;font-weight:600">' + sembol + _birlestirFmt(satir.toplam_fiyat) + '</td>';
+            html += '</tr>';
+
+            // 6'dan fazla varyant varsa alt satırlarda göster
+            if (satir.varyantlar && satir.varyantlar.length > 6) {
+                satir.varyantlar.forEach(function(v) {
+                    var lbl = '';
+                    if (v.model_adi && v.renk_adi) lbl = v.model_adi + ' · ' + v.renk_adi;
+                    else if (v.model_adi) lbl = v.model_adi;
+                    else if (v.renk_adi) lbl = v.renk_adi;
+                    html += '<tr class="sip-onizleme-var-row' + evenCls + '">';
+                    html += '<td><div class="sip-onizleme-var-indent">';
+                    if (v.renk_kodu) html += '<span class="sip-onizleme-vdot" style="background:' + v.renk_kodu + '"></span>';
+                    html += '<span>' + escHtml(lbl) + '</span></div></td>';
+                    html += '<td style="text-align:center;font-size:12px">' + v.miktar + '</td>';
+                    html += '<td style="text-align:right;font-size:12px">' + sembol + _birlestirFmt(v.birim_fiyat) + '</td>';
+                    html += '<td style="text-align:right;font-size:12px">' + sembol + _birlestirFmt(v.toplam_fiyat) + '</td>';
+                    html += '</tr>';
+                });
+            }
+            rowIdx++;
+        });
+    });
+
+    html += '</tbody></table></div>';
+
+    html += '<div class="sip-onizleme-footer">';
+    html += '<span>Genel Toplam</span>';
+    html += '<strong>' + sembol + _birlestirFmt(data.toplam_tutar) + '</strong>';
+    html += '</div>';
+    html += '</div>';
+    return html;
+}
+
+function taslakBirlestirOnizle() {
+    var idler = taslakSeciliIdler();
+    if (idler.length < 2) {
+        showToast('warning', 'En az 2 sepet seçmelisiniz.');
+        return;
+    }
+
+    Swal.fire({
+        title: 'Yükleniyor...',
+        allowOutsideClick: false,
+        didOpen: function() { Swal.showLoading(); }
+    });
+
+    $.ajax({
+        url: 'ajax/tedarik-taslak-birlestir.php',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ islem: 'onizle', sepet_idleri: idler }),
+        dataType: 'json',
+        success: function(res) {
+            Swal.close();
+            if (!res.success) {
+                Swal.fire({ icon: 'error', title: 'Hata', text: res.message, confirmButtonColor: '#103595' });
+                return;
+            }
+            var onizlemeHtml = _birlestirOnizlemeRender(res.onizleme);
+            Swal.fire({
+                title: 'Sepet Birleştirme Önizleme',
+                html: onizlemeHtml,
+                width: 720,
+                showCancelButton: true,
+                confirmButtonText: '<i class="icon-layers"></i> Birleştir',
+                cancelButtonText: 'Vazgeç',
+                confirmButtonColor: '#103595',
+                customClass: { popup: 'sip-birlestir-swal' }
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    taslakBirlestirOnayla(idler);
+                }
+            });
+        },
+        error: function() {
+            Swal.fire({ icon: 'error', title: 'Bağlantı Hatası', text: 'Sunucuya ulaşılamadı.', confirmButtonColor: '#103595' });
+        }
+    });
+}
+
+function taslakBirlestirOnayla(idler) {
+    Swal.fire({
+        title: 'Birleştiriliyor...',
+        text: idler.length + ' sepet birleştiriliyor, lütfen bekleyin.',
+        allowOutsideClick: false,
+        didOpen: function() { Swal.showLoading(); }
+    });
+
+    $.ajax({
+        url: 'ajax/tedarik-taslak-birlestir.php',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ islem: 'birlestir', sepet_idleri: idler }),
+        dataType: 'json',
+        success: function(res) {
+            if (res.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Birleştirildi',
+                    html: res.message + '<br><small>Yeni sepet: <strong>' + escHtml(res.yeni_siparis_no) + '</strong></small>',
+                    confirmButtonText: 'Tamam',
+                    confirmButtonColor: '#103595'
+                }).then(function() {
+                    taslakSiparisleriYukle();
+                });
+            } else {
+                Swal.fire({ icon: 'error', title: 'Hata', text: res.message, confirmButtonColor: '#103595' });
+            }
+        },
+        error: function() {
+            Swal.fire({ icon: 'error', title: 'Bağlantı Hatası', text: 'Sunucuya ulaşılamadı.', confirmButtonColor: '#103595' });
+        }
+    });
+}
+</script>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+    </div>
+
+    <!-- Modals -->
+    
+<div class="pp-overlay" id="paraPuanModal">
+    <div class="pp-box">
+        <button class="pp-x" onclick="paraPuanModalKapat()"><i class="icon-x"></i></button>
+
+        <!-- Coin -->
+        <div class="pp-coin">
+            <div class="pp-coin-inner">
+                <span>PP</span>
+            </div>
+        </div>
+
+        <!-- Bakiye -->
+        <div class="pp-bal">
+            <div class="pp-bal-num">0</div>
+            <div class="pp-bal-label">ParaPuan</div>
+            <div class="pp-bal-eq">$0,00 değerinde</div>
+        </div>
+
+        <!-- Kur -->
+        <div class="pp-kur">
+            <span class="pp-kur-left">$1</span>
+            <span class="pp-kur-mid"><i class="icon-repeat"></i></span>
+            <span class="pp-kur-right">1 PP</span>
+        </div>
+
+        <!-- Liste -->
+        <ul class="pp-list">
+            <li><i class="icon-check-circle"></i> Siparişlerde otomatik kazanın</li>
+            <li><i class="icon-check-circle"></i> Süresiz geçerli</li>
+            <li><i class="icon-check-circle"></i> Ödemede indirim olarak kullanın</li>
+        </ul>
+
+        <button class="pp-ok" onclick="paraPuanModalKapat()">Anladım</button>
+    </div>
+</div>
+
+<style>
+.pp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;visibility:hidden;transition:.2s}
+.pp-overlay.active{opacity:1;visibility:visible}
+
+.pp-box{background:#fff;border-radius:20px;width:100%;max-width:340px;padding:32px 24px;text-align:center;position:relative;transform:translateY(10px);transition:.2s}
+.pp-overlay.active .pp-box{transform:translateY(0)}
+
+.pp-x{position:absolute;top:14px;right:14px;width:28px;height:28px;border:none;background:transparent;cursor:pointer;color:#94a3b8;font-size:18px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:.2s}
+.pp-x:hover{background:#f1f5f9;color:#1e293b}
+
+.pp-coin{margin:0 auto 20px}
+.pp-coin-inner{width:72px;height:72px;background:linear-gradient(145deg,#fbbf24,#f59e0b);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;box-shadow:0 4px 20px rgba(245,158,11,.4),inset 0 2px 0 rgba(255,255,255,.3),inset 0 -2px 0 rgba(0,0,0,.1);position:relative}
+.pp-coin-inner span{font-size:22px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.2)}
+.pp-coin-inner::after{content:'';position:absolute;inset:4px;border:2px dashed rgba(255,255,255,.3);border-radius:50%}
+
+.pp-bal{margin-bottom:20px}
+.pp-bal-num{font-size:42px;font-weight:800;color:#1e293b;line-height:1}
+.pp-bal-label{font-size:14px;color:#64748b;font-weight:600;margin-top:4px}
+.pp-bal-eq{font-size:13px;color:#16a34a;font-weight:600;margin-top:8px}
+
+.pp-kur{display:inline-flex;align-items:center;gap:12px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 20px;margin-bottom:20px}
+.pp-kur-left,.pp-kur-right{font-size:16px;font-weight:700;color:#92400e}
+.pp-kur-mid{color:#f59e0b;font-size:14px}
+
+.pp-list{list-style:none;padding:0;margin:0 0 24px;text-align:left}
+.pp-list li{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:13px;color:#475569;border-bottom:1px solid #f1f5f9}
+.pp-list li:last-child{border:none}
+.pp-list li i{color:#f59e0b;font-size:16px}
+
+.pp-ok{width:100%;padding:14px;background:linear-gradient(135deg,#fbbf24,#f59e0b);border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;transition:.2s;box-shadow:0 4px 12px rgba(245,158,11,.3)}
+.pp-ok:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(245,158,11,.4)}
+</style>
+
+<script>
+function paraPuanModalAc(){document.getElementById('paraPuanModal').classList.add('active');document.body.style.overflow='hidden'}
+function paraPuanModalKapat(){document.getElementById('paraPuanModal').classList.remove('active');document.body.style.overflow=''}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')paraPuanModalKapat()});
+document.getElementById('paraPuanModal')?.addEventListener('click',function(e){if(e.target===this)paraPuanModalKapat()});
+</script>
+
+    <!-- ============ Çekirdek JS kütüphaneleri ============ -->
+    <script src="./MySunixBayiPortalı_files/bootstrap.min.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/bootstrap-select.min.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/select2.min.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/select2-tr.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/sweetalert2.all.min.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/jquery.dataTables.min.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/flatpickr.min.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/flatpickr-tr.js.indir"></script>
+
+    <!-- Bayi Portal JS (helper fonksiyonlar: bayiCikisYap, formatPara, vb.) -->
+    <script src="./MySunixBayiPortalı_files/bayi-portal.js.indir"></script>
+
+    <!-- v49 Layout JS -->
+    <script src="./MySunixBayiPortalı_files/sidebar.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/header.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/responsive.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/collapse.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/bildirim-badge.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/stoga-giren-badge.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/teslim-bekleyen-badge.js.indir"></script>
+    <script>window.bayiMagazamErisim = false;</script>
+    <script src="./MySunixBayiPortalı_files/merkez-fiyat-badge.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/radar-popup.js.indir"></script>
+
+    <!-- Eğitim Turu JS (tamamlanmamış + impersonation değil) -->
+        <script>
+    var bayiEgitimConfig = {
+        egitimDurumu: 'bekliyor',
+        egitimAdim: 0,
+        isImpersonation: false,
+        isKisitliYetki: true,
+        sayfaAdi: 'tedarik-pano'
+    };
+    </script>
+    <script src="./MySunixBayiPortalı_files/config.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/bot-svg.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/steps.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/engine.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/init.js.indir"></script>
+    
+        <script src="./MySunixBayiPortalı_files/tedarik-pano-utils.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/tedarik-pano-modals.js.indir"></script>
+    <script src="./MySunixBayiPortalı_files/tedarik-pano-core.js.indir"></script>
+    <!-- Hızlı Tedarik geçiş intro overlay -->
+<div class="bp-flash-overlay" id="bpFlashOverlay">
+    <div class="bp-flash-overlay-icons" id="bpFlashIcons"></div>
+    <div class="bp-flash-overlay-text">Ürünler yükleniyor<span class="bp-flash-overlay-dots"><span></span><span></span><span></span></span></div>
+</div>
+<script>
+(function(){
+    var ikonlar = ['icon-package','icon-smartphone','icon-shield','icon-headphones','icon-battery-charging','icon-cpu','icon-monitor','icon-watch','icon-speaker','icon-camera','icon-bluetooth','icon-wifi'];
+    function rastgele4(){
+        var k = ikonlar.slice(); var s = [];
+        for(var i=0;i<4;i++){ var r=Math.floor(Math.random()*k.length); s.push(k.splice(r,1)[0]); }
+        return s;
+    }
+    var links = document.querySelectorAll('[data-hizli-tedarik]');
+    if (!links.length) return;
+    links.forEach(function(a){
+        a.addEventListener('click', function(e){
+            e.preventDefault();
+            var href = a.href;
+            var ov = document.getElementById('bpFlashOverlay');
+            var ic = document.getElementById('bpFlashIcons');
+            if (!ov) { location.href = href; return; }
+            ic.innerHTML = rastgele4().map(function(c){ return '<i class="'+c+'"></i>'; }).join('');
+            ov.classList.add('is-active');
+            setTimeout(function(){ location.href = href; }, 700);
+        });
+    });
+})();
+</script>
+
+<!-- Otomatik Sürüm Kontrolü (cache'e takılı kalmayı önler — Cloudflare/hard refresh) -->
+<script>window.SUNIX_SURUM = 'e1b35d525057';</script>
+<script src="./MySunixBayiPortalı_files/surum-kontrol.js.indir"></script>
+
+
+<div class="bp-drawer-overlay"></div></body></html>

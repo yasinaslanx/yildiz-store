@@ -1,0 +1,185 @@
+/**
+ * Form - Otomatik Kayıt (Sepet Koruma)
+ * Debounce ile her değişiklikte sunucuya sessiz kayıt
+ */
+(function() {
+    'use strict';
+
+    var F = window.Form;
+
+    F.OtomatikKayit = {};
+
+    var _aktif = false;
+    var _kaydediliyor = false;
+    var _timer = null;
+    var _sonPayloadHash = '';
+    var _hataRetry = 0;
+    var _xhr = null;
+    var DEBOUNCE_MS = 1500;
+    var MAX_RETRY = 3;
+
+    F.OtomatikKayit.durum = 'bos';
+
+    F.OtomatikKayit.init = function() {
+        if (F.Config.readonly) return;
+        if (F.Config.isIade || F.Config.isSevkiyat || F.Config.isKampanya || F.Config.isCinSiparis || F.Config.isOnSiparis) return;
+        if (!F.Config.isBayi) return;
+        var mod = F.Config.mod;
+        if (mod !== 'siparis-yeni' && mod !== 'siparis-duzenle') return;
+        if (mod === 'siparis-duzenle') {
+            var durum = F.Config.durum || F.State.durum;
+            if (durum && durum !== 'taslak') return;
+        }
+        _aktif = true;
+    };
+
+    F.OtomatikKayit.tetikle = function() {
+        if (!_aktif) return;
+        if (_timer) clearTimeout(_timer);
+        _timer = setTimeout(function() {
+            _timer = null;
+            F.OtomatikKayit.kaydet();
+        }, DEBOUNCE_MS);
+    };
+
+    function satirHash(satirlar) {
+        var parts = [];
+        for (var i = 0; i < satirlar.length; i++) {
+            var s = satirlar[i];
+            var vParts = [];
+            if (s.varyantlar) {
+                for (var j = 0; j < s.varyantlar.length; j++) {
+                    var v = s.varyantlar[j];
+                    vParts.push((v.urun_id || v.id || '') + ':' + (v.miktar || 0) + ':' + (v.birim_fiyat || 0));
+                }
+            }
+            parts.push(s.urun_id + '_' + s.miktar + '_' + (s.birim_fiyat || 0) + '_' + (s.not || '') + '|' + vParts.join(','));
+        }
+        return parts.join(';');
+    }
+
+    F.OtomatikKayit.kaydet = function() {
+        if (!_aktif || _kaydediliyor) return;
+        if (F.State.satirlar.length === 0) return;
+
+        var sonuc = F.Kaydet.payloadHazirla(true, false);
+        var veri = sonuc.veri;
+        veri.otomatik_kayit = 1;
+
+        var hash = JSON.stringify({
+            m: veri.musteri_id,
+            g: veri.genel_toplam,
+            n: veri.not,
+            l: satirHash(veri.satirlar)
+        });
+        if (hash === _sonPayloadHash) return;
+
+        _kaydediliyor = true;
+        F.OtomatikKayit.durumGuncelle('kaydediliyor');
+
+        if (_xhr && _xhr.readyState < 4) _xhr.abort();
+
+        _xhr = $.ajax({
+            url: F.Config.ajaxBase + 'siparis-kaydet.php',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(veri),
+            dataType: 'json',
+            timeout: 15000,
+            success: function(res) {
+                _kaydediliyor = false;
+                if (res.success) {
+                    _sonPayloadHash = hash;
+                    _hataRetry = 0;
+                    if (res.siparis_id && !F.Config.id) {
+                        F.Config.id = res.siparis_id;
+                        F.Config.mod = 'siparis-duzenle';
+                    }
+                    F.OtomatikKayit.durumGuncelle('kaydedildi');
+                    if (F.Dirty && F.Dirty.temizle) F.Dirty.temizle();
+                } else {
+                    F.OtomatikKayit.hataYonet();
+                }
+            },
+            error: function(xhr, status) {
+                _kaydediliyor = false;
+                if (status === 'abort') return;
+                F.OtomatikKayit.hataYonet();
+            }
+        });
+    };
+
+    F.OtomatikKayit.hataYonet = function() {
+        _hataRetry++;
+        if (_hataRetry < MAX_RETRY) {
+            setTimeout(function() { F.OtomatikKayit.kaydet(); }, 3000);
+            F.OtomatikKayit.durumGuncelle('bekliyor');
+        } else {
+            F.OtomatikKayit.durumGuncelle('hata');
+        }
+    };
+
+    F.OtomatikKayit.durumGuncelle = function(yeniDurum) {
+        F.OtomatikKayit.durum = yeniDurum;
+        var el = document.getElementById('frmSepetDurum');
+        if (!el) return;
+
+        el.style.display = '';
+        var dot = el.querySelector('.frm-sepet-dot');
+        var metin = el.querySelector('.frm-sepet-metin');
+        if (!dot || !metin) return;
+
+        dot.className = 'frm-sepet-dot';
+        el.onclick = null;
+        el.style.cursor = '';
+
+        if (yeniDurum === 'kaydedildi') {
+            dot.classList.add('frm-sepet-ok');
+            metin.textContent = 'Kaydedildi';
+        } else if (yeniDurum === 'kaydediliyor' || yeniDurum === 'bekliyor') {
+            dot.classList.add('frm-sepet-bekle');
+            metin.textContent = 'Kaydediliyor...';
+        } else if (yeniDurum === 'hata') {
+            dot.classList.add('frm-sepet-hata');
+            metin.textContent = 'Hata';
+            el.style.cursor = 'pointer';
+            el.onclick = function() {
+                _hataRetry = 0;
+                _sonPayloadHash = '';
+                F.OtomatikKayit.kaydet();
+            };
+        }
+    };
+
+    F.OtomatikKayit.sepetKontrol = function(callback) {
+        $.ajax({
+            url: F.Config.ajaxBase + 'sepet-kontrol.php',
+            type: 'GET',
+            dataType: 'json',
+            timeout: 5000,
+            success: function(res) {
+                if (res.success && res.sepet_id) {
+                    callback(res.sepet_id);
+                } else {
+                    callback(null);
+                }
+            },
+            error: function() {
+                callback(null);
+            }
+        });
+    };
+
+    F.OtomatikKayit.durdur = function() {
+        _aktif = false;
+        if (_timer) { clearTimeout(_timer); _timer = null; }
+        if (_xhr && _xhr.readyState < 4) _xhr.abort();
+    };
+
+    F.OtomatikKayit.devamEt = function() {
+        if (F.Config.readonly) return;
+        if (F.Config.isIade || F.Config.isSevkiyat || F.Config.isKampanya || F.Config.isCinSiparis || F.Config.isOnSiparis) return;
+        _aktif = true;
+    };
+
+})();

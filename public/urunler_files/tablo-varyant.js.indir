@@ -1,0 +1,138 @@
+/**
+ * Form - Varyant Badge Render, FF-Satır Render
+ */
+(function() {
+    'use strict';
+
+    var F = window.Form;
+
+    F.TabloVaryant = {};
+
+    F.TabloVaryant.init = function() {
+        // Varyant badge renderı event bazlı çalışır
+    };
+
+    /**
+     * Varyant badge HTML oluştur
+     * @param {object} satir - Satır verisi
+     * @returns {string} HTML
+     */
+    F.TabloVaryant.badgeHtml = function(satir) {
+        var html = '<div class="frm-sku">';
+        var varyantlar = satir.varyantlar || [];
+
+        if (satir.tip === 'renk') {
+            // Renk badge'leri
+            for (var i = 0; i < varyantlar.length; i++) {
+                var v = varyantlar[i];
+                if ((v.miktar || 0) <= 0) continue;
+                html += F.TabloVaryant.renkBadge(v);
+            }
+        } else if (satir.tip === 'model_renk' || satir.tip === 'kilif') {
+            // Model+Renk grup badge'leri
+            var gruplar = F.TabloVaryant.mrGrupla(varyantlar);
+            for (var m = 0; m < gruplar.length; m++) {
+                html += F.TabloVaryant.mrGrupBadge(gruplar[m]);
+            }
+        } else if (satir.tip === 'model') {
+            // Model badge'leri
+            for (var j = 0; j < varyantlar.length; j++) {
+                var mv = varyantlar[j];
+                if ((mv.miktar || 0) <= 0) continue;
+                html += F.TabloVaryant.modelBadge(mv);
+            }
+        }
+
+        html += '</div>';
+        return html;
+    };
+
+    /**
+     * Renk badge
+     */
+    F.TabloVaryant.renkBadge = function(v) {
+        var esc = F.Helpers.escHtml;
+        var dot = v.renkKodu ? '<span class="frm-vb-dot" style="background:' + esc(v.renkKodu) + '"></span>' : '';
+        return '<div class="frm-vb">' +
+            '<div class="frm-vb-l">' + dot + esc(v.adi || v.renkAdi || '') + '</div>' +
+            '<div class="frm-vb-r">' + (v.miktar || 0) + '</div>' +
+            '</div>';
+    };
+
+    /**
+     * Model badge (marka renkli)
+     */
+    F.TabloVaryant.modelBadge = function(v) {
+        var esc = F.Helpers.escHtml;
+        var bc = v.markaRenk || '#c0c3c9';
+        return '<div class="frm-vb frm-vb-brand" style="--bc:' + esc(bc) + '">' +
+            '<div class="frm-vb-l">' + esc(v.adi || v.modelAdi || '') + '</div>' +
+            '<div class="frm-vb-r">' + (v.miktar || 0) + '</div>' +
+            '</div>';
+    };
+
+    /**
+     * Model+Renk varyantları modele göre grupla
+     */
+    F.TabloVaryant.mrGrupla = function(varyantlar) {
+        var grupMap = {};
+        var grupSira = [];
+        for (var i = 0; i < varyantlar.length; i++) {
+            var v = varyantlar[i];
+            if ((v.miktar || 0) <= 0) continue;
+            var key = v.modelAdi || v.adi || 'bilinmiyor';
+            if (!grupMap[key]) {
+                grupMap[key] = {
+                    modelAdi: v.modelAdi || key,
+                    markaRenk: v.markaRenk || '#c0c3c9',
+                    markaAdi: v.markaAdi || '',
+                    toplam: 0,
+                    renkler: []
+                };
+                grupSira.push(key);
+            }
+            grupMap[key].toplam += (v.miktar || 0);
+            grupMap[key].renkler.push(v);
+        }
+        var result = [];
+        for (var j = 0; j < grupSira.length; j++) {
+            result.push(grupMap[grupSira[j]]);
+        }
+        return result;
+    };
+
+    /**
+     * Model+Renk grup badge HTML
+     */
+    F.TabloVaryant.mrGrupBadge = function(grup) {
+        var esc = F.Helpers.escHtml;
+        var bc = grup.markaRenk || '#c0c3c9';
+        var html = '<div class="frm-mr-group frm-mr-brand-grp" style="--bc:' + esc(bc) + '">';
+        html += '<div class="frm-mr-model"><i class="icon-smartphone"></i>' + esc(grup.modelAdi);
+        html += '<span class="frm-mr-total">' + grup.toplam + '</span>';
+        html += '</div>';
+        html += '<div class="frm-mr-badges">';
+        for (var i = 0; i < grup.renkler.length; i++) {
+            html += F.TabloVaryant.renkBadge(grup.renkler[i]);
+        }
+        html += '</div></div>';
+        return html;
+    };
+
+    /**
+     * Paket bilgi HTML
+     */
+    F.TabloVaryant.paketBilgiHtml = function(paket) {
+        if (!paket) return '';
+        var esc = F.Helpers.escHtml;
+        var html = '<div class="frm-pkt-info">';
+        html += '<span class="frm-pkt-badge"><i class="icon-package"></i>' + esc(paket.tipLabel || 'Karma') + '</span>';
+        html += '<span class="frm-pkt-pcs">' + (paket.paketAdet || 0) + ' PCS</span>';
+        if (paket.paketSayisi) {
+            html += '<span class="frm-pkt-qty">' + paket.paketSayisi + ' Paket</span>';
+        }
+        html += '</div>';
+        return html;
+    };
+
+})();

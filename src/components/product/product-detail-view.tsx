@@ -27,6 +27,7 @@ import {
   Clock
 } from "lucide-react";
 import { useCurrency } from "@/store/currency-store";
+import { useAuth } from "@/store/auth-store";
 
 type Product = {
   id: string;
@@ -44,6 +45,7 @@ type Product = {
     color: string;
     storage?: string | null;
     price: number;
+    wholesalePrice?: number | null;
     oldPrice?: number;
     stock: number;
     active: boolean;
@@ -55,6 +57,7 @@ export function ProductDetailView({ product }: { product: Product }) {
   const { addItem } = useCart();
   const { openCart } = useUi();
   const { formatPrice } = useCurrency();
+  const { user } = useAuth();
   
   const colors = useMemo(() => Array.from(new Set(product.variants.map((v) => v.color))), [product.variants]);
   const [selectedColor, setSelectedColor] = useState(colors[0]);
@@ -145,6 +148,10 @@ export function ProductDetailView({ product }: { product: Product }) {
     }
   };
 
+  const isDealer = user?.role === "DEALER" || user?.role === "dealer";
+  const finalPrice = selectedVariant ? (isDealer && selectedVariant.wholesalePrice ? Number(selectedVariant.wholesalePrice) : Number(selectedVariant.price)) : Number(product.price || 0);
+  const finalOldPrice = selectedVariant.oldPrice && selectedVariant.oldPrice > finalPrice ? selectedVariant.oldPrice : (finalPrice * 1.25);
+
   return (
     <div className="mx-auto max-w-[1440px] px-6 py-8 lg:py-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
       <div className="mb-12">
@@ -183,7 +190,7 @@ export function ProductDetailView({ product }: { product: Product }) {
                  brand={product.brand}
                  slug={product.slug}
                  image={selectedVariant.images[0]?.url || product.image}
-                 price={selectedVariant.price}
+                 price={finalPrice}
                />
             </div>
 
@@ -214,7 +221,12 @@ export function ProductDetailView({ product }: { product: Product }) {
             <div className="space-y-4">
                <div className="flex items-center gap-4">
                   <p className="text-[11px] font-black uppercase tracking-[0.3em] text-stone-400">Güncel Fiyat</p>
-                  {selectedVariant.oldPrice && selectedVariant.oldPrice > selectedVariant.price ? (
+                  {isDealer && (
+                    <span className="bg-blue-50 text-blue-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
+                      Bayi Fiyatı
+                    </span>
+                  )}
+                  {selectedVariant.oldPrice && selectedVariant.oldPrice > finalPrice ? (
                     <span className="bg-green-50 text-green-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
                       %20 İndirim
                     </span>
@@ -222,18 +234,12 @@ export function ProductDetailView({ product }: { product: Product }) {
                </div>
                
                <div className="flex flex-col gap-1">
-                  {selectedVariant.oldPrice && selectedVariant.oldPrice > selectedVariant.price ? (
-                    <span className="text-lg lg:text-xl font-bold text-stone-300 line-through decoration-stone-200 tracking-tighter break-words">
-                      {formatPrice(selectedVariant.oldPrice)}
-                    </span>
-                  ) : (
-                    <span className="text-lg lg:text-xl font-bold text-stone-300 line-through decoration-stone-200 tracking-tighter break-words">
-                      {formatPrice(selectedVariant.price * 1.25)}
-                    </span>
-                  )}
+                  <span className="text-lg lg:text-xl font-bold text-stone-300 line-through decoration-stone-200 tracking-tighter break-words">
+                    {formatPrice(finalOldPrice)}
+                  </span>
                   <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6 mt-1">
                     <span className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter text-stone-900 italic break-words">
-                      {formatPrice(selectedVariant.price)}
+                      {formatPrice(finalPrice)}
                     </span>
                     <div className="flex flex-col gap-2">
                       <button 

@@ -71,7 +71,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     const sessionUser: SessionUser = {
       id: user.id,
       email: user.email,
-      role: user.role as "USER" | "ADMIN",
+      role: user.role as "USER" | "ADMIN" | "DEALER",
     };
 
     // Sentry user context

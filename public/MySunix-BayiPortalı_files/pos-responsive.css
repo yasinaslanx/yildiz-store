@@ -1,0 +1,64 @@
+/* ===== POS Hızlı Tedarik — Responsive & Dokunmatik ===== */
+
+/* Touch: FAB her zaman görünür */
+@media (hover: none) {
+    .frm-pos-kart-fab {
+        opacity: 1 !important;
+        transform: translateY(0) scale(1) !important;
+    }
+}
+
+/* < 1400px: FAB her zaman görünür */
+@media (max-width: 1400px) {
+    .frm-pos-kart-fab {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* < 1200px: Sidebar daralt */
+@media (max-width: 1200px) {
+    .frm-pos-sb {
+        width: 180px;
+        min-width: 180px;
+    }
+    .frm-pos-sb-item {
+        padding: 8px 10px;
+        font-size: 0.82rem;
+    }
+}
+
+/* < 1024px: Sidebar ikon moduna geç */
+@media (max-width: 1024px) {
+    .frm-pos-sb {
+        width: 56px;
+        min-width: 56px;
+    }
+    .frm-pos-sb-baslik { display: none; }
+    .frm-pos-sb-toplam { display: none; }
+    .frm-pos-sb-item {
+        justify-content: center;
+        padding: 10px 0;
+        gap: 0;
+        border-left-width: 0;
+    }
+    .frm-pos-sb-item span { display: none; }
+    .frm-pos-sb-sayi { display: none; }
+    .frm-pos-sb-ok { display: none !important; }
+    .frm-pos-sb-alt { display: none !important; }
+    .frm-pos-sb-item i {
+        font-size: 1.2rem;
+        width: auto;
+    }
+    .frm-pos-sb-item.active {
+        background: var(--frm-main, #103595);
+        color: #fff;
+        border-radius: 8px;
+        margin: 2px 6px;
+    }
+}
+
+/* < 768px: POS modu devre dışı — buton gizle */
+@media (max-width: 768px) {
+    .frm-pos-toggle-btn { display: none !important; }
+}

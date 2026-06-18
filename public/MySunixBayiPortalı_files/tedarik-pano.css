@@ -1,0 +1,1066 @@
+/* Tedarik Pano CSS - Bayi Portalı */
+
+/* =====================================================
+   TAB HEADER ÖNEMLİ: Tab/sekme/divider stilleri artık
+   bayi/css/layout/tabs.css içinde (.bp-tab-*) tanımlı.
+   ===================================================== */
+
+/* Yeni Sipariş Butonu (bp-tab-tools içinde) */
+@keyframes yeniSiparisGlow {
+    0%   { box-shadow: 0 2px 8px rgba(16, 53, 149, 0.25), 0 0 0 0 rgba(16, 53, 149, 0.4); }
+    50%  { box-shadow: 0 4px 16px rgba(16, 53, 149, 0.35), 0 0 0 6px rgba(16, 53, 149, 0); }
+    100% { box-shadow: 0 2px 8px rgba(16, 53, 149, 0.25), 0 0 0 0 rgba(16, 53, 149, 0); }
+}
+
+.bp-tab-tools .yeni-siparis-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: #103595;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(16, 53, 149, 0.25);
+    transform: translateY(-6px);
+    animation: yeniSiparisGlow 1.2s ease-in-out 3;
+}
+
+.bp-tab-tools .yeni-siparis-btn:hover {
+    background: #0d2a75;
+    box-shadow: 0 4px 14px rgba(16, 53, 149, 0.4);
+    transform: translateY(-8px);
+    color: #fff;
+}
+
+.bp-tab-tools .yeni-siparis-btn:active {
+    transform: translateY(-5px);
+    box-shadow: 0 2px 6px rgba(16, 53, 149, 0.25);
+}
+
+.bp-tab-tools .yeni-siparis-btn i {
+    font-size: 16px;
+}
+
+/* =====================================================
+   KANBAN BOARD - TAM EKRAN LAYOUT (v49 layout uyumlu)
+   Hedef: .bp-pc içindeki içeriği viewport'un kalan dikey
+   alanını tamamen kaplayacak şekilde flex zinciriyle yay.
+   Sayfa scroll'u kapalı, sütunların kendi iç scroll'u var.
+   ===================================================== */
+
+/* HTML + body scroll'u kapat — tedarik pano viewport-fit modu
+   Sadece tablet+ (>=769px) viewport'ta. Mobilde normal scroll bırakılır. */
+@media (min-width: 769px) {
+    html:has(body.bp-app .tedarik-kanban-board) {
+        overflow: hidden;
+        height: 100vh;
+    }
+
+    body.bp-app:has(.tedarik-kanban-board) {
+        overflow: hidden;
+        height: 100vh;
+        min-height: 100vh;
+    }
+
+    /* Layout zinciri — .bp-layout > .bp-main > .bp-pc > .main-content > .main-content-inner > .main-content-wrap > .wg-box */
+    body.bp-app:has(.tedarik-kanban-board) .bp-layout {
+        height: 100vh;
+        min-height: 100vh;
+        align-items: stretch;
+    }
+
+    body.bp-app:has(.tedarik-kanban-board) .bp-main {
+        min-height: 0;
+        height: 100%;
+    }
+
+    body.bp-app:has(.tedarik-kanban-board) .bp-pc {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    body.bp-app:has(.tedarik-kanban-board) .bp-pc > .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    body.bp-app:has(.tedarik-kanban-board) .bp-pc > .main-content > .main-content-inner {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    /* Main content wrap tam yükseklik */
+    .main-content-wrap:has(.tedarik-kanban-board) {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    /* wg-box içinde flex düzen - tam yükseklik */
+    .wg-box:has(.tedarik-kanban-board) {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+        margin-bottom: 0;
+    }
+}
+
+/* Sekme içerik kapsayıcıları — flex item olarak kalan alanı doldur */
+#tedarik_aktif_icerik {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+#tedarik_tamamlanan_icerik,
+#tedarik_iptal_icerik,
+#tedarik_taslak_icerik {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
+
+/* KANBAN BOARD - 4 KOLON */
+.tedarik-kanban-board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: 100%;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+}
+
+/* KANBAN KOLON */
+.tedarik-kanban-column {
+    background: #fff;
+    border: 1px solid #dfe1e6;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* Column Header - Tema rengi ile tutarlı */
+.tedarik-column-header {
+    padding: 14px;
+    background: #103595;
+}
+
+.tedarik-column-header.onay_bekliyor,
+.tedarik-column-header.hazirlaniyor,
+.tedarik-column-header.muhasebe_onayi,
+.tedarik-column-header.kargolandi {
+    background: #103595;
+}
+
+.tedarik-header-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.tedarik-header-info i {
+    font-size: 18px;
+}
+
+.tedarik-column-title {
+    flex: 1;
+    text-transform: capitalize;
+}
+
+.tedarik-column-count {
+    background: rgba(0,0,0,0.15);
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    min-width: 22px;
+    text-align: center;
+    font-weight: 700;
+}
+
+/* Column Body */
+.tedarik-column-body {
+    flex: 1;
+    padding: 8px;
+    overflow-y: auto;
+    min-height: 0;
+    background: #f8f9fa;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Column body içeriği varsa normal davranış */
+.tedarik-column-body:has(.tedarik-kanban-card) {
+    display: block;
+}
+
+.tedarik-column-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tedarik-column-body::-webkit-scrollbar-track {
+    background: #f3f4f6;
+}
+
+.tedarik-column-body::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 10px;
+}
+
+.tedarik-column-body::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+/* Empty State - Dikey Ortalı */
+.tedarik-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 40px 20px;
+    color: #9ca3af;
+    font-size: 13px;
+    height: 100%;
+    min-height: 200px;
+}
+
+.tedarik-empty-state i {
+    font-size: 32px;
+    opacity: 0.3;
+}
+
+/* =====================================================
+   KANBAN KART
+   ===================================================== */
+.tedarik-kanban-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 0;
+    margin-bottom: 8px;
+    cursor: default;
+    transition: box-shadow 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.tedarik-kanban-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Card Header */
+.tedarik-card-header {
+    padding: 10px 12px;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+/* Kart header — tema ile tutarlı */
+.tedarik-kanban-column .tedarik-card-header {
+    background: #e8eef8;
+}
+
+.tedarik-card-siparis-no {
+    color: #1e293b;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.tedarik-card-siparis-no i {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+/* Sipariş no rengi — tema ile tutarlı */
+.tedarik-kanban-column .tedarik-card-siparis-no {
+    color: #103595;
+}
+
+/* Card Body */
+.tedarik-card-body {
+    padding: 12px;
+}
+
+.tedarik-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tedarik-card-info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.tedarik-card-info-row:last-child {
+    border-bottom: none;
+}
+
+.tedarik-card-info-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.tedarik-card-info-label i {
+    font-size: 12px;
+}
+
+.tedarik-card-info-value {
+    color: #111827;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.tedarik-card-toplam {
+    font-size: 15px;
+    font-weight: 700;
+    color: #103595;
+}
+
+/* Tedarikçi Notu */
+.tedarik-card-not {
+    margin-top: 10px;
+    padding: 8px 10px;
+    background: #fefce8;
+    border: 1px solid #fef08a;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #854d0e;
+}
+
+.tedarik-card-not-baslik {
+    font-weight: 700;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.tedarik-card-not-baslik i {
+    font-size: 12px;
+}
+
+.tedarik-card-not-metin {
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+/* Card Footer */
+.tedarik-card-footer {
+    padding: 10px 12px;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+}
+
+.tedarik-card-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.tedarik-card-action-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    text-decoration: none;
+}
+
+.tedarik-card-action-btn i {
+    font-size: 12px;
+}
+
+.tedarik-card-action-btn.detay {
+    background: #103595;
+    color: #fff;
+}
+
+.tedarik-card-action-btn.detay:hover {
+    background: #0c2870;
+    box-shadow: 0 2px 8px rgba(16, 53, 149, 0.3);
+    color: #fff;
+}
+
+/* Kargo Bilgi Badge */
+.tedarik-kargo-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #166534;
+    margin-bottom: 10px;
+}
+
+.tedarik-kargo-badge i {
+    font-size: 14px;
+}
+
+.tedarik-kargo-takip {
+    margin-left: auto;
+    font-size: 10px;
+    color: #22c55e;
+    cursor: pointer;
+}
+
+.tedarik-kargo-takip:hover {
+    text-decoration: underline;
+}
+
+/* Durum Badge'leri */
+.tedarik-durum-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.tedarik-durum-badge.hazir {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.tedarik-durum-badge.hazirlaniyor {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.tedarik-durum-badge.bekliyor {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* Loading State */
+.tedarik-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: #6b7280;
+}
+
+.tedarik-loading i {
+    font-size: 32px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 12px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* =====================================================
+   TAMAMLANAN / İPTAL SİPARİŞLER TABLOSU
+   ===================================================== */
+#tedarik_tamamlanan_icerik,
+#tedarik_iptal_icerik,
+#tedarik_taslak_icerik {
+    flex: 1;
+    overflow-y: auto;
+}
+
+#tedarik_tamamlanan_icerik .wg-table,
+#tedarik_iptal_icerik .wg-table,
+#tedarik_taslak_icerik .wg-table {
+    margin-top: 0;
+}
+
+/* Tedarik tabloları: 2. sütun (Ürün) ortalı olmalı — satışlardaki Müşteri sola dayalı kuralını eziyoruz */
+#tedarik_tamamlanan_icerik.sip-tablo .wg-table.table-all-user > table > thead > tr > th:nth-child(2),
+#tedarik_iptal_icerik.sip-tablo .wg-table.table-all-user > table > thead > tr > th:nth-child(2),
+#tedarik_taslak_icerik.sip-tablo .wg-table.table-all-user > table > thead > tr > th:nth-child(2) {
+    text-align: center !important;
+}
+#tedarik_tamamlanan_icerik.sip-tablo .wg-table.table-all-user > table > thead > tr > th:nth-child(2) .th-in,
+#tedarik_iptal_icerik.sip-tablo .wg-table.table-all-user > table > thead > tr > th:nth-child(2) .th-in,
+#tedarik_taslak_icerik.sip-tablo .wg-table.table-all-user > table > thead > tr > th:nth-child(2) .th-in {
+    justify-content: center;
+}
+
+/* Durum Badge'leri - Tablo için */
+.durum-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.durum-badge.onay_bekliyor { background: #fef3c7; color: #92400e; }
+.durum-badge.hazirlaniyor { background: #dbeafe; color: #1e40af; }
+.durum-badge.muhasebe_onayi { background: #e0e7ff; color: #3730a3; }
+.durum-badge.kargolandi { background: #d1fae5; color: #065f46; }
+.durum-badge.teslim_edildi { background: #dcfce7; color: #166534; }
+.durum-badge.iptal_edildi { background: #fee2e2; color: #991b1b; }
+
+/* İşlem Butonları */
+.islem-butonlari {
+    display: flex;
+    gap: 6px;
+}
+
+.islem-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.islem-btn.detay { background: #e0f2fe; color: #0369a1; }
+.islem-btn.detay:hover { background: #0369a1; color: #fff; }
+
+/* İptal tablosu Görüntüle butonu — satışlar stili */
+.sip-tablo .islem-btn.goruntule {
+    width: auto;
+    height: auto;
+    padding: 7px 14px;
+    gap: 5px;
+    background: #103595;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1.5px solid #103595;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(16, 53, 149, 0.25);
+}
+.sip-tablo .islem-btn.goruntule:hover {
+    background: #0d2a75;
+    border-color: #0d2a75;
+    box-shadow: 0 2px 8px rgba(16, 53, 149, 0.35);
+}
+
+/* Boş durum */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #64748b;
+}
+
+.empty-state i { font-size: 48px; color: #cbd5e1; margin-bottom: 16px; display: block; }
+.empty-state h4 { font-size: 18px; font-weight: 600; color: #475569; margin-bottom: 8px; }
+.empty-state p { font-size: 14px; color: #9ca3af; }
+
+/* Pagination */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 20px;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 10px;
+}
+
+.pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 14px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: #e2e8f0;
+}
+
+.pagination-btn.active {
+    background: #103595;
+    border-color: #103595;
+    color: #fff;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* =====================================================
+   RESPONSIVE (tab responsive'i tabs.css'te)
+   ===================================================== */
+/* Tablet (769-1200px): 2x2 grid — viewport-fit aktif, satırlar yarı yükseklik */
+@media (max-width: 1200px) and (min-width: 769px) {
+    .tedarik-kanban-board {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Mobil (<=768px): tek kolon, normal scroll — viewport-fit kapalı */
+@media (max-width: 768px) {
+    .tedarik-kanban-board {
+        grid-template-columns: 1fr;
+        grid-template-rows: none;
+        flex: none;
+    }
+    .tedarik-kanban-column {
+        min-height: 320px;
+    }
+}
+
+/* =====================================================
+   TESLİM AL BUTONU
+   ===================================================== */
+.tedarik-card-action-btn.teslim-al {
+    background: linear-gradient(to bottom, #22c55e 0%, #16a34a 100%);
+    color: #fff;
+    border: none;
+}
+
+.tedarik-card-action-btn.teslim-al:hover {
+    background: linear-gradient(to bottom, #16a34a 0%, #15803d 100%);
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+    color: #fff;
+}
+
+.tedarik-card-action-btn.teslim-al i {
+    font-size: 13px;
+}
+
+/* Icon spin animation for loading states */
+.icon-loader.spin,
+i.spin {
+    animation: spin 1s linear infinite;
+}
+
+/* ===== Taslak Tab — Aksiyon Butonları ===== */
+.sip-islem {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.taslak-btn-duzenle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #103595;
+    background: #e8eef8;
+    border: none;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.taslak-btn-duzenle:hover {
+    background: #103595;
+    color: #fff;
+}
+
+.taslak-btn-donustur {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    background: #103595;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 1px 4px rgba(16, 53, 149, 0.25);
+}
+
+.taslak-btn-donustur:hover {
+    background: #0d2a75;
+    box-shadow: 0 2px 8px rgba(16, 53, 149, 0.35);
+}
+
+.taslak-btn-sil {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #dc2626;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.taslak-btn-sil:hover {
+    background: #fee2e2;
+}
+
+.taslak-btn-duzenle i,
+.taslak-btn-donustur i,
+.taslak-btn-sil i {
+    font-size: 13px;
+}
+
+@media (max-width: 768px) {
+    .sip-islem {
+        flex-direction: column;
+        gap: 4px;
+    }
+    .taslak-btn-duzenle,
+    .taslak-btn-donustur,
+    .taslak-btn-sil {
+        width: 100%;
+        justify-content: center;
+        padding: 8px 10px;
+    }
+}
+
+/* ==========================================
+   SEPET BİRLEŞTİRME STİLLERİ
+   ========================================== */
+
+/* Checkbox sütunu */
+.sip-cb {
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    text-align: center;
+    padding: 0 8px !important;
+}
+.sip-cb input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #103595;
+}
+thead .sip-cb {
+    vertical-align: middle;
+}
+
+/* Birleştir Toolbar */
+.taslak-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    border: 1px solid #c7d2fe;
+    border-radius: 10px;
+    gap: 12px;
+}
+.taslak-toolbar-sol {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.taslak-toolbar-bilgi {
+    font-size: 13px;
+    font-weight: 600;
+    color: #103595;
+}
+.taslak-toolbar-bilgi span {
+    font-weight: 700;
+    font-size: 15px;
+}
+.taslak-btn-birlestir {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    background: #103595;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    white-space: nowrap;
+}
+.taslak-btn-birlestir:hover {
+    background: #0c2a7a;
+    transform: translateY(-1px);
+}
+.taslak-btn-birlestir:active {
+    transform: translateY(0);
+}
+.taslak-btn-birlestir i {
+    font-size: 15px;
+}
+
+/* SweetAlert özel boyut */
+.sip-birlestir-swal {
+    max-height: 85vh;
+}
+.sip-birlestir-swal .swal2-html-container {
+    max-height: 65vh;
+    overflow-y: auto;
+    padding: 0 4px;
+}
+
+/* Önizleme Modal İçerik */
+.sip-birlestir-onizleme {
+    text-align: left;
+}
+.sip-onizleme-baslik {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 13px;
+    color: #4b5563;
+}
+.sip-onizleme-nolar {
+    font-size: 12px;
+    color: #9ca3af;
+    font-family: monospace;
+}
+
+/* Özet kutucuklar */
+.sip-onizleme-ozet {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+.sip-onizleme-ozet-item {
+    flex: 1;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    text-align: center;
+}
+.sip-onizleme-ozet-item span {
+    display: block;
+    font-size: 11px;
+    color: #6b7280;
+    margin-bottom: 4px;
+    text-transform: capitalize;
+}
+.sip-onizleme-ozet-item strong {
+    font-size: 16px;
+    color: #111827;
+}
+
+/* Tablo */
+.sip-onizleme-tablo-wrap {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+.sip-onizleme-tablo {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.sip-onizleme-tablo thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+.sip-onizleme-tablo thead th {
+    background: #f1f5f9;
+    padding: 8px 10px;
+    font-weight: 600;
+    color: #374151;
+    font-size: 12px;
+    border-bottom: 2px solid #e2e8f0;
+    text-transform: capitalize;
+}
+.sip-onizleme-tablo tbody td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: top;
+}
+
+/* Kategori başlığı */
+.sip-onizleme-kat-baslik td {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #374151;
+    font-size: 12px;
+    padding: 6px 10px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+.sip-onizleme-kat-baslik i {
+    margin-right: 6px;
+    font-size: 12px;
+    color: #6b7280;
+}
+.sip-onizleme-kat-sayi {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #e5e7eb;
+    color: #6b7280;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    padding: 0 5px;
+    margin-left: 6px;
+}
+
+/* Satır */
+.sip-onizleme-even {
+    background: #fafbfc;
+}
+.sip-onizleme-urun {
+    font-weight: 500;
+    color: #111827;
+    line-height: 1.4;
+}
+
+/* Varyant badge'leri */
+.sip-onizleme-varyantlar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+}
+.sip-onizleme-vbadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+.sip-onizleme-vdot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.1);
+    flex-shrink: 0;
+}
+
+/* Varyant alt satırları (6+ varyant) */
+.sip-onizleme-var-row td {
+    padding: 4px 10px !important;
+    border-bottom: 1px dashed #f0f0f0 !important;
+}
+.sip-onizleme-var-indent {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: 16px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* Footer toplam */
+.sip-onizleme-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    margin-top: 12px;
+    background: linear-gradient(135deg, #103595 0%, #1e40af 100%);
+    border-radius: 8px;
+    color: #fff;
+}
+.sip-onizleme-footer span {
+    font-size: 14px;
+    font-weight: 500;
+}
+.sip-onizleme-footer strong {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+@media (max-width: 600px) {
+    .taslak-toolbar {
+        flex-direction: column;
+        gap: 8px;
+        padding: 8px 12px;
+    }
+    .sip-onizleme-ozet {
+        flex-direction: column;
+        gap: 8px;
+    }
+    .sip-birlestir-swal {
+        width: 95vw !important;
+    }
+}

@@ -44,6 +44,7 @@ export async function POST(request: Request) {
       description,
       brand,
       categoryId,
+      isEarlyAccess,
       variants,
     } = body;
 
@@ -61,6 +62,7 @@ export async function POST(request: Request) {
         description,
         brand,
         categoryId,
+        isEarlyAccess: isEarlyAccess ?? false,
         active: true,
 
         ...(variants?.length ? {
@@ -70,6 +72,7 @@ export async function POST(request: Request) {
               color: v.color,
               storage: v.storage ?? null,
               price: new Prisma.Decimal(v.price),
+              wholesalePrice: v.wholesalePrice ? new Prisma.Decimal(v.wholesalePrice) : null,
               stock: v.stock ?? 0,
               active: true,
             })),

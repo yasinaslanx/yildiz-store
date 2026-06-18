@@ -9,6 +9,7 @@ import { useFavorites } from "@/store/favorites-store";
 import { Modal } from "@/components/ui/modal";
 import { Product } from "@/data/products";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/store/auth-store";
 
 type QuickViewModalProps = {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
   const { openCart } = useUi();
   const { toggleFavorite, isFavorite } = useFavorites();
   const router = useRouter();
+  const { user } = useAuth();
 
   const colors = useMemo(() => Array.from(new Set(product.variants?.map((v: any) => v.color))), [product.variants]);
   const [selectedColor, setSelectedColor] = useState(colors[0] || "");
@@ -59,6 +61,9 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
   const imageObj = selectedVariant?.images?.[0];
   const displayImage = (typeof imageObj === 'string' ? imageObj : imageObj?.url) || product.image || "https://placehold.co/600x600/f5f5f4/a8a29e?text=Gorsel+Yok";
 
+  const isDealer = user?.role === "DEALER" || user?.role === "dealer";
+  const finalPrice = selectedVariant ? (isDealer && selectedVariant.wholesalePrice ? Number(selectedVariant.wholesalePrice) : Number(selectedVariant.price)) : Number(product.price || 0);
+
   function handleAddToCart() {
     addItem({
       id: `${product.id}-${selectedVariant.id}`,
@@ -68,7 +73,7 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
       variantId: selectedVariant.id,
       color: selectedVariant.color,
       storage: selectedVariant.storage,
-      price: selectedVariant.price,
+      price: finalPrice,
       image: displayImage,
     });
     onClose();
@@ -83,7 +88,7 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
       brand: product.brand,
       slug: product.slug,
       image: displayImage,
-      price: selectedVariant.price,
+      price: finalPrice,
     });
   }
 
@@ -108,8 +113,13 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
             
             <div className="flex items-end gap-4 mb-8">
               <span className="text-4xl font-black tracking-tighter text-stone-900">
-                {Number(selectedVariant?.price || 0).toLocaleString("tr-TR")} ₺
+                {finalPrice.toLocaleString("tr-TR")} ₺
               </span>
+              {isDealer && (
+                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-1.5">
+                  Bayi Fiyatı
+                </span>
+              )}
             </div>
 
             {/* Colors */}

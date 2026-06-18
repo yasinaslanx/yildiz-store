@@ -12,12 +12,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Heart, ShoppingBag, User, LogOut, ChevronRight, Home, Smartphone, Headphones } from "lucide-react";
 import { SunixLogo } from "./sunix-logo";
 import { CurrencySelector } from "@/components/ui/currency-selector";
+import { ExchangeRateWidget } from "@/components/ui/exchange-rate-widget";
 
 const navItems = [
   { href: "/", label: "Ana Sayfa" },
   { href: "/products", label: "Tüm Ürünler" },
-  { href: "/products?category=telefonlar,phones", label: "Telefonlar" },
   { href: "/products?category=kapak-kilif,sarj-aleti,ekran-koruyucu,akilli-saat,bluetooth-kulaklik,kablolu-kulaklik,kablo,arac-sarj-fm-modulator,arac-telefon-tutucu,cevirici,depolama-urunleri,hoparlor,tasinabilir-pil,lensler,diger-aksesuarlar", label: "Aksesuarlar" },
+  { href: "/bayi-girisi", label: "Bayi Portalı" },
 ];
 
 const sunixCategories = [
@@ -92,8 +93,10 @@ export function Navbar() {
                   İLK ALIŞVERİŞE ÖZEL %10 İNDİRİM FIRSATI!
                </p>
             </div>
-            <div className="flex items-center gap-8">
+            <div className="flex items-center gap-6">
+               <ExchangeRateWidget />
                <CurrencySelector />
+               <div className="h-4 w-px bg-stone-200"></div>
                <Link href="/contact" className="text-[9px] font-black text-stone-400 hover:text-stone-900 transition uppercase tracking-[0.2em]">Destek Merkezi</Link>
                <Link href="/stores" className="text-[9px] font-black text-stone-400 hover:text-stone-900 transition uppercase tracking-[0.2em]">Mağazalarımız</Link>
             </div>
@@ -241,6 +244,19 @@ export function Navbar() {
                 )}
               </button>
             </div>
+
+            <div className="h-8 w-px bg-stone-100 hidden sm:block" />
+
+            {/* Bayi Girişi Link */}
+            <Link href="/bayi-girisi" className="hidden sm:flex items-center gap-3 group">
+               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white group-active:scale-95">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+               </div>
+               <div className="hidden text-left xl:block">
+                 <p className="text-[9px] font-black uppercase tracking-widest text-blue-500 transition-colors group-hover:text-blue-700">B2B Portalı</p>
+                 <p className="text-xs font-black text-blue-700 leading-none mt-1">Bayi Girişi</p>
+               </div>
+            </Link>
 
             <div className="h-8 w-px bg-stone-100 hidden sm:block" />
 
@@ -404,6 +420,15 @@ export function Navbar() {
                     >
                       <span className="italic tracking-tighter">Bayilik Başvurusu</span>
                       <ChevronRight size={16} className="text-stone-300" />
+                    </Link>
+
+                    <Link
+                      href="/bayi-girisi"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center justify-between rounded-2xl bg-blue-50/50 p-5 text-sm font-black uppercase tracking-tight text-blue-600 hover:bg-blue-100 border border-blue-100"
+                    >
+                      <span className="italic tracking-tighter">Bayi Portalı</span>
+                      <ChevronRight size={16} className="text-blue-300" />
                     </Link>
                     {isMounted && user?.role === "admin" && (
                        <Link

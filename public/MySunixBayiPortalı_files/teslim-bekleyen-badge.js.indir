@@ -1,0 +1,27 @@
+/**
+ * Bayi Portal — Teslim Bekleyen sipariş menü rozeti.
+ * Tedarik Pano menüsünde teslim alınmayı bekleyen sipariş sayısını gösterir.
+ * Her sayfada yüklenir, 60 sn'de bir tazelenir.
+ */
+(function () {
+    var menuBadge = document.getElementById('btaMenuNotifCount');
+    if (!menuBadge) return;
+
+    function uygula(sayi) {
+        if (sayi > 0) { menuBadge.textContent = sayi; menuBadge.style.display = ''; }
+        else { menuBadge.style.display = 'none'; }
+    }
+
+    function kontrol() {
+        fetch('ajax/teslim-al/bekleyen-sayisi.php', { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (d) { if (d && d.success) uygula(d.sayi || 0); })
+            .catch(function () {});
+    }
+
+    // Teslim al modalından tazeleme için global
+    window.btaBadgeGuncelle = kontrol;
+
+    kontrol();
+    setInterval(kontrol, 60000);
+})();

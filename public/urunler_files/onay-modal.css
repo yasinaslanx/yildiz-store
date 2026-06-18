@@ -1,0 +1,118 @@
+/* Form - Onay Modal Stili */
+
+.frm-onay-popup {
+    max-width: 440px !important;
+    border-radius: 18px !important;
+    padding: 0 !important;
+}
+
+.frm-onay-popup .swal2-title {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #14532d !important;
+    padding: 24px 24px 8px !important;
+}
+
+.frm-onay-popup .swal2-icon {
+    margin: 24px auto 0 !important;
+    border-color: #14532d !important;
+    color: #14532d !important;
+}
+
+.frm-onay-popup .swal2-icon.swal2-question {
+    border-color: #14532d !important;
+    color: #14532d !important;
+}
+
+.frm-onay-popup .swal2-html-container {
+    padding: 0 24px !important;
+    margin: 12px 0 0 !important;
+}
+
+.frm-onay-popup .swal2-actions {
+    padding: 16px 24px 24px !important;
+    gap: 10px !important;
+}
+
+.frm-onay-popup .swal2-confirm {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    padding: 12px 28px !important;
+    box-shadow: 0 2px 8px rgba(20, 83, 45, .25) !important;
+}
+
+.frm-onay-popup .swal2-cancel {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    padding: 12px 28px !important;
+}
+
+/* Onay içerik */
+.frm-onay-wrap {
+    padding: 4px 0 8px;
+    background: #f0fdf4;
+    border-radius: 12px;
+    border: 1px solid #bbf7d0;
+    overflow: hidden;
+}
+
+.frm-onay-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 18px;
+    border-bottom: 1px solid #dcfce7;
+    font-size: 14px;
+}
+
+.frm-onay-row:last-child {
+    border-bottom: none;
+}
+
+.frm-onay-label {
+    color: #4b5563;
+    font-weight: 500;
+}
+
+.frm-onay-val {
+    font-weight: 700;
+    color: #1e293b;
+    font-variant-numeric: tabular-nums;
+    font-family: 'Inter', sans-serif;
+}
+
+.frm-onay-discount {
+    color: #dc2626 !important;
+}
+
+.frm-onay-total {
+    margin-top: 4px;
+    padding: 14px 18px !important;
+    border-top: 2px solid #14532d !important;
+    border-bottom: none !important;
+    background: #14532d;
+}
+
+.frm-onay-total .frm-onay-label {
+    color: #fff;
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.frm-onay-total .frm-onay-val {
+    color: #fff;
+    font-weight: 700;
+    font-size: 20px;
+}
+
+/* ===== RESPONSIVE: Telefon ===== */
+@media(max-width:639px){
+    .frm-onay-popup{max-width:92vw !important;max-height:85vh !important;overflow-y:auto !important}
+    .frm-onay-popup .swal2-title{font-size:16px !important;padding:18px 18px 6px !important}
+    .frm-onay-popup .swal2-html-container{padding:0 18px !important}
+    .frm-onay-popup .swal2-actions{padding:12px 18px 18px !important;gap:12px !important}
+    .frm-onay-popup .swal2-confirm,.frm-onay-popup .swal2-cancel{min-height:44px !important;font-size:15px !important}
+    .frm-onay-row{padding:9px 14px;font-size:13px}
+}

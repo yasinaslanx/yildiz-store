@@ -1,0 +1,95 @@
+/* ========================================================================
+   Bayi Portal v49 — Sidebar auto-collapse + manuel toggle
+   Breakpoint'ler:
+     ≤768px  → mobil drawer (responsive.js)
+     769-1600px → daraltılmış (.is-menu-collapsed) [auto]
+     >1600px → tam açık [auto]
+   Manuel toggle:
+     - Hamburger PC'de tıklanınca .is-menu-collapsed class'ını toggle eder
+     - localStorage['bp_menu_collapsed'] → 'true'|'false' (manuel override)
+   ======================================================================== */
+(function () {
+    'use strict';
+
+    var STORAGE_KEY = 'bp_menu_collapsed';
+    var MOBILE_BP = 768;
+    var COLLAPSE_BP = 1600;
+
+    function getManualPref() {
+        try {
+            var v = localStorage.getItem(STORAGE_KEY);
+            if (v === 'true') return true;
+            if (v === 'false') return false;
+        } catch (e) {}
+        return null;
+    }
+
+    function setManualPref(val) {
+        try {
+            if (val === null) {
+                localStorage.removeItem(STORAGE_KEY);
+            } else {
+                localStorage.setItem(STORAGE_KEY, val ? 'true' : 'false');
+            }
+        } catch (e) {}
+    }
+
+    function applyState(collapsed) {
+        document.body.classList.toggle('is-menu-collapsed', collapsed);
+    }
+
+    function autoState() {
+        var w = window.innerWidth;
+        if (w <= MOBILE_BP) {
+            // Mobilde drawer modu — is-menu-collapsed kaldırılır
+            applyState(false);
+            return;
+        }
+        // Manuel tercih varsa onu kullan
+        var manual = getManualPref();
+        if (manual !== null) {
+            applyState(manual);
+            return;
+        }
+        // Auto: 769-1600px arası daraltılmış
+        applyState(w > MOBILE_BP && w <= COLLAPSE_BP);
+    }
+
+    function toggleManual() {
+        var w = window.innerWidth;
+        if (w <= MOBILE_BP) return; // Mobilde drawer'ı responsive.js yönetir
+
+        var isCollapsed = document.body.classList.contains('is-menu-collapsed');
+        var next = !isCollapsed;
+        applyState(next);
+        setManualPref(next);
+    }
+
+    function init() {
+        autoState();
+
+        // Hamburger: desktop'ta collapse toggle, mobilde drawer (responsive.js handler'ı)
+        var hamburger = document.querySelector('.bp-hamburger');
+        if (hamburger) {
+            hamburger.addEventListener('click', function (e) {
+                if (window.innerWidth > MOBILE_BP) {
+                    e.stopPropagation();
+                    toggleManual();
+                }
+            }, true); // capture phase — responsive.js'ten önce çalışsın
+        }
+
+        // Resize — auto-state'i güncelle (manuel tercih yoksa)
+        var resizeTimer;
+        window.addEventListener('resize', function () {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(autoState, 150);
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();

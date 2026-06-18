@@ -567,3 +567,15 @@ export async function deleteAdminCoupon(id: string) {
   if (!json.success) throw new Error(json.message);
   return true;
 }
+
+export async function bulkUpdatePricesRequest(payload: { action: "increase" | "decrease", percentage: number, targetSku?: string }) {
+  const res = await fetch("/api/admin/products/bulk", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || "Güncelleme başarısız");
+  return json;
+}
+

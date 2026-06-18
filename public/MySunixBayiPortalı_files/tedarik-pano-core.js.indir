@@ -1,0 +1,286 @@
+// Tedarik Pano - Ana Yapı ve Render Fonksiyonları
+// Bayi Portalı için sadeleştirilmiş Kanban Board
+
+$(document).ready(function() {
+    let siparisler = [];
+    let autoRefreshInterval = null;
+
+    // Sayfa yüklendiğinde verileri yükle
+    yukleVeriler();
+
+    // Otomatik yenileme - Her 5 saniyede bir
+    autoRefreshInterval = setInterval(function() {
+        yukleVeriler(true); // silent mode
+    }, 5000);
+
+    /**
+     * Siparişleri Yükle
+     * @param {boolean} silent - Toast gösterme
+     */
+    function yukleVeriler(silent) {
+        if (!silent) {
+            // İlk yüklemede loading göster
+            ['onay_bekliyor', 'hazirlaniyor', 'muhasebe_onayi', 'kargolandi'].forEach(durum => {
+                $(`#tedarik_column_${durum}`).html(`
+                    <div class="tedarik-loading">
+                        <i class="icon-loader"></i>
+                        <p>Yükleniyor...</p>
+                    </div>
+                `);
+            });
+        }
+
+        $.ajax({
+            url: 'ajax/tedarik-pano-listele.php',
+            type: 'POST',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    siparisler = response.data || [];
+                    renderKanbanBoard(response.gruplu);
+
+                    // İstatistikleri güncelle
+                    if (response.istatistikler) {
+                        guncelleIstatistikler(response.istatistikler);
+                    }
+                } else if (!silent) {
+                    showToast('error', response.message || 'Siparişler yüklenirken hata oluştu');
+                }
+            },
+            error: function() {
+                if (!silent) {
+                    showToast('error', 'Sunucu ile bağlantı kurulamadı');
+                }
+            }
+        });
+    }
+
+    /**
+     * Kanban Board Render
+     * @param {object} grupluSiparisler - Duruma göre gruplu siparişler
+     */
+    function renderKanbanBoard(grupluSiparisler) {
+        if (!grupluSiparisler) {
+            grupluSiparisler = {
+                'onay_bekliyor': [],
+                'hazirlaniyor': [],
+                'muhasebe_onayi': [],
+                'kargolandi': []
+            };
+
+            // Siparişleri duruma göre grupla
+            siparisler.forEach(siparis => {
+                const durum = siparis.durum;
+                if (grupluSiparisler[durum]) {
+                    grupluSiparisler[durum].push(siparis);
+                }
+            });
+        }
+
+        const durumlar = ['onay_bekliyor', 'hazirlaniyor', 'muhasebe_onayi', 'kargolandi'];
+
+        durumlar.forEach(durum => {
+            const column = $(`#tedarik_column_${durum}`);
+            const count = $(`#tedarik_count_${durum}`);
+            const siparisList = grupluSiparisler[durum] || [];
+
+            count.text(siparisList.length);
+            column.empty();
+
+            if (siparisList.length === 0) {
+                column.html(`
+                    <div class="tedarik-empty-state">
+                        <i class="icon-inbox"></i>
+                        <p>Sipariş yok</p>
+                    </div>
+                `);
+            } else {
+                siparisList.forEach(siparis => {
+                    column.append(createKanbanCard(siparis));
+                });
+            }
+        });
+
+        // Delegated event handlers (inline onclick yerine)
+        $('.tedarik-kargo-takip[data-sid]').off('click.kargo').on('click.kargo', function(e) {
+            e.stopPropagation();
+            gosterKargoBilgileri(parseInt(this.dataset.sid), this.dataset.no);
+        });
+        // "Teslim Al" artık ayrı sayfaya link (index.php?sayfa=teslim-al&id=...) — event handler gerekmez
+        $('.tedarik-card-action-btn.teslim-al').off('click.teslim');
+    }
+
+    /**
+     * Kanban Kartı Oluştur
+     * @param {object} siparis - Sipariş verisi
+     * @returns {string} HTML kartı
+     */
+    function createKanbanCard(siparis) {
+        const siparisNo = escHtml(formatSiparisNo(siparis.siparis_no));
+        const tarih = formatTarihKisa(siparis.siparis_tarihi);
+        const relativeTime = getRelativeTime(siparis.olusturulma_tarihi || siparis.siparis_tarihi);
+        var _orijToplam = parseFloat(siparis.ara_toplam || 0) + parseFloat(siparis.indirim_tutari || 0);
+        const toplam = formatPara(window._bayiIndirimGizle ? _orijToplam : (siparis.genel_toplam || 0));
+        const urunSayisi = siparis.urun_kalemi_sayisi || 0;
+        const isKargolandi = siparis.durum === 'kargolandi';
+        const siparisIdSafe = parseInt(siparis.id) || 0;
+
+        // Kargo bilgisi badge
+        let kargoBadgeHTML = '';
+        if (isKargolandi && siparis.kargo_firmasi) {
+            const takipNo = siparis.kargo_takip_no ? `<span class="tedarik-kargo-takip" data-sid="${siparisIdSafe}" data-no="${escAttr(siparis.siparis_no)}">Takip</span>` : '';
+            kargoBadgeHTML = `
+                <div class="tedarik-kargo-badge">
+                    <i class="icon-truck"></i>
+                    <span>${escHtml(siparis.kargo_firmasi)}</span>
+                    ${takipNo}
+                </div>
+            `;
+        }
+
+        // Teslim alma durumu rozeti (mağazam akışı — yeni model: kargolandı'da teslim bekliyor)
+        let teslimDurumHTML = '';
+        if (isKargolandi && window._bayiMagazamYetkili) {
+            teslimDurumHTML = `<div style="margin-bottom:10px"><span class="tedarik-durum-badge" style="color:#2563d9;background:#eef4ff"><i class="icon-package"></i> Teslim Bekliyor</span></div>`;
+        }
+
+        // Sipariş notu
+        let siparisNotuHTML = '';
+        if (siparis.siparis_notu && siparis.siparis_notu.trim() !== '') {
+            const kisaMetin = kisalt(siparis.siparis_notu, 80);
+            siparisNotuHTML = `
+                <div class="tedarik-card-not">
+                    <div class="tedarik-card-not-baslik">
+                        <i class="icon-message-square"></i>
+                        Not
+                    </div>
+                    <div class="tedarik-card-not-metin">${escHtml(kisaMetin)}</div>
+                </div>
+            `;
+        }
+
+        // Hazırlık durumu göstergesi (hazırlanıyor durumu için)
+        let hazirlikDurumuHTML = '';
+        if (siparis.durum === 'hazirlaniyor') {
+            const toplamUrun = siparis.toplam_urun || 0;
+            const hazirlananUrun = siparis.hazirlanan_urun || 0;
+            const tamamenHazirlandi = siparis.tamamen_hazirlandi;
+
+            if (tamamenHazirlandi) {
+                hazirlikDurumuHTML = `
+                    <div style="margin-bottom: 10px;">
+                        <span class="tedarik-durum-badge hazir">
+                            <i class="icon-check-circle"></i>
+                            Hazır
+                        </span>
+                    </div>
+                `;
+            } else if (toplamUrun > 0) {
+                hazirlikDurumuHTML = `
+                    <div style="margin-bottom: 10px;">
+                        <span class="tedarik-durum-badge hazirlaniyor">
+                            <i class="icon-clock"></i>
+                            ${hazirlananUrun}/${toplamUrun} Hazır
+                        </span>
+                    </div>
+                `;
+            }
+        }
+
+        return `
+            <div class="tedarik-kanban-card" data-siparis-id="${siparis.id}">
+                <div class="tedarik-card-header">
+                    <div class="tedarik-card-siparis-no">
+                        <i class="icon-file-text"></i>
+                        <span>${siparisNo}</span>
+                    </div>
+                </div>
+                <div class="tedarik-card-body">
+                    ${hazirlikDurumuHTML}
+                    ${teslimDurumHTML}
+                    ${kargoBadgeHTML}
+
+                    <div class="tedarik-card-info">
+                        <div class="tedarik-card-info-row">
+                            <span class="tedarik-card-info-label">
+                                <i class="icon-clock"></i> Tarih
+                            </span>
+                            <span class="tedarik-card-info-value">${tarih}</span>
+                        </div>
+                        <div class="tedarik-card-info-row">
+                            <span class="tedarik-card-info-label">
+                                <i class="icon-calendar"></i> Oluşturulma
+                            </span>
+                            <span class="tedarik-card-info-value">${relativeTime}</span>
+                        </div>
+                        <div class="tedarik-card-info-row">
+                            <span class="tedarik-card-info-label">
+                                <i class="icon-package"></i> Ürün
+                            </span>
+                            <span class="tedarik-card-info-value">${urunSayisi} Kalem</span>
+                        </div>
+                        <div class="tedarik-card-info-row">
+                            <span class="tedarik-card-info-label">
+                                <i class="icon-dollar-sign"></i> Tutar
+                            </span>
+                            <span class="tedarik-card-info-value tedarik-card-toplam">$${toplam}</span>
+                        </div>
+                    </div>
+
+                    ${siparisNotuHTML}
+                </div>
+                <div class="tedarik-card-footer">
+                    <div class="tedarik-card-actions">
+                        <a href="index.php?sayfa=sunix-siparis&mod=siparis-goruntule&id=${siparis.id}" class="tedarik-card-action-btn detay">
+                            <i class="icon-eye"></i> Detay
+                        </a>
+                        ${(isKargolandi && window._bayiMagazamYetkili) ? `
+                        <a href="index.php?sayfa=teslim-al&id=${siparisIdSafe}" class="tedarik-card-action-btn teslim-al">
+                            <i class="icon-check-circle"></i> Teslim Al
+                        </a>
+                        ` : ''}
+                        ${(siparis.durum === 'teslim_edildi' && window._bayiMagazamYetkili && siparis.bayi_teslim_durumu === 'tamamlandi') ? `
+                        <a href="index.php?sayfa=teslim-al&id=${siparisIdSafe}" class="tedarik-card-action-btn teslim-al">
+                            <i class="icon-rotate-ccw"></i> Teslim Düzelt
+                        </a>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * İstatistikleri Güncelle
+     * @param {object} stats - İstatistik verileri
+     */
+    function guncelleIstatistikler(stats) {
+        if (stats.onay_bekliyor !== undefined) {
+            $('#stat_onay_bekliyor').text(stats.onay_bekliyor);
+        }
+        if (stats.hazirlaniyor !== undefined) {
+            $('#stat_hazirlaniyor').text(stats.hazirlaniyor);
+        }
+        if (stats.muhasebe_onayi !== undefined) {
+            $('#stat_muhasebe_onayi').text(stats.muhasebe_onayi);
+        }
+        if (stats.kargolandi !== undefined) {
+            $('#stat_kargolandi').text(stats.kargolandi);
+        }
+
+        // Toplam aktif sipariş sayısını sekme badge'inde güncelle
+        const toplam = (stats.onay_bekliyor || 0) + (stats.hazirlaniyor || 0) +
+                       (stats.muhasebe_onayi || 0) + (stats.kargolandi || 0);
+        $('#count_aktif').text(toplam);
+    }
+
+    // Sayfa kapanırken interval'i temizle
+    $(window).on('beforeunload', function() {
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+        }
+    });
+
+    // Global fonksiyon olarak export et
+    window.tedarikYukle = yukleVeriler;
+});

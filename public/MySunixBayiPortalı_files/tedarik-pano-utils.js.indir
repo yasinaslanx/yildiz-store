@@ -1,0 +1,221 @@
+// Tedarik Pano - Yardımcı Fonksiyonlar
+// Bayi Portalı için sadeleştirilmiş versiyon
+
+/**
+ * Toast Bildirimi - Sağ Alt Köşede
+ */
+function showToast(type, message) {
+    // Eski toast varsa kaldır
+    $('.tedarik-toast').remove();
+
+    const icons = {
+        success: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>',
+        error: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>',
+        warning: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>',
+        info: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>'
+    };
+
+    const colors = {
+        success: { bg: '#10b981', text: '#fff' },
+        error: { bg: '#ef4444', text: '#fff' },
+        warning: { bg: '#f59e0b', text: '#fff' },
+        info: { bg: '#3b82f6', text: '#fff' }
+    };
+
+    const color = colors[type] || colors.info;
+    const icon = icons[type] || icons.info;
+
+    const toast = $(`
+        <div class="tedarik-toast" style="
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: ${color.bg};
+            color: ${color.text};
+            padding: 14px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 99999;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        ">
+            ${icon}
+            <span>${message}</span>
+        </div>
+    `);
+
+    $('body').append(toast);
+
+    // Animasyon ile göster
+    setTimeout(() => {
+        toast.css({ opacity: 1, transform: 'translateY(0)' });
+    }, 10);
+
+    // 3 saniye sonra kaldır
+    setTimeout(() => {
+        toast.css({ opacity: 0, transform: 'translateY(20px)' });
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+/**
+ * Tarih Formatlama (Tam)
+ * @param {string} tarih - Veritabanından gelen tarih
+ * @returns {string} Formatlanmış tarih (24.01.2025 14:30)
+ */
+function formatTarih(tarih) {
+    if (!tarih) return '-';
+    const date = new Date(tarih);
+    if (isNaN(date.getTime())) return '-';
+
+    const gun = String(date.getDate()).padStart(2, '0');
+    const ay = String(date.getMonth() + 1).padStart(2, '0');
+    const yil = date.getFullYear();
+    const saat = String(date.getHours()).padStart(2, '0');
+    const dakika = String(date.getMinutes()).padStart(2, '0');
+    return `${gun}.${ay}.${yil} ${saat}:${dakika}`;
+}
+
+/**
+ * Tarih Formatlama (Kısa - Sadece Tarih)
+ * @param {string} tarih - Veritabanından gelen tarih
+ * @returns {string} Formatlanmış tarih (24.01.2025)
+ */
+function formatTarihKisa(tarih, saatGoster) {
+    if (!tarih) return '-';
+    const date = new Date(tarih);
+    if (isNaN(date.getTime())) return '-';
+
+    const gun = String(date.getDate()).padStart(2, '0');
+    const ay = String(date.getMonth() + 1).padStart(2, '0');
+    const yil = date.getFullYear();
+    if (saatGoster) {
+        const saat = String(date.getHours()).padStart(2, '0');
+        const dk = String(date.getMinutes()).padStart(2, '0');
+        return `${gun}.${ay}.${yil} ${saat}:${dk}`;
+    }
+    return `${gun}.${ay}.${yil}`;
+}
+
+/**
+ * Göreceli Zaman
+ * @param {string} tarih - Veritabanından gelen tarih
+ * @returns {string} Göreceli zaman (5 dakika önce, 2 saat önce, vb.)
+ */
+function getRelativeTime(tarih) {
+    if (!tarih) return '-';
+    const now = new Date();
+    const date = new Date(tarih);
+    if (isNaN(date.getTime())) return '-';
+
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Az önce';
+    if (diffMins < 60) return `${diffMins} dakika önce`;
+    if (diffHours < 24) return `${diffHours} saat önce`;
+    if (diffDays < 30) return `${diffDays} gün önce`;
+    return `${Math.floor(diffDays / 30)} ay önce`;
+}
+
+/**
+ * Para Formatı
+ * @param {number|string} tutar - Tutar
+ * @returns {string} Formatlanmış tutar (1,234.56)
+ */
+function formatPara(tutar) {
+    return parseFloat(tutar || 0).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+/**
+ * Durum Formatlama (Badge ile)
+ * @param {string} durum - Sipariş durumu
+ * @returns {string} HTML durum badge'i
+ */
+function formatDurum(durum) {
+    const durumlar = {
+        'onay_bekliyor': '<span class="tedarik-durum-badge bekliyor"><i class="icon-clock"></i> Onay Bekliyor</span>',
+        'hazirlaniyor': '<span class="tedarik-durum-badge hazirlaniyor"><i class="icon-package"></i> Hazırlanıyor</span>',
+        'muhasebe_onayi': '<span class="tedarik-durum-badge hazir"><i class="icon-dollar-sign"></i> Faturalandırma</span>',
+        'kargolandi': '<span class="tedarik-durum-badge hazir"><i class="icon-truck"></i> Kargoya Verildi</span>'
+    };
+    return durumlar[durum] || durum;
+}
+
+/**
+ * Durum Metin
+ * @param {string} durum - Sipariş durumu
+ * @returns {string} Durum metni
+ */
+function getDurumText(durum) {
+    const texts = {
+        'onay_bekliyor': 'Onay Bekliyor',
+        'hazirlaniyor': 'Hazırlanıyor',
+        'muhasebe_onayi': 'Faturalandırma',
+        'kargolandi': 'Kargoya Verildi'
+    };
+    return texts[durum] || durum;
+}
+
+/**
+ * Sipariş Detay Sayfasına Yönlendir
+ * @param {number} siparisId - Sipariş ID
+ */
+function goruntuleSiparis(siparisId) {
+    window.location.href = 'index.php?sayfa=sunix-siparis&mod=siparis-goruntule&id=' + siparisId;
+}
+
+/**
+ * Sipariş No Formatla
+ * @param {string} siparisNo - Sipariş numarası
+ * @returns {string} Formatlanmış sipariş no (#SIP-2025-001)
+ */
+function formatSiparisNo(siparisNo) {
+    if (!siparisNo) return '-';
+    return siparisNo.startsWith('#') ? siparisNo : '#' + siparisNo;
+}
+
+/**
+ * Kısa metin (karakter limiti)
+ * @param {string} text - Metin
+ * @param {number} limit - Karakter limiti
+ * @returns {string} Kısaltılmış metin
+ */
+function kisalt(text, limit) {
+    if (!text) return '';
+    if (text.length <= limit) return text;
+    return text.substring(0, limit) + '...';
+}
+
+/**
+ * HTML Escape — innerHTML'e enjekte edilen tüm kullanıcı verileri için
+ * @param {string} str
+ * @returns {string}
+ */
+function escHtml(str) {
+    if (!str) return '';
+    var d = document.createElement('div');
+    d.textContent = String(str);
+    return d.innerHTML;
+}
+
+/**
+ * HTML Attribute Escape — data-* veya onclick gibi attribute'lar için
+ * @param {string} str
+ * @returns {string}
+ */
+function escAttr(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}

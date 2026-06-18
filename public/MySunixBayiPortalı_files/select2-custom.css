@@ -1,0 +1,313 @@
+/* Select2 Özel Tema Stilleri - Sunix ERP */
+/* Tema Rengi: #103595 */
+
+/* Select2 Container */
+.select2-container {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Body Overflow Fix */
+body.select2-dropdown-open {
+    overflow-x: hidden !important;
+}
+
+/* Select2 Selection (Kapalı hali) */
+.select2-container--default .select2-selection--single {
+    height: 48px !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    padding: 8px 16px !important;
+    background-color: white !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Hover border efekti kaldırıldı */
+.select2-container--default .select2-selection--single:hover {
+    border-color: #e5e7eb !important;
+}
+
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--open .select2-selection--single {
+    border-color: #103595 !important;
+    box-shadow: 0 0 0 3px rgba(16, 53, 149, 0.1) !important;
+    outline: none !important;
+}
+
+/* Select2 Rendered Text */
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: normal !important;
+    padding-left: 0 !important;
+    padding-right: 50px !important;
+    color: #374151 !important;
+    font-size: 14px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    flex: 1 !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #9ca3af !important;
+}
+
+/* Select2 Arrow */
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 100% !important;
+    right: 16px !important;
+    top: 0 !important;
+    width: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+    border-color: #6b7280 transparent transparent transparent !important;
+    border-width: 6px 5px 0 5px !important;
+    margin-left: -5px !important;
+    margin-top: 0 !important;
+    position: static !important;
+}
+
+.select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+    border-color: transparent transparent #103595 transparent !important;
+    border-width: 0 5px 6px 5px !important;
+}
+
+/* Select2 Dropdown (Açık hali) */
+.select2-container--default .select2-dropdown {
+    border: 2px solid #103595 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+    margin-top: 4px !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+    max-width: 100vw !important;
+}
+
+/* Select2 Search Box */
+.select2-container--default .select2-search--dropdown {
+    padding: 12px !important;
+    background: #f9fafb !important;
+    border-bottom: 2px solid #e5e7eb !important;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    border: 2px solid #e5e7eb !important;
+    border-radius: 6px !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field:focus {
+    border-color: #103595 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(16, 53, 149, 0.1) !important;
+}
+
+/* Select2 Results */
+.select2-container--default .select2-results__options {
+    max-height: 300px !important;
+    padding: 4px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+}
+
+.select2-container--default .select2-results__option {
+    padding: 10px 16px !important;
+    font-size: 14px !important;
+    border-radius: 6px !important;
+    margin: 2px 0 !important;
+    color: #374151 !important;
+    transition: all 0.15s ease !important;
+}
+
+/* Select2 Option Hover */
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #f0f4ff !important;
+    color: #103595 !important;
+}
+
+/* Select2 Option Selected */
+.select2-container--default .select2-results__option[aria-selected=true] {
+    background-color: #103595 !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+.select2-container--default .select2-results__option[aria-selected=true]:hover {
+    background-color: #1e56bb !important;
+}
+
+/* Select2 No Results */
+.select2-container--default .select2-results__option--no-results {
+    color: #6b7280 !important;
+    background-color: #f9fafb !important;
+    padding: 12px 16px !important;
+    text-align: center !important;
+}
+
+/* Select2 Multiple Selection */
+.select2-container--default .select2-selection--multiple {
+    min-height: 48px !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    padding: 4px 12px !important;
+    background-color: white !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Hover border efekti kaldırıldı */
+.select2-container--default .select2-selection--multiple:hover {
+    border-color: #e5e7eb !important;
+}
+
+.select2-container--default.select2-container--focus .select2-selection--multiple {
+    border-color: #103595 !important;
+    box-shadow: 0 0 0 3px rgba(16, 53, 149, 0.1) !important;
+    outline: none !important;
+}
+
+/* Select2 Multiple Choice */
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #103595 !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 4px 10px !important;
+    color: white !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    margin: 4px 4px 4px 0 !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: white !important;
+    margin-right: 6px !important;
+    font-weight: bold !important;
+    transition: all 0.15s ease !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+    color: #fca5a5 !important;
+}
+
+/* Select2 Clear Button - GİZLE */
+.select2-container--default .select2-selection__clear {
+    display: none !important;
+}
+
+.select2-container--default .select2-selection__clear:hover {
+    display: none !important;
+}
+
+/* Select2 Disabled State */
+.select2-container--default.select2-container--disabled .select2-selection--single,
+.select2-container--default.select2-container--disabled .select2-selection--multiple {
+    background-color: #f3f4f6 !important;
+    border-color: #e5e7eb !important;
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+}
+
+/* Select2 Loading */
+.select2-container--default .select2-results__option--loading {
+    color: #103595 !important;
+}
+
+/* Scrollbar Styling */
+.select2-results__options::-webkit-scrollbar {
+    width: 8px;
+}
+
+.select2-results__options::-webkit-scrollbar-track {
+    background: #f9fafb;
+    border-radius: 4px;
+}
+
+.select2-results__options::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+}
+
+.select2-results__options::-webkit-scrollbar-thumb:hover {
+    background: #103595;
+}
+
+/* Z-index Fix (Modal içinde kullanım için) */
+/* select2-container normal input gibi davransın, z-index belirtilmedi */
+.select2-container {
+    z-index: auto;
+}
+
+/* Dropdown modal içinde görünsün - her modal'ın üstünde */
+.select2-dropdown {
+    z-index: 99999 !important;
+}
+
+/* Custom Dropdown Genişlik Kontrolü */
+.select2-dropdown-custom {
+    box-sizing: border-box !important;
+}
+
+.select2-container-custom {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Dropdown içerik overflow */
+.select2-dropdown-custom .select2-results__option {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+}
+
+/* Sayfa geneli yatay scrollbar kontrolü */
+html {
+    overflow-x: hidden !important;
+}
+
+body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+}
+
+/* Select2 açıkken ekstra kontrol */
+body.select2-dropdown-open {
+    overflow-x: hidden !important;
+}
+
+/* Main layout overflow kontrolü */
+#wrapper,
+#page,
+.layout-wrap {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+}
+
+/* Select2 Form-Select Class Uyumluluğu */
+.form-select.select2-hidden-accessible + .select2-container {
+    width: 100% !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .select2-container--default .select2-selection--single {
+        height: 44px !important;
+        padding: 6px 12px !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: normal !important;
+        font-size: 13px !important;
+    }
+
+    .select2-container--default .select2-results__option {
+        padding: 8px 12px !important;
+        font-size: 13px !important;
+    }
+}

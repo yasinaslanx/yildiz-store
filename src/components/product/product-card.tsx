@@ -10,6 +10,7 @@ import { Star, Eye, Heart, ShoppingCart, TrendingUp } from "lucide-react";
 import { useMemo, useState } from "react";
 import { QuickViewModal } from "@/components/product/quick-view-modal";
 import { useCurrency } from "@/store/currency-store";
+import { useAuth } from "@/store/auth-store";
 
 type ProductCardProps = {
   product: Product;
@@ -20,17 +21,21 @@ export function ProductCard({ product }: ProductCardProps) {
   const { toggleFavorite, isFavorite } = useFavorites();
   const { openCart } = useUi();
   const { formatPrice } = useCurrency();
+  const { user } = useAuth();
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   const firstVariant = product.variants[0];
-  const imageObj = firstVariant?.images?.[0];
+  const imageObj = firstVariant?.images?.[0] || (product as any).images?.[0] || product.image;
   const firstImage = (typeof imageObj === 'string' ? imageObj : (imageObj as any)?.url) || "https://placehold.co/600x600/f5f5f4/a8a29e?text=Gorsel+Yok";
   
   const favorite = isFavorite(firstVariant?.id || product.id);
   
+  const isDealer = user?.role === "DEALER" || user?.role === "dealer";
+  const finalPrice = firstVariant ? (isDealer && firstVariant.wholesalePrice ? Number(firstVariant.wholesalePrice) : Number(firstVariant.price)) : Number(product.price || 0);
+
   // Demo amaçlı: Bazı ürünlere (ID'si çift olanlara) otomatik indirim göster
   const hasDemoDiscount = product.id.length % 2 === 0;
-  const displayOldPrice = firstVariant?.oldPrice || (hasDemoDiscount ? Number(firstVariant?.price || 0) * 1.25 : null);
+  const displayOldPrice = firstVariant?.oldPrice || (hasDemoDiscount ? finalPrice * 1.25 : null);
 
   // Sosyal kanıt verileri (Zarif değerler)
   const viewCount = useMemo(() => (product.id.charCodeAt(0) * 123) % 1000 + 100, [product.id]);
@@ -47,7 +52,7 @@ export function ProductCard({ product }: ProductCardProps) {
       variantId: firstVariant.id,
       color: firstVariant.color,
       storage: firstVariant.storage,
-      price: firstVariant.price,
+      price: finalPrice,
       image: firstImage,
     });
     openCart();
@@ -63,7 +68,7 @@ export function ProductCard({ product }: ProductCardProps) {
       brand: product.brand,
       slug: product.slug,
       image: firstImage,
-      price: firstVariant.price,
+      price: finalPrice,
     });
   }
 
@@ -81,14 +86,19 @@ export function ProductCard({ product }: ProductCardProps) {
         
         {/* Rozetler (Türkçe) */}
         <div className="absolute left-8 top-8 flex flex-col gap-2 z-10">
-           {displayOldPrice && Number(displayOldPrice) > Number(firstVariant?.price) && (
+           {isDealer && (
+             <div className="bg-blue-600 text-white px-4 py-1.5 rounded-full shadow-lg">
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] leading-none">Bayi Özel Fiyat</p>
+             </div>
+           )}
+           {displayOldPrice && Number(displayOldPrice) > finalPrice && (
              <>
                <div className="bg-red-600 text-white px-4 py-1.5 rounded-full shadow-lg animate-pulse">
                   <p className="text-[9px] font-black uppercase tracking-[0.2em] leading-none">BÜYÜK İNDİRİM</p>
                </div>
                <div className="bg-green-600 text-white px-4 py-1.5 rounded-full shadow-lg">
                   <p className="text-[9px] font-black uppercase tracking-[0.2em] leading-none">
-                    %{Math.round(((Number(displayOldPrice) - Number(firstVariant?.price)) / Number(displayOldPrice)) * 100)} İndirim
+                    %{Math.round(((Number(displayOldPrice) - finalPrice) / Number(displayOldPrice)) * 100)} İndirim
                   </p>
                </div>
              </>
@@ -158,17 +168,17 @@ export function ProductCard({ product }: ProductCardProps) {
                 <div>
                    <div className="flex items-center gap-2 mb-1">
                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-300">Fiyat</p>
-                      {displayOldPrice && Number(displayOldPrice) > Number(firstVariant?.price) && (
+                      {displayOldPrice && Number(displayOldPrice) > finalPrice && (
                         <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest">İndirimde</span>
                       )}
                    </div>
-                   {displayOldPrice && Number(displayOldPrice) > Number(firstVariant?.price) && (
+                   {displayOldPrice && Number(displayOldPrice) > finalPrice && (
                      <span className="text-xs font-black text-stone-300 line-through decoration-red-500/50 decoration-2 group-hover:text-stone-400 transition-colors">
                        {formatPrice(Number(displayOldPrice))}
                     </span>
                    )}
                    <span className="text-xl font-black text-stone-900 tracking-tighter group-hover:text-black transition-colors flex items-start gap-1">
-                     {firstVariant?.price ? formatPrice(firstVariant.price) : formatPrice(product.price || 0)}
+                     {formatPrice(finalPrice)}
                   </span>
                 </div>
               <div className="flex items-center gap-2 text-green-600 mb-1">

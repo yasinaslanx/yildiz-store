@@ -1,0 +1,265 @@
+/* =====================================================
+   Bayi Portal — Giriş Pop-up'ları (Radar + Stoğa Giren)
+   Ortak modern tasarım. SweetAlert2 customClass override.
+   Prefix: .gp-  |  Tema: mysunix Crystal Royal (#103595), mor YOK.
+   Kullanım (JS): Swal.fire({ html, buttonsStyling:false,
+     customClass:{ popup:'gp-popup gp-popup--radar', actions:'gp-actions',
+       confirmButton:'gp-btn gp-btn--primary', denyButton:'gp-btn gp-btn--ok',
+       cancelButton:'gp-btn gp-btn--ghost' } })
+   ===================================================== */
+
+/* --- Pop-up kabuğu --- */
+.swal2-popup.gp-popup {
+    padding: 0;
+    border-radius: 20px;
+    overflow: hidden;
+    width: 480px;
+    max-width: calc(100vw - 28px);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+}
+.gp-popup .swal2-html-container {
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    text-align: left;
+    font-size: 14px;
+    color: #1e293b;
+}
+
+/* --- Header bandı (gradient) --- */
+.gp-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 22px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+}
+.gp-head::after { /* hafif parlama */
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -10%;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, rgba(255,255,255,0.18), transparent 70%);
+    pointer-events: none;
+}
+.gp-head--radar { background: linear-gradient(135deg, #0a2475 0%, #103595 55%, #2563d9 100%); }
+.gp-head--stok  { background: linear-gradient(135deg, #065f46 0%, #0f766e 55%, #14b8a6 100%); }
+.gp-head--fiyat { background: linear-gradient(135deg, #b45309 0%, #d97706 55%, #f59e0b 100%); }
+
+.gp-head-ic {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    backdrop-filter: blur(4px);
+}
+.gp-head-tx { flex: 1; min-width: 0; position: relative; z-index: 1; }
+.gp-head-title {
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.2px;
+}
+.gp-head-sub {
+    font-size: 12.5px;
+    font-weight: 500;
+    opacity: 0.9;
+    margin-top: 3px;
+    line-height: 1.35;
+}
+
+/* --- Liste --- */
+.gp-liste {
+    padding: 8px 10px;
+    /* Dikey olarak daha geniş; viewport'a duyarlı (header+butonlar dışında kalan alan,
+       çok uzun listede çift scroll olmaması için vh ile sınırlı) */
+    max-height: min(600px, 66vh);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+.gp-liste::-webkit-scrollbar { width: 6px; }
+.gp-liste::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+/* --- Ürün satırı/kartı --- */
+.gp-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 11px 12px;
+    border-radius: 12px;
+    transition: background 0.15s;
+}
+.gp-item + .gp-item { border-top: 1px solid #f1f5f9; }
+.gp-item:hover { background: #f8fafc; }
+
+.gp-item-img {
+    width: 58px;
+    height: 58px;
+    border-radius: 12px;
+    background: #f1f5f9;
+    border: 1px solid #e8edf3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.gp-item-img img { width: 100%; height: 100%; object-fit: cover; }
+.gp-item-img i { font-size: 24px; color: #cbd5e1; }
+
+.gp-item-body { flex: 1; min-width: 0; }
+.gp-item-ad {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.3;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.gp-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 11.5px;
+    color: #6b7280;
+    margin-bottom: 6px;
+}
+.gp-item-meta i { font-size: 12px; opacity: 0.8; margin-right: 2px; }
+
+/* --- Chip'ler (fiyat / miktar) --- */
+.gp-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.gp-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 9px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+.gp-chip-et { font-weight: 500; opacity: 0.75; font-size: 10.5px; }
+.gp-chip--ucak  { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+.gp-chip--kont  { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.gp-chip--stok  { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+
+/* Fiyat değişim chip'leri (eski → yeni / yeni satış fiyatı) */
+.gp-chip--fy-eski   { background: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0; text-decoration: line-through; }
+.gp-chip--fy-yeni   { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+.gp-chip--satis     { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+.gp-chip--yeni-rozet{ background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.gp-fy-ok { display: inline-flex; align-items: center; color: #94a3b8; font-weight: 700; font-size: 13px; }
+
+/* --- Varyant listesi (stoğa giren) --- */
+.gp-varyantlar {
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.gp-varyant-satir {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 8px;
+    background: #f8fafc;
+    border: 1px solid #eef1f6;
+    border-radius: 7px;
+}
+.gp-varyant-ad {
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.gp-varyant-satir .gp-chip--stok { padding: 2px 8px; font-size: 11px; }
+
+/* "+ N ürün daha" satırı */
+.gp-fazla {
+    text-align: center;
+    padding: 10px;
+    margin-top: 2px;
+    color: #103595;
+    font-weight: 700;
+    font-size: 13px;
+}
+.gp-popup--stok .gp-fazla { color: #0f766e; }
+.gp-popup--fiyat .gp-fazla { color: #b45309; }
+
+/* --- Aksiyon butonları --- */
+.gp-popup .swal2-actions.gp-actions {
+    margin: 0;
+    padding: 14px 18px 18px;
+    gap: 10px;
+    width: 100%;
+    flex-wrap: wrap;
+    border-top: 1px solid #f1f5f9;
+}
+.gp-btn {
+    padding: 11px 20px;
+    border-radius: 11px;
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.15s, background 0.15s;
+    box-shadow: none;
+}
+.gp-btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(16, 53, 149, 0.18); }
+.gp-btn--primary {
+    background: linear-gradient(135deg, #103595, #0d2a75);
+    color: #fff;
+}
+.gp-popup--stok .gp-btn--primary {
+    background: linear-gradient(135deg, #0f766e, #065f46);
+}
+.gp-popup--fiyat .gp-btn--primary {
+    background: linear-gradient(135deg, #d97706, #b45309);
+}
+.gp-btn--primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16, 53, 149, 0.28); }
+.gp-popup--fiyat .gp-btn--primary:hover { box-shadow: 0 6px 16px rgba(180, 83, 9, 0.28); }
+.gp-btn--ok {
+    background: #ecfdf3;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+.gp-btn--ok:hover { background: #dcfce7; }
+.gp-btn--ghost {
+    background: #eef1f6;
+    color: #475569;
+}
+.gp-btn--ghost:hover { background: #e2e8f0; }
+
+/* --- Responsive --- */
+@media (max-width: 520px) {
+    .swal2-popup.gp-popup { width: 100%; border-radius: 16px; }
+    .gp-head { padding: 16px 18px; gap: 12px; }
+    .gp-head-ic { width: 44px; height: 44px; font-size: 20px; }
+    .gp-head-title { font-size: 16px; }
+    .gp-popup .swal2-actions.gp-actions { padding: 12px 14px 16px; }
+    .gp-btn { flex: 1; min-width: 0; padding: 11px 10px; font-size: 13px; }
+}
+
+/* Çok dar telefon: 3 buton tek satıra sığmaz → dikey istif (primary üstte,
+   her buton tam genişlik tek satır metin — "Tümünü Okudum" artık kırılmaz) */
+@media (max-width: 400px) {
+    .gp-popup .swal2-actions.gp-actions { flex-direction: column-reverse; gap: 8px; }
+    .gp-btn { flex: none; width: 100%; font-size: 14px; }
+}

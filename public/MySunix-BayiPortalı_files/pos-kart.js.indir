@@ -1,0 +1,183 @@
+(function() {
+    'use strict';
+    var F = window.Form;
+    if (!F || !F.Pos) return;
+
+    F.Pos.Kart = {};
+
+    F.Pos.Kart.init = function() {
+        var grid = document.getElementById('frmPosGrid');
+        if (!grid) return;
+
+        grid.addEventListener('click', function(e) {
+            var detayBtn = e.target.closest('.frm-pos-kart-detay');
+            if (detayBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                var kart = detayBtn.closest('.frm-pos-kart');
+                if (!kart) return;
+                var urunId = parseInt(kart.getAttribute('data-urun-id'));
+                if (urunId && F.Pos.Detay) F.Pos.Detay.ac(urunId);
+                return;
+            }
+
+            // Koli bilgisi iconu — sadece hover tooltip için, ürün eklemeyi tetiklemesin
+            var koliBtn = e.target.closest('.frm-pos-kart-koli');
+            if (koliBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+
+            var fab = e.target.closest('.frm-pos-kart-fab');
+            var kart = e.target.closest('.frm-pos-kart');
+            if (!kart) return;
+            if (kart.classList.contains('frm-pos-stok-bitti')) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            var urunId = parseInt(kart.getAttribute('data-urun-id'));
+            var tip = kart.getAttribute('data-varyant-tipi') || 'duz';
+
+            if (!urunId) return;
+
+            // Düz ürünlerde de detay modalı aç (F.Pos.Config.duzModal — Mağazam satışı: miktar/fiyat
+            // onayı). Flag yoksa eski davranış korunur (Sunix tedarik POS: düz ürün hızlı ekleme).
+            if (tip === 'duz' && !F.Pos.Config.duzModal) {
+                _hizliEkle(urunId, kart);
+            } else {
+                _modalAc(urunId, kart);
+            }
+        });
+    };
+
+    function _hizliEkle(urunId, kartEl) {
+        var mevcutSatir = _mevcutSatirBul(urunId);
+        if (mevcutSatir) {
+            var yeniMiktar = (mevcutSatir.miktar || 1) + 1;
+            mevcutSatir.miktar = yeniMiktar;
+            F.Tablo.satirEkle(mevcutSatir);
+            _flashKart(kartEl);
+            return;
+        }
+
+        kartEl.style.pointerEvents = 'none';
+
+        F.Helpers.ajaxPost('urun-detay.php', {
+            urun_id: urunId,
+            depo_id: F.State.seciliDepoId || F.Config.varsayilanDepoId
+        }, function(res) {
+            kartEl.style.pointerEvents = '';
+
+            if (!res.success || !res.data) {
+                Swal.fire('Hata', res.message || 'Ürün detayı yüklenemedi', 'error');
+                return;
+            }
+
+            var data = res.data;
+
+            // Stok 0 engeli (Sunix sipariş modunda) — ön talep açıksa modalı aç
+            if (F.Config.stokMiktarGizle && data.stok_aralik && data.stok_aralik.kod === 0) {
+                if (data.on_siparis_aktif === 'evet') {
+                    F.State.onTalepAktif = true;
+                    F.Events.emit('urun:secildi', { urunData: data });
+                    F.Events.emit('modal:ac', { tip: 'duz', urunData: data, satirId: null });
+                    return;
+                }
+                Swal.fire({ icon: 'error', title: 'Stokta Yok', text: (data.urun_adi || 'Bu ürün') + ' şu anda stokta bulunmamaktadır.', confirmButtonColor: '#103595' });
+                return;
+            }
+
+            var birimFiyat = parseFloat(data.fiyat || data.satis_fiyati) || 0;
+
+            F.Events.emit('modal:onayla', {
+                tip: 'duz',
+                satirId: null,
+                urunId: data.id,
+                urunAdi: data.urun_adi,
+                urunKodu: data.urun_kodu,
+                resimUrl: data.resim_url,
+                kategoriId: data.kategori_id,
+                kategoriAdi: data.kategori || (window.FormKategoriler && window.FormKategoriler[data.kategori_id]) || 'Diğer',
+                miktar: 1,
+                birimFiyat: birimFiyat,
+                normalBirimFiyat: birimFiyat,
+                manuelTlFiyat: null,
+                fiyatKurali: null,
+                kdvOrani: F.Config.aktifKdvOrani ? F.Config.aktifKdvOrani() : 0,
+                depoId: F.State.seciliDepoId || F.Config.varsayilanDepoId,
+                not: '',
+                sevkiyatTipi: null,
+                varyantlar: [],
+                ffSatirlar: []
+            });
+
+            _flashKart(kartEl);
+        }, function() {
+            kartEl.style.pointerEvents = '';
+            Swal.fire('Hata', 'Ürün detayı yüklenirken hata oluştu', 'error');
+        });
+    }
+
+    function _modalAc(urunId, kartEl) {
+        kartEl.style.pointerEvents = 'none';
+
+        F.Helpers.ajaxPost('urun-detay.php', {
+            urun_id: urunId,
+            depo_id: F.State.seciliDepoId || F.Config.varsayilanDepoId
+        }, function(res) {
+            kartEl.style.pointerEvents = '';
+
+            if (!res.success || !res.data) {
+                Swal.fire('Hata', res.message || 'Ürün detayı yüklenemedi', 'error');
+                return;
+            }
+
+            var data = res.data;
+            var tip = _urunTip(data);
+
+            // Stok 0 engeli — düz ürünler (varyantlılar modal içinde kontrol edilir)
+            if (tip === 'duz' && F.Config.stokMiktarGizle && data.stok_aralik && data.stok_aralik.kod === 0 && data.on_siparis_aktif !== 'evet') {
+                Swal.fire({ icon: 'error', title: 'Stokta Yok', text: (data.urun_adi || 'Bu ürün') + ' şu anda stokta bulunmamaktadır.', confirmButtonColor: '#103595' });
+                return;
+            }
+
+            F.Events.emit('urun:secildi', { urunData: data });
+            F.Events.emit('modal:ac', {
+                tip: tip,
+                urunData: data,
+                satirId: null
+            });
+        }, function() {
+            kartEl.style.pointerEvents = '';
+            Swal.fire('Hata', 'Ürün detayı yüklenirken hata oluştu', 'error');
+        });
+    }
+
+    function _urunTip(data) {
+        if (data.kategori_id == 15 && data.model_varmi === 'evet' && data.paket_sablon) return 'kilif';
+        if (data.model_varmi === 'evet' || data.renk_varmi === 'evet') return 'varyant';
+        return 'duz';
+    }
+
+    function _mevcutSatirBul(urunId) {
+        if (!F.State.satirlar) return null;
+        for (var i = 0; i < F.State.satirlar.length; i++) {
+            var s = F.State.satirlar[i];
+            if (s.urunId === urunId && s.tip === 'duz' && (!s.varyantlar || s.varyantlar.length === 0)) {
+                return JSON.parse(JSON.stringify(s));
+            }
+        }
+        return null;
+    }
+
+    function _flashKart(el) {
+        if (!el) return;
+        el.classList.add('frm-pos-kart-eklendi');
+        setTimeout(function() {
+            el.classList.remove('frm-pos-kart-eklendi');
+        }, 600);
+    }
+
+})();

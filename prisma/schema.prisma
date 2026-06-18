@@ -11,6 +11,7 @@ model User {
   firstName    String
   lastName     String
   email        String             @unique
+  phone        String?            @unique
   passwordHash String
   role         UserRole           @default(USER)
   createdAt    DateTime           @default(now())
@@ -64,6 +65,7 @@ model Product {
   description String
   brand       String
   active      Boolean           @default(true)
+  isEarlyAccess Boolean         @default(false)
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   featured    Boolean           @default(false)
@@ -158,6 +160,9 @@ model Order {
   shippingCarrier    String?
   trackingNumber     String?
   trackingUrl        String?
+  isQuoteRequest     Boolean         @default(false)
+  quoteNote          String?
+  quoteStatus        String?         // PENDING, APPROVED, REJECTED
   earnedPoints       Int             @default(0)
   spentPoints        Int             @default(0)
   currency           String          @default("TRY")

@@ -15,6 +15,7 @@ const adminMenu = [
   { href: "/admin/stock-alerts", label: "Stok Bekleyenler", icon: "🔔" },
   { href: "/admin/support", label: "Canlı Destek", icon: "💬" },
   { href: "/admin/dealers", label: "Bayi Yönetimi", icon: "🤝" },
+  { href: "/admin/quotes", label: "İndirim Talepleri", icon: "💰" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

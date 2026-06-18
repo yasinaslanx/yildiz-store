@@ -1,0 +1,15 @@
+(function() {
+    'use strict';
+    var F = window.Form;
+    if (!F) return;
+
+    F.Pos = F.Pos || {};
+
+    F.Pos.Config = {
+        aktifModlar: ['siparis-yeni', 'siparis-duzenle'],
+        gridLimit: 40,
+        aramaDebounce: 400,
+        stokAzEsik: 50,
+        ajaxUrl: 'pos-urunler.php'
+    };
+})();

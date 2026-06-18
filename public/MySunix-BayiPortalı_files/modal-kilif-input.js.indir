@@ -1,0 +1,162 @@
+/**
+ * Form - Kılıf Miktar Input, Karma/Ayrı Toggle, Hesaplama
+ */
+(function() {
+    'use strict';
+
+    var F = window.Form;
+
+    F.ModalKilifInput = F.ModalKilifInput || {};
+
+    /**
+     * Input event'lerini bind et
+     */
+    F.ModalKilifInput.bindInputs = function() {
+        var tbl = document.getElementById('frmKmTbl');
+        if (!tbl) return;
+
+        // Per-color inputs
+        tbl.querySelectorAll('.frm-km-qi[data-c]').forEach(function(inp) {
+            inp.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '');
+                // X butonu göster/gizle
+                var qg = this.closest('.frm-km-qg');
+                var clrBtn = qg ? qg.querySelector('.frm-km-qg-clear') : null;
+                if (clrBtn) clrBtn.style.display = (parseInt(this.value) || 0) > 0 ? '' : 'none';
+                F.ModalKilifInput.calc();
+            });
+            inp.addEventListener('focus', function() {
+                this.select();
+            });
+        });
+
+        // X (temizle) butonları
+        tbl.querySelectorAll('.frm-km-qg-clear').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var qg = this.closest('.frm-km-qg');
+                var inp = qg ? qg.querySelector('.frm-km-qi') : null;
+                var miktar = inp ? (parseInt(inp.value) || 0) : 0;
+                var modelId = this.getAttribute('data-model');
+                var renkId = this.getAttribute('data-renk');
+
+                // Model ve renk adlarını bul
+                var ST = F.ModalKilif && F.ModalKilif.ST;
+                var modelAdi = '', renkAdi = '';
+                if (ST) {
+                    for (var mi = 0; mi < (ST.modeller || []).length; mi++) {
+                        if (ST.modeller[mi].id == modelId) { modelAdi = ST.modeller[mi].model_adi; break; }
+                    }
+                    for (var ri = 0; ri < (ST.renkler || []).length; ri++) {
+                        if (ST.renkler[ri].id == renkId) { renkAdi = ST.renkler[ri].renk_adi; break; }
+                    }
+                }
+                var adi = (modelAdi && renkAdi) ? modelAdi + ' — ' + renkAdi : 'Varyant';
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Varyant Kaldır',
+                    text: adi + ' (' + miktar + ' adet) kaldırılacak. Devam edilsin mi?',
+                    showCancelButton: true,
+                    confirmButtonText: 'Evet, Kaldır',
+                    cancelButtonText: 'İptal',
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280'
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        if (inp) inp.value = '';
+                        btn.style.display = 'none';
+                        F.ModalKilifInput.calc();
+                    }
+                });
+            });
+        });
+
+        // Total inputs (karma mode)
+        tbl.querySelectorAll('.frm-km-qi[data-total]').forEach(function(inp) {
+            inp.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '');
+                var v = parseInt(this.value) || 0;
+                var row = this.closest('tr');
+                // Tüm renklere aynı miktarı yaz
+                row.querySelectorAll('.frm-km-qi[data-c]').forEach(function(i) {
+                    i.value = v > 0 ? v : '';
+                });
+                F.ModalKilifInput.calc();
+            });
+            inp.addEventListener('focus', function() {
+                this.select();
+            });
+        });
+    };
+
+    /**
+     * Toplam hesapla
+     */
+    F.ModalKilifInput.calc = function() {
+        var tbl = document.getElementById('frmKmTbl');
+        if (!tbl) return;
+
+        var ST = F.ModalKilif.ST;
+        var N = ST.renkler.length;
+        var gt = 0;
+        var ct = [];
+        for (var i = 0; i < N; i++) ct.push(0);
+
+        tbl.querySelectorAll('tbody tr:not(.frm-km-brand-row)').forEach(function(r) {
+            var rs = 0;
+            var ctEls = r.querySelectorAll('.frm-km-ct');
+
+            r.querySelectorAll('.frm-km-qi[data-c]').forEach(function(inp, x) {
+                var v = parseInt(inp.value) || 0;
+                rs += v;
+                if (x < N) ct[x] += v;
+                if (ctEls[x]) {
+                    ctEls[x].textContent = v > 0 ? v : '0';
+                    ctEls[x].classList.toggle('has', v > 0);
+                }
+            });
+
+            var t = r.querySelector('.frm-km-rt');
+            if (t) {
+                t.textContent = rs;
+                t.classList.toggle('has', rs > 0);
+            }
+            gt += rs;
+        });
+
+        // Sütun toplamları (tfoot)
+        for (var i2 = 0; i2 < N; i2++) {
+            var e = tbl.querySelector('[data-ct="' + i2 + '"]');
+            if (e) e.textContent = ct[i2];
+        }
+
+        var gtEl = tbl.querySelector('[data-gt]');
+        if (gtEl) gtEl.textContent = gt;
+
+        // Footer güncelle
+        var toplamEl = document.getElementById('frmKmToplamAdet');
+        if (toplamEl) toplamEl.textContent = gt;
+
+        var paketEl = document.getElementById('frmKmPaketSayisi');
+        if (paketEl) paketEl.textContent = Math.floor(gt / ST.paketAdet);
+
+        var tutarEl = document.getElementById('frmKmTutar');
+        var eskiEl = document.getElementById('frmKmTutarEski');
+        var convFn = (F.Doviz && F.Doviz.aktif) ? F.Doviz.conv : function(v) { return v; };
+        var net = convFn(F.Helpers.bankersRound(gt * ST.birimFiyat, 2));
+        var normalBirim = (typeof ST.normalBirimFiyat === 'number' && ST.normalBirimFiyat > 0) ? ST.normalBirimFiyat : ST.birimFiyat;
+        var brut = convFn(F.Helpers.bankersRound(gt * normalBirim, 2));
+
+        if (tutarEl) tutarEl.textContent = F.Helpers.formatPara(F.Config.indirimGizle ? brut : net);
+        if (eskiEl) {
+            if (!F.Config.indirimGizle && ST.fiyatKurali && Math.abs(brut - net) > 0.001) {
+                eskiEl.textContent = F.Helpers.formatPara(brut);
+                eskiEl.style.display = '';
+            } else {
+                eskiEl.style.display = 'none';
+            }
+        }
+    };
+
+})();

@@ -26,6 +26,19 @@ export default function AdminDealersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("PENDING");
+  const [counts, setCounts] = useState({ PENDING: 0, APPROVED: 0, REJECTED: 0, ALL: 0 });
+
+  const fetchCounts = async () => {
+    try {
+      const res = await fetch("/api/admin/dealers/applications/counts");
+      const json = await res.json();
+      if (json.success) {
+        setCounts(json.data);
+      }
+    } catch (err) {
+      console.error("Counts error:", err);
+    }
+  };
 
   const fetchApplications = async () => {
     try {
@@ -43,6 +56,10 @@ export default function AdminDealersPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchCounts();
+  }, []);
 
   useEffect(() => {
     fetchApplications();
@@ -63,6 +80,7 @@ export default function AdminDealersPage() {
       
       if (json.success) {
         fetchApplications();
+        fetchCounts();
       } else {
         alert(json.message);
       }
@@ -84,13 +102,16 @@ export default function AdminDealersPage() {
             <button
               key={status}
               onClick={() => setFilter(status)}
-              className={`px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all ${
+              className={`px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
                 filter === status 
                   ? "bg-stone-900 text-white shadow-md" 
                   : "text-stone-400 hover:text-stone-900"
               }`}
             >
-              {status === "PENDING" ? "Bekleyen" : status === "APPROVED" ? "Onaylanan" : status === "REJECTED" ? "Reddedilen" : "Tümü"}
+              <span>{status === "PENDING" ? "Bekleyen" : status === "APPROVED" ? "Onaylanan" : status === "REJECTED" ? "Reddedilen" : "Tümü"}</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] ${filter === status ? "bg-white/20" : "bg-stone-100 text-stone-500"}`}>
+                {counts[status as keyof typeof counts]}
+              </span>
             </button>
           ))}
         </div>

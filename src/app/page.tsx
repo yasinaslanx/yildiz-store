@@ -181,17 +181,17 @@ export default function HomePage() {
             </div>
 
             <div className="grid md:h-[560px] grid-cols-1 gap-4 md:grid-cols-4 md:grid-rows-2">
-               <Link href="/products?category=phones,telefonlar" className="group relative overflow-hidden rounded-[2.5rem] border-2 border-stone-100 md:col-span-2 md:row-span-2 shadow-sm hover:shadow-2xl transition-all duration-700 min-h-[420px]">
+               <Link href="/products?category=akilli-saat" className="group relative overflow-hidden rounded-[2.5rem] border-2 border-stone-100 md:col-span-2 md:row-span-2 shadow-sm hover:shadow-2xl transition-all duration-700 min-h-[420px]">
                   <Image
-                     src="https://images.unsplash.com/photo-1616348436168-de43ad0db179?q=80&w=2000&auto=format&fit=crop"
-                     alt="Telefonlar"
+                     src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=2000&auto=format&fit=crop"
+                     alt="Akıllı Saatler"
                      fill
                      className="object-cover transition-transform duration-1000 group-hover:scale-110"
                   />
-                  <div className="absolute inset-0 bg-black/5 group-hover:bg-black/20 transition-colors" />
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-colors" />
                   <div className="absolute bottom-12 left-12 transform transition-transform duration-700 group-hover:-translate-y-2">
-                     <h3 className="text-4xl font-black text-white uppercase tracking-tighter drop-shadow-xl">Akıllı Telefonlar</h3>
-                     <p className="mt-2 text-xs font-bold text-white/90 uppercase tracking-widest">En yeni modelleri keşfet</p>
+                     <h3 className="text-4xl font-black text-white uppercase tracking-tighter drop-shadow-xl">Akıllı Saatler</h3>
+                     <p className="mt-2 text-xs font-bold text-white/90 uppercase tracking-widest">Yeni Nesil Giyilebilir Teknoloji</p>
                   </div>
                </Link>
 

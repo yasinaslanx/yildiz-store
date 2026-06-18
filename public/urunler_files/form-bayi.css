@@ -1,0 +1,316 @@
+/**
+ * Bayi Form Override Stilleri
+ * ERP sag-panel.css yeşil temasını mavi (#103595) temaya dönüştürür
+ */
+
+/* ===== GERI DÖN BUTONU ===== */
+.frm-geri-btn,.frm-geri-btn:link,.frm-geri-btn:visited,.frm-geri-btn:focus {
+    border-color: #103595 !important;
+    background: #103595 !important;
+    box-shadow: 0 2px 8px rgba(16,53,149,.25) !important;
+}
+.frm-geri-btn:hover {
+    background: #0d2a75 !important;
+    border-color: #0d2a75 !important;
+    box-shadow: 0 4px 14px rgba(16,53,149,.35) !important;
+}
+
+/* ===== PANEL ===== */
+.frm-panel {
+    background: #e8eef8 !important;
+    border-color: #103595 !important;
+    box-shadow: 0 0 0 1px rgba(16,53,149,.15) !important;
+}
+.frm-panel-hd {
+    background: #103595 !important;
+}
+
+/* ===== İÇ ALAN RENKLERI ===== */
+.frm-musteri-label,
+.frm-note-label,
+.frm-row label {
+    color: #103595 !important;
+}
+.frm-fl-badge {
+    color: #103595 !important;
+    background: #dbe5f5 !important;
+    border-color: #a3bde0 !important;
+}
+
+/* ===== INPUT BORDER ===== */
+.frm-inner > div > input,
+.frm-inner > div > select,
+.frm-row input,
+.frm-row select,
+.frm-inner textarea,
+.frm-full-input {
+    border-color: #a3bde0 !important;
+}
+.frm-inner > div > input:focus,
+.frm-inner > div > select:focus,
+.frm-row input:focus,
+.frm-row select:focus,
+.frm-inner textarea:focus {
+    border-color: #103595 !important;
+}
+
+/* ===== ÖZET KUTUSU ===== */
+.frm-grand-sub {
+    border-color: #a3bde0 !important;
+}
+.frm-grand-sub > div {
+    border-bottom-color: #e0e7f0 !important;
+}
+
+/* ===== KDV INPUT WRAP ===== */
+.frm-kdv-input-wrap {
+    background: #e8eef8 !important;
+    border-color: #a3bde0 !important;
+}
+.frm-kdv-pct {
+    color: #103595 !important;
+}
+.frm-kdv-input {
+    color: #103595 !important;
+}
+
+/* ===== GENEL TOPLAM ===== */
+.frm-grand-total {
+    background: #103595 !important;
+    border-top-color: #103595 !important;
+}
+
+/* ===== BUTONLAR ===== */
+.frm-btn-p {
+    color: #103595 !important;
+    box-shadow: 0 2px 8px rgba(16,53,149,.15) !important;
+}
+.frm-btn-p i {
+    color: #103595 !important;
+}
+.frm-btn-p:hover {
+    box-shadow: 0 4px 14px rgba(16,53,149,.25) !important;
+}
+.frm-btn-s {
+    color: #5a7ab5 !important;
+}
+.frm-btn-s:hover {
+    color: #103595 !important;
+}
+.frm-btn-edit {
+    background: #103595 !important;
+    box-shadow: 0 2px 8px rgba(16,53,149,.25) !important;
+}
+.frm-btn-edit:hover {
+    background: #0d2a75 !important;
+    box-shadow: 0 4px 14px rgba(16,53,149,.35) !important;
+}
+
+/* ===== AKSİYON BUTON WRAP ===== */
+.frm-aks-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+/* ===== KOPYALA / İPTAL ET / SİL (Görüntüleme modunda) ===== */
+.frm-btn-kopyala,
+.frm-btn-iptal,
+.frm-btn-sil-soft {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+.frm-btn-kopyala {
+    background: #103595;
+    box-shadow: 0 2px 8px rgba(16,53,149,.25);
+}
+.frm-btn-kopyala:hover {
+    background: #0c2a78;
+    box-shadow: 0 4px 14px rgba(16,53,149,.35);
+}
+.frm-btn-iptal {
+    background: #f59e0b;
+    box-shadow: 0 2px 8px rgba(245,158,11,.25);
+}
+.frm-btn-iptal:hover {
+    background: #d97706;
+    box-shadow: 0 4px 14px rgba(245,158,11,.35);
+}
+.frm-btn-sil-soft {
+    background: #475569;
+    box-shadow: 0 2px 8px rgba(71,85,105,.25);
+}
+.frm-btn-sil-soft:hover {
+    background: #334155;
+    box-shadow: 0 4px 14px rgba(71,85,105,.35);
+}
+.frm-btn-kopyala i,
+.frm-btn-iptal i,
+.frm-btn-sil-soft i {
+    font-size: 14px;
+}
+
+/* ===== MÜŞTERİ KİLİT (Düzenleme modunda) ===== */
+.frm-musteri-kilit-not {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #6b7280;
+}
+.frm-musteri-kilit-not i {
+    font-size: 12px;
+    color: #103595;
+}
+.nma-wrap.nma-locked .nma-input-box {
+    background: #f3f4f6;
+    cursor: not-allowed;
+}
+
+/* ===== KULLANICI BİLGİ ===== */
+.frm-usr-item {
+    border-color: #a3bde0 !important;
+}
+.frm-usr-item > i,
+.frm-usr-label {
+    color: #103595 !important;
+}
+
+/* ===== PRİM ALANI ===== */
+.frm-prim-wrap {
+    border-color: #a3bde0 !important;
+}
+.frm-prim-header {
+    color: #103595 !important;
+    background: #e8eef8 !important;
+    border-bottom-color: #c5d5f0 !important;
+}
+.frm-prim-row {
+    border-bottom-color: #e0e7f0 !important;
+}
+.frm-prim-total {
+    background: #103595 !important;
+}
+
+/* ===== DÖVİZ PANELİ ===== */
+.frm-dv-kur-input[readonly] {
+    background: #f3f4f6 !important;
+    cursor: not-allowed !important;
+    opacity: 0.8;
+}
+
+/* ===== İADE KATEGORİ ===== */
+/* ERP iade-kategori.css'deki stiller korunur (normal=yeşil, arızalı=kırmızı) */
+
+/* ===== YÜKLENİYOR ANİMASYONU ===== */
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== AKSİYON LİNKLER ===== */
+.frm-aks-iptal,
+.frm-aks-kopyala {
+    color: #103595 !important;
+}
+
+/* ===== STOK MİKTARI GİZLEME (sunix-siparis tedarik) ===== */
+body.stok-gizli .frm-sd-stok-row.blue { display: none !important; }
+body.stok-gizli .frm-stk-tt { display: none !important; }
+body.stok-gizli .frm-sd-depo-badges .frm-sd-bg { display: none !important; }
+body.stok-gizli .frm-sd-stok-div { display: none !important; }
+body.stok-gizli .frm-sd-stok-details { display: none !important; }
+body.stok-gizli .frm-md-stok-panel { display: none !important; }
+body.stok-gizli .frm-sd-badge-yolda { display: none !important; }
+
+/* Stok gizli modda varyant OOS stilini sıfırla (karanlık overlay + STOKTA YOK banner kaldır) */
+body.stok-gizli .frm-vm-vc.oos { cursor: pointer !important; opacity: 1 !important; pointer-events: auto !important; filter: none !important; }
+body.stok-gizli .frm-vm-vc.oos::before { display: none !important; }
+body.stok-gizli .frm-vm-vc.oos::after { display: none !important; }
+body.stok-gizli .frm-vm-vc.oos .frm-vm-vc-swatch-name { color: var(--swatch-text, #fff) !important; text-shadow: var(--swatch-shadow, none) !important; z-index: auto !important; }
+body.stok-gizli .frm-vm-vc.oos .frm-vm-vc-swatch-price { display: block !important; }
+body.stok-gizli .frm-vm-vc.oos .frm-vm-vc-content { opacity: 1 !important; pointer-events: auto !important; }
+body.stok-gizli .frm-vm-vc.oos .frm-vm-vc-qty { pointer-events: auto !important; }
+
+/* Kılıf modal OOS stilini sıfırla */
+body.stok-gizli .frm-km-qg.oos { opacity: 1 !important; pointer-events: auto !important; filter: none !important; }
+body.stok-gizli .frm-km-qg.oos::before { display: none !important; }
+body.stok-gizli .frm-km-qg.oos::after { display: none !important; }
+
+/* ===== ÖN TALEP ELİGİBLE OOS KARTLAR (on_siparis_aktif='evet') ===== */
+body.stok-gizli .frm-vm-vc.oos.oos-ontalep { cursor: pointer !important; }
+body.stok-gizli .frm-vm-vc.oos.oos-ontalep::before {
+    display: block !important;
+    background: rgba(0,0,0,.55) !important;
+}
+body.stok-gizli .frm-vm-vc.oos.oos-ontalep::after {
+    content: 'ÖN TALEP' !important;
+    display: block !important;
+    background: linear-gradient(90deg, #92400e, #f59e0b, #92400e) !important;
+    box-shadow: 0 2px 8px rgba(245,158,11,.45) !important;
+}
+body.stok-gizli .frm-vm-vc.oos.oos-ontalep .frm-vm-vc-swatch-name {
+    color: #fff !important;
+    text-shadow: 0 1px 4px rgba(0,0,0,.5) !important;
+    z-index: 6 !important;
+}
+body.stok-gizli .frm-vm-vc.oos.oos-ontalep .frm-vm-vc-swatch-price { display: none !important; }
+body.stok-gizli .frm-vm-vc.oos.oos-ontalep .frm-vm-vc-content { pointer-events: none !important; }
+body.stok-gizli .frm-vm-vc.oos.oos-ontalep .frm-vm-vc-qty { display: none !important; }
+body.stok-gizli .frm-vm-vc.oos.oos-ontalep .frm-vm-vc-clear { display: none !important; }
+body.stok-gizli .frm-vm-vc.oos.oos-ontalep .frm-vm-vc-detail-btn { display: none !important; }
+body.stok-gizli .frm-vm-vc.oos.oos-ontalep .frm-vm-vc-stk-bar { display: none !important; }
+
+/* ===== STOKSUZ + ÖN TALEP KAPALI KARTLAR (giriş engeli) ===== */
+body.stok-gizli .frm-vm-vc.oos:not(.oos-ontalep) {
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+body.stok-gizli .frm-vm-vc.oos:not(.oos-ontalep)::before {
+    display: block !important;
+    background: rgba(0,0,0,.7) !important;
+}
+body.stok-gizli .frm-vm-vc.oos:not(.oos-ontalep)::after {
+    content: 'STOKTA YOK' !important;
+    display: block !important;
+    background: linear-gradient(90deg, #7f1d1d, #dc2626, #7f1d1d) !important;
+    box-shadow: 0 2px 8px rgba(220,38,38,.45) !important;
+}
+body.stok-gizli .frm-vm-vc.oos:not(.oos-ontalep) .frm-vm-vc-swatch-name {
+    color: #fff !important;
+    text-shadow: 0 1px 4px rgba(0,0,0,.5) !important;
+    z-index: 6 !important;
+}
+body.stok-gizli .frm-vm-vc.oos:not(.oos-ontalep) .frm-vm-vc-swatch-price { display: none !important; }
+body.stok-gizli .frm-vm-vc.oos:not(.oos-ontalep) .frm-vm-vc-qty { display: none !important; }
+body.stok-gizli .frm-vm-vc.oos:not(.oos-ontalep) .frm-vm-vc-detail-btn { display: none !important; }
+body.stok-gizli .frm-vm-vc.oos:not(.oos-ontalep) .frm-vm-vc-clear { display: none !important; }
+body.stok-gizli .frm-vm-vc.oos:not(.oos-ontalep) .frm-vm-vc-stk-bar { display: none !important; }
+
+/* Kılıf modal: Stoksuz + ön talep AÇIK hücreler — sarı indicator */
+body.stok-gizli .frm-km-qg.oos.oos-ontalep {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    opacity: 1 !important;
+    outline: 2px solid #f59e0b !important;
+    outline-offset: -2px;
+    background: rgba(245, 158, 11, 0.08) !important;
+}
+
+/* Kılıf modal: Stoksuz + ön talep kapalı hücrelerde engel */
+body.stok-gizli .frm-km-qg.oos:not(.oos-ontalep) {
+    opacity: 0.35 !important;
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+}

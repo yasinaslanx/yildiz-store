@@ -1,0 +1,896 @@
+// Tedarik Pano - Modal İşlemleri
+// Bayi Portalı - Satır Bazında Teslim Alma
+
+// ========================================
+// GLOBAL DEĞİŞKENLER
+// ========================================
+let teslimAlModal = null;
+let yeniDepoModal = null;
+let eksikBildirModal = null;
+let teslimAlDepolar = [];
+let teslimAlUrunListesi = [];
+let teslimAlinanlar = {}; // {detay_id: {miktar, depo_id, teslim_tarihi}}
+let sorunBildirilenler = {}; // {detay_id: {sorun_tipi, miktar, aciklama}}
+
+// ========================================
+// SİPARİŞ DETAY MODAL
+// ========================================
+function gosterSiparisDetay(siparisId) {
+    $('#tedarikDetayModalBody').html(`
+        <div class="tedarik-loading">
+            <i class="icon-loader"></i>
+            <p>Sipariş detayları yükleniyor...</p>
+        </div>
+    `);
+
+    const modal = new bootstrap.Modal(document.getElementById('tedarikDetayModal'));
+    modal.show();
+
+    $.ajax({
+        url: 'ajax/tedarik-siparis-detay.php',
+        type: 'POST',
+        dataType: 'json',
+        data: { siparis_id: siparisId },
+        success: function(response) {
+            if (response.success && response.data) {
+                renderSiparisDetay(response.data);
+            } else {
+                $('#tedarikDetayModalBody').html(`
+                    <div class="tedarik-empty-state">
+                        <i class="icon-alert-triangle"></i>
+                        <p>${response.message || 'Sipariş detayları yüklenemedi.'}</p>
+                    </div>
+                `);
+            }
+        },
+        error: function() {
+            $('#tedarikDetayModalBody').html(`
+                <div class="tedarik-empty-state">
+                    <i class="icon-alert-circle"></i>
+                    <p>Bağlantı hatası oluştu.</p>
+                </div>
+            `);
+        }
+    });
+}
+
+function renderSiparisDetay(data) {
+    const siparis = data.siparis;
+    const urunler = data.urunler || [];
+
+    const displayNo = formatSiparisNo(siparis.siparis_no);
+    $('#tedarikDetayModalTitle').text('Sipariş ' + displayNo);
+
+    let urunlerHTML = '';
+    if (urunler.length > 0) {
+        urunlerHTML = '<div class="tedarik-urun-liste">';
+        urunler.forEach((urun) => {
+            const varyant = [];
+            if (urun.model_adi) varyant.push(urun.model_adi);
+            if (urun.renk_adi) varyant.push(urun.renk_adi);
+            const varyantText = varyant.length > 0 ? `<span style="color: #6b7280; font-size: 11px;">(${varyant.join(' - ')})</span>` : '';
+
+            urunlerHTML += `
+                <div class="tedarik-urun-item" style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e5e7eb;">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; color: #1f2937; font-size: 13px;">${urun.urun_adi} ${varyantText}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 600; color: #103595;">${urun.miktar} adet</div>
+                        <div style="font-size: 12px; color: #6b7280;">$${formatPara(urun.birim_fiyat)}</div>
+                    </div>
+                </div>
+            `;
+        });
+        urunlerHTML += '</div>';
+    }
+
+    let kargoBilgiHTML = '';
+    if (siparis.durum === 'kargolandi' && siparis.kargo_firmasi) {
+        kargoBilgiHTML = `
+            <div class="tedarik-kargo-detay">
+                <div class="tedarik-kargo-detay-baslik">
+                    <i class="icon-truck"></i>
+                    Kargo Bilgileri
+                </div>
+                <div class="tedarik-kargo-firma">${siparis.kargo_firmasi}</div>
+                ${siparis.kargo_takip_no ? `<div class="tedarik-kargo-takip-no">Takip No: <span>${siparis.kargo_takip_no}</span></div>` : ''}
+            </div>
+        `;
+    }
+
+    let siparisNotuHTML = '';
+    if (siparis.siparis_notu && siparis.siparis_notu.trim() !== '') {
+        siparisNotuHTML = `
+            <div class="tedarik-card-not" style="margin-bottom: 16px;">
+                <div class="tedarik-card-not-baslik">
+                    <i class="icon-message-square"></i>
+                    Sipariş Notu
+                </div>
+                <div class="tedarik-card-not-metin">${siparis.siparis_notu}</div>
+            </div>
+        `;
+    }
+
+    const html = `
+        <div class="tedarik-modal-content">
+            ${siparisNotuHTML}
+            <div class="tedarik-detay-bilgi">
+                <div class="tedarik-detay-grup">
+                    <div class="tedarik-detay-grup-baslik"><i class="icon-file-text"></i> Sipariş Bilgileri</div>
+                    <div class="tedarik-detay-satir"><span class="tedarik-detay-etiket">Sipariş No</span><span class="tedarik-detay-deger">${displayNo}</span></div>
+                    <div class="tedarik-detay-satir"><span class="tedarik-detay-etiket">Sipariş Tarihi</span><span class="tedarik-detay-deger">${formatTarih(siparis.siparis_tarihi)}</span></div>
+                    <div class="tedarik-detay-satir"><span class="tedarik-detay-etiket">Durum</span><span class="tedarik-detay-deger">${formatDurum(siparis.durum)}</span></div>
+                </div>
+                <div class="tedarik-detay-grup">
+                    <div class="tedarik-detay-grup-baslik"><i class="icon-dollar-sign"></i> Tutar Bilgileri</div>
+                    <div class="tedarik-detay-satir"><span class="tedarik-detay-etiket">Ara Toplam</span><span class="tedarik-detay-deger">$${formatPara(siparis.ara_toplam)}</span></div>
+                    <div class="tedarik-detay-satir"><span class="tedarik-detay-etiket">KDV</span><span class="tedarik-detay-deger">$${formatPara(siparis.kdv_toplam || 0)}</span></div>
+                    <div class="tedarik-detay-satir" style="font-weight: 700;"><span class="tedarik-detay-etiket" style="color: #103595;">Genel Toplam</span><span class="tedarik-detay-deger" style="color: #103595; font-size: 15px;">$${formatPara(siparis.genel_toplam)}</span></div>
+                </div>
+            </div>
+            ${kargoBilgiHTML}
+            <div class="tedarik-detay-grup" style="margin-top: 16px;">
+                <div class="tedarik-detay-grup-baslik"><i class="icon-shopping-cart"></i> Sipariş Ürünleri (${urunler.length} Kalem)</div>
+                ${urunlerHTML}
+            </div>
+        </div>
+    `;
+
+    $('#tedarikDetayModalBody').html(html);
+}
+
+// ========================================
+// KARGO BİLGİLERİ MODAL
+// ========================================
+function gosterKargoBilgileri(siparisId, siparisNo) {
+    const displayNo = formatSiparisNo(siparisNo);
+    $('#tedarikKargoModalTitle').text('Kargo Bilgileri - ' + displayNo);
+    $('#tedarikKargoModalBody').html('<div class="tedarik-loading"><i class="icon-loader"></i><p>Yükleniyor...</p></div>');
+
+    const modal = new bootstrap.Modal(document.getElementById('tedarikKargoModal'));
+    modal.show();
+
+    $.ajax({
+        url: 'ajax/tedarik-kargo-bilgileri.php',
+        type: 'POST',
+        dataType: 'json',
+        data: { siparis_id: siparisId },
+        success: function(response) {
+            if (response.success && response.data) {
+                renderKargoBilgileri(response.data);
+            } else {
+                $('#tedarikKargoModalBody').html(`<div class="tedarik-empty-state"><i class="icon-alert-triangle"></i><p>${response.message || 'Kargo bilgileri bulunamadı.'}</p></div>`);
+            }
+        },
+        error: function() {
+            $('#tedarikKargoModalBody').html('<div class="tedarik-empty-state"><i class="icon-alert-circle"></i><p>Bağlantı hatası.</p></div>');
+        }
+    });
+}
+
+function renderKargoBilgileri(data) {
+    const siparis = data.siparis;
+    const kargoLinkleri = {
+        'Aras Kargo': 'https://kargotakip.araskargo.com.tr/kargo-takip/',
+        'MNG Kargo': 'https://www.mngkargo.com.tr/kargo-takip/',
+        'Yurtiçi Kargo': 'https://www.yurticikargo.com/tr/online-servisler/gonderi-sorgula',
+        'Sürat Kargo': 'https://www.suratkargo.com.tr/kargoTakip',
+        'PTT Kargo': 'https://gonderitakip.ptt.gov.tr/'
+    };
+    const kargoLink = kargoLinkleri[siparis.kargo_firmasi] || null;
+    let kargoLinkHTML = kargoLink && siparis.kargo_takip_no ? `<a href="${kargoLink}" target="_blank" class="tedarik-kargo-link"><i class="icon-external-link"></i> Kargo Takip Sayfası</a>` : '';
+
+    $('#tedarikKargoModalBody').html(`
+        <div class="tedarik-modal-content">
+            <div class="tedarik-kargo-detay" style="margin: 0;">
+                <div class="tedarik-kargo-detay-baslik"><i class="icon-truck"></i> Kargo Bilgileri</div>
+                <div class="tedarik-detay-satir"><span class="tedarik-detay-etiket">Kargo Firması</span><span class="tedarik-detay-deger">${siparis.kargo_firmasi || '-'}</span></div>
+                <div class="tedarik-detay-satir"><span class="tedarik-detay-etiket">Takip Numarası</span><span class="tedarik-detay-deger" style="color: #103595; font-family: monospace;">${siparis.kargo_takip_no || 'Henüz girilmemiş'}</span></div>
+                <div class="tedarik-detay-satir"><span class="tedarik-detay-etiket">Kargoya Verilme</span><span class="tedarik-detay-deger">${siparis.kargolama_tarihi ? formatTarih(siparis.kargolama_tarihi) : '-'}</span></div>
+                ${kargoLinkHTML}
+            </div>
+        </div>
+    `);
+}
+
+// ========================================
+// TESLİM AL MODAL - ANA FONKSİYONLAR
+// ========================================
+function teslimAlModalAc(siparisId, siparisNo) {
+    // Teslim alma artık ayrı SAYFA — modal kaldırıldı (Haziran 2026). Sayfaya yönlendir.
+    window.location.href = 'index.php?sayfa=teslim-al&id=' + siparisId;
+    return;
+    /* eslint-disable */
+    const displayNo = formatSiparisNo(siparisNo);
+
+    // Reset (eski — artık erişilmez)
+    $('#teslimAlSiparisId').val(siparisId);
+    $('#teslimAlSiparisNo').text('Sipariş No: ' + displayNo);
+    $('#teslimAlUrunler').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-3 mb-0" style="color: #6b7280;">Ürünler yükleniyor...</p></div>');
+    $('#teslimKategoriFiltre').html('<option value="">Tümü</option>');
+    $('#teslimVarsayilanDepo').html('<option value="">Seçiniz...</option>');
+    $('#topluTeslimAlBtn').prop('disabled', true);
+    $('#teslimTumunuSec').prop('checked', false).prop('indeterminate', false);
+
+    teslimAlDepolar = [];
+    teslimAlUrunListesi = [];
+    teslimAlinanlar = {};
+    sorunBildirilenler = {};
+
+    // Modal aç
+    teslimAlModal = new bootstrap.Modal(document.getElementById('teslimAlModal'));
+    teslimAlModal.show();
+
+    // Depoları ve ürünleri yükle
+    Promise.all([
+        depolariYukle(),
+        siparisUrunleriniYukle(siparisId)
+    ]).then(() => {
+        ozetGuncelle();
+    });
+}
+
+function depolariYukle() {
+    return new Promise((resolve) => {
+        $.ajax({
+            url: 'ajax/depo/listele.php',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    teslimAlDepolar = response.depolar || [];
+                    renderDepoSelectOptions();
+                }
+                resolve();
+            },
+            error: function() {
+                resolve();
+            }
+        });
+    });
+}
+
+function renderDepoSelectOptions() {
+    let html = '<option value="">Depo seçin...</option>';
+    let varsayilanId = null;
+
+    teslimAlDepolar.forEach(depo => {
+        const selected = depo.varsayilan == 1 ? 'selected' : '';
+        if (depo.varsayilan == 1) varsayilanId = depo.id;
+        html += `<option value="${depo.id}" ${selected}>${depo.depo_adi}</option>`;
+    });
+
+    $('#teslimVarsayilanDepo').html(html);
+}
+
+function siparisUrunleriniYukle(siparisId) {
+    return new Promise((resolve) => {
+        $.ajax({
+            url: 'ajax/tedarik-teslim-al.php',
+            type: 'POST',
+            dataType: 'json',
+            data: { islem: 'siparis_urunleri', siparis_id: siparisId },
+            success: function(response) {
+                if (response.success) {
+                    teslimAlUrunListesi = response.urunler || [];
+
+                    // Veritabanından gelen teslim durumlarını işle
+                    teslimAlUrunListesi.forEach(urun => {
+                        // Daha önce teslim alınmış mı?
+                        if (urun.teslim_alinan_miktar > 0) {
+                            teslimAlinanlar[urun.id] = {
+                                miktar: parseInt(urun.teslim_alinan_miktar),
+                                depo_id: null // Depo bilgisi ayrıca tutulmuyordu
+                            };
+                        }
+
+                        // Sorun bildirilmiş mi?
+                        if (urun.sorun_tipi && urun.sorun_miktar > 0) {
+                            sorunBildirilenler[urun.id] = {
+                                sorun_tipi: urun.sorun_tipi,
+                                miktar: parseInt(urun.sorun_miktar),
+                                aciklama: urun.sorun_aciklama || ''
+                            };
+                        }
+                    });
+
+                    renderTeslimAlUrunler();
+                    kategorileriYukle();
+                } else {
+                    $('#teslimAlUrunler').html(`<div class="text-center py-5"><i class="icon-alert-triangle" style="font-size: 40px; color: #f59e0b;"></i><p class="mt-3">${response.message || 'Ürünler yüklenemedi'}</p></div>`);
+                }
+                resolve();
+            },
+            error: function() {
+                $('#teslimAlUrunler').html('<div class="text-center py-5"><i class="icon-alert-circle" style="font-size: 40px; color: #ef4444;"></i><p class="mt-3">Bağlantı hatası</p></div>');
+                resolve();
+            }
+        });
+    });
+}
+
+function kategorileriYukle() {
+    const kategoriler = {};
+    teslimAlUrunListesi.forEach(urun => {
+        const kat = urun.kategori_adi || 'Diğer';
+        if (!kategoriler[kat]) kategoriler[kat] = 0;
+        kategoriler[kat]++;
+    });
+
+    let html = '<option value="">Tümü</option>';
+    Object.keys(kategoriler).forEach(kat => {
+        html += `<option value="${kat}">${kat} (${kategoriler[kat]})</option>`;
+    });
+    $('#teslimKategoriFiltre').html(html);
+}
+
+function renderTeslimAlUrunler() {
+    if (teslimAlUrunListesi.length === 0) {
+        $('#teslimAlUrunler').html('<div class="text-center py-5"><i class="icon-package" style="font-size: 40px; color: #d1d5db;"></i><p class="mt-3">Bu siparişte ürün bulunamadı</p></div>');
+        return;
+    }
+
+    // Kategoriye göre grupla
+    const gruplar = {};
+    const aktifFiltre = $('#teslimKategoriFiltre').val();
+
+    teslimAlUrunListesi.forEach(urun => {
+        // Filtre kontrolü
+        if (aktifFiltre && urun.kategori_adi !== aktifFiltre) return;
+
+        const kat = urun.kategori_adi || 'Diğer';
+        if (!gruplar[kat]) gruplar[kat] = [];
+        gruplar[kat].push(urun);
+    });
+
+    let html = '';
+    Object.keys(gruplar).forEach(kategori => {
+        const urunler = gruplar[kategori];
+
+        html += `
+            <div class="teslim-kategori-grup" data-kategori="${kategori}">
+                <div class="teslim-kategori-baslik">
+                    <i class="icon-folder"></i>
+                    <span>${kategori}</span>
+                    <span class="kategori-count">${urunler.length} ürün</span>
+                </div>
+        `;
+
+        urunler.forEach(urun => {
+            html += renderUrunSatiri(urun);
+        });
+
+        html += '</div>';
+    });
+
+    if (html === '') {
+        html = '<div class="text-center py-5"><i class="icon-filter" style="font-size: 40px; color: #d1d5db;"></i><p class="mt-3">Bu kategoride ürün bulunamadı</p></div>';
+    }
+
+    $('#teslimAlUrunler').html(html);
+}
+
+function renderUrunSatiri(urun) {
+    const resimSrc = urun.resim_url ? resimUrl(urun.resim_url) : 'images/no-image.png';
+    const teslimDurumu = teslimAlinanlar[urun.id];
+    const sorunDurumu = sorunBildirilenler[urun.id];
+
+    // Teslim alınan ve sorun bildirilen miktarları hesapla
+    const teslimAlinanMiktar = teslimDurumu ? teslimDurumu.miktar : 0;
+    const sorunMiktar = sorunDurumu ? sorunDurumu.miktar : 0;
+    const kalanMiktar = urun.miktar - teslimAlinanMiktar - sorunMiktar;
+
+    // Varyant bilgileri
+    let detayParcalari = [];
+    if (urun.telefon_model_adi) detayParcalari.push(`<span><i class="icon-smartphone"></i> ${urun.telefon_model_adi}</span>`);
+    if (urun.telefon_renk_adi) detayParcalari.push(`<span><i class="icon-droplet"></i> ${urun.telefon_renk_adi}</span>`);
+    if (urun.model_adi && !urun.telefon_model_adi) detayParcalari.push(`<span><i class="icon-tag"></i> ${urun.model_adi}</span>`);
+    if (urun.renk_adi && !urun.telefon_renk_adi) detayParcalari.push(`<span><i class="icon-droplet"></i> ${urun.renk_adi}</span>`);
+    const detayHTML = detayParcalari.length > 0 ? `<div class="teslim-urun-detay">${detayParcalari.join('')}</div>` : '';
+
+    // Varsayılan depo var mı kontrol et
+    const varsayilanDepo = teslimAlDepolar.find(d => d.varsayilan == 1);
+    const varsayilanDepoId = varsayilanDepo ? varsayilanDepo.id : (teslimAlDepolar.length > 0 ? teslimAlDepolar[0].id : null);
+
+    // Depo options
+    let depoOptionsHTML = '<option value="">Depo seç...</option>';
+    teslimAlDepolar.forEach(depo => {
+        const selected = depo.id == varsayilanDepoId ? 'selected' : '';
+        depoOptionsHTML += `<option value="${depo.id}" ${selected}>${depo.depo_adi}</option>`;
+    });
+
+    // Buton aktif mi? (varsayılan depo varsa aktif)
+    const btnDisabled = !varsayilanDepoId ? 'disabled' : '';
+
+    // Durum kontrolü
+    let satırClass = '';
+    let islemHTML = '';
+    let durumBadgeHTML = '';
+
+    // Tamamen teslim alındı mı?
+    const tamamTeslim = kalanMiktar <= 0;
+
+    // Kısmi teslim veya sorun durumu badge'leri
+    if (teslimAlinanMiktar > 0) {
+        durumBadgeHTML += `<span class="teslim-kismi-badge teslim"><i class="icon-check"></i> ${teslimAlinanMiktar} teslim</span>`;
+    }
+    if (sorunMiktar > 0) {
+        const sorunTipLabel = sorunDurumu.sorun_tipi === 'eksik' ? 'Eksik' : (sorunDurumu.sorun_tipi === 'hasarli' ? 'Hasarlı' : 'Yanlış');
+        durumBadgeHTML += `<span class="teslim-kismi-badge sorun"><i class="icon-alert-triangle"></i> ${sorunMiktar} ${sorunTipLabel.toLowerCase()}</span>`;
+    }
+
+    if (tamamTeslim) {
+        // Tamamen işlendi
+        satırClass = teslimAlinanMiktar > 0 ? 'teslim-edildi' : 'sorun-var';
+        islemHTML = `
+            <div class="teslim-durum-wrap">
+                ${durumBadgeHTML}
+            </div>
+        `;
+    } else {
+        // Hala teslim alınacak miktar var
+        if (teslimAlinanMiktar > 0 || sorunMiktar > 0) {
+            satırClass = 'kismi-teslim';
+        }
+
+        islemHTML = `
+            ${durumBadgeHTML ? `<div class="teslim-durum-wrap">${durumBadgeHTML}</div>` : ''}
+            <div class="teslim-depo-secim">
+                <select class="form-select" id="depo_${urun.id}" onchange="checkTeslimBtn(${urun.id})">
+                    ${depoOptionsHTML}
+                </select>
+            </div>
+            <div class="teslim-islem-butonlar">
+                <button type="button" class="teslim-btn teslim-btn-al" id="teslimBtn_${urun.id}" onclick="tekTeslimAl(${urun.id})" ${btnDisabled}>
+                    <i class="icon-check"></i> Teslim Al
+                </button>
+                <button type="button" class="teslim-btn teslim-btn-sorun" onclick="eksikBildirAc(${urun.id})" title="Sorun Bildir">
+                    <i class="icon-alert-triangle"></i>
+                </button>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="teslim-urun-satir ${satırClass}" data-detay-id="${urun.id}" data-kategori="${urun.kategori_adi || 'Diğer'}">
+            <div class="teslim-urun-checkbox">
+                <input type="checkbox" id="check_${urun.id}" onchange="checkboxDegisti()" ${tamamTeslim ? 'disabled checked' : ''}>
+            </div>
+            <img src="${resimSrc}" alt="${urun.urun_adi}" class="teslim-urun-resim" onerror="this.onerror=null;this.src='images/no-image.png'">
+            <div class="teslim-urun-bilgi">
+                <div class="teslim-urun-adi">${urun.urun_adi}</div>
+                ${detayHTML}
+            </div>
+            <div class="teslim-miktar-alan">
+                <input type="number" class="teslim-miktar-input" id="miktar_${urun.id}" value="${kalanMiktar}" min="1" max="${kalanMiktar}" ${tamamTeslim ? 'disabled' : ''}>
+                <span class="teslim-miktar-sep">/</span>
+                <span class="teslim-miktar-max">${urun.miktar}</span>
+            </div>
+            ${islemHTML}
+        </div>
+    `;
+}
+
+// ========================================
+// TEK ÜRÜN TESLİM AL
+// ========================================
+function checkTeslimBtn(detayId) {
+    const depoId = $(`#depo_${detayId}`).val();
+    $(`#teslimBtn_${detayId}`).prop('disabled', !depoId);
+}
+
+function tekTeslimAl(detayId) {
+    const miktar = parseInt($(`#miktar_${detayId}`).val()) || 0;
+    const depoId = $(`#depo_${detayId}`).val();
+    const siparisId = $('#teslimAlSiparisId').val();
+
+    if (!depoId) {
+        showToast('warning', 'Lütfen depo seçin');
+        return;
+    }
+
+    if (miktar <= 0) {
+        showToast('warning', 'Geçersiz miktar');
+        return;
+    }
+
+    // Ürün bilgisini bul
+    const urun = teslimAlUrunListesi.find(u => u.id == detayId);
+    if (!urun) return;
+
+    // Butonu disable et
+    const btn = $(`#teslimBtn_${detayId}`);
+    btn.prop('disabled', true).html('<i class="icon-loader spin"></i>');
+
+    $.ajax({
+        url: 'ajax/tedarik-teslim-al.php',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            islem: 'tek_teslim_al',
+            siparis_id: siparisId,
+            detay_id: detayId,
+            miktar: miktar,
+            depo_id: depoId
+        },
+        success: function(response) {
+            if (response.success) {
+                // Başarılı - state güncelle (mevcut miktara ekle)
+                const mevcutMiktar = teslimAlinanlar[detayId] ? teslimAlinanlar[detayId].miktar : 0;
+                teslimAlinanlar[detayId] = {
+                    miktar: mevcutMiktar + miktar,
+                    depo_id: depoId
+                };
+
+                // Satırı yeniden render et
+                const satir = $(`.teslim-urun-satir[data-detay-id="${detayId}"]`);
+                satir.replaceWith(renderUrunSatiri(urun));
+
+                ozetGuncelle();
+                checkboxDegisti(); // Checkbox durumunu güncelle
+                showToast('success', `${miktar} adet ürün depoya eklendi`);
+
+                // Tüm ürünler teslim alındı mı kontrol et
+                tumTeslimKontrol();
+            } else {
+                btn.prop('disabled', false).html('<i class="icon-check"></i> Teslim Al');
+                showToast('error', response.message || 'Teslim alma başarısız');
+            }
+        },
+        error: function() {
+            btn.prop('disabled', false).html('<i class="icon-check"></i> Teslim Al');
+            showToast('error', 'Bağlantı hatası');
+        }
+    });
+}
+
+// ========================================
+// TOPLU TESLİM AL
+// ========================================
+function tumunuSecToggle() {
+    const tumunuSecCheckbox = $('#teslimTumunuSec');
+    const secilecekler = $('.teslim-urun-checkbox input:not(:disabled)');
+
+    if (tumunuSecCheckbox.is(':checked')) {
+        // Tümünü seç
+        secilecekler.prop('checked', true);
+    } else {
+        // Tümünü kaldır
+        secilecekler.prop('checked', false);
+    }
+
+    checkboxDegisti();
+}
+
+function checkboxDegisti() {
+    const seciliSayisi = $('.teslim-urun-checkbox input:checked:not(:disabled)').length;
+    const toplamSecilecek = $('.teslim-urun-checkbox input:not(:disabled)').length;
+
+    $('#topluTeslimAlBtn').prop('disabled', seciliSayisi === 0);
+    $('#topluTeslimAlBtn').html(`<i class="icon-check-square me-1"></i> Seçilenleri Teslim Al (${seciliSayisi})`);
+
+    // Tümünü seç checkbox durumunu güncelle
+    if (toplamSecilecek > 0 && seciliSayisi === toplamSecilecek) {
+        $('#teslimTumunuSec').prop('checked', true).prop('indeterminate', false);
+    } else if (seciliSayisi > 0) {
+        $('#teslimTumunuSec').prop('checked', false).prop('indeterminate', true);
+    } else {
+        $('#teslimTumunuSec').prop('checked', false).prop('indeterminate', false);
+    }
+}
+
+function topluTeslimAl() {
+    const varsayilanDepo = $('#teslimVarsayilanDepo').val();
+
+    if (!varsayilanDepo) {
+        showToast('warning', 'Lütfen önce varsayılan depo seçin');
+        $('#teslimVarsayilanDepo').focus();
+        return;
+    }
+
+    const seciliUrunler = [];
+    $('.teslim-urun-checkbox input:checked:not(:disabled)').each(function() {
+        const detayId = $(this).attr('id').replace('check_', '');
+        const miktar = parseInt($(`#miktar_${detayId}`).val()) || 0;
+
+        if (miktar > 0) {
+            seciliUrunler.push({
+                detay_id: detayId,
+                miktar: miktar,
+                depo_id: varsayilanDepo
+            });
+        }
+    });
+
+    if (seciliUrunler.length === 0) {
+        showToast('warning', 'Teslim alınacak ürün seçin');
+        return;
+    }
+
+    Swal.fire({
+        title: 'Toplu Teslim Al',
+        html: `<p>${seciliUrunler.length} ürün seçili depoya eklenecek.</p>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#22c55e',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: '<i class="icon-check"></i> Teslim Al',
+        cancelButtonText: 'Vazgeç'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            topluTeslimIslem(seciliUrunler);
+        }
+    });
+}
+
+function topluTeslimIslem(urunler) {
+    const siparisId = $('#teslimAlSiparisId').val();
+    const btn = $('#topluTeslimAlBtn');
+    btn.prop('disabled', true).html('<i class="icon-loader spin me-1"></i> İşleniyor...');
+
+    $.ajax({
+        url: 'ajax/tedarik-teslim-al.php',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            islem: 'toplu_teslim_al',
+            siparis_id: siparisId,
+            urunler: JSON.stringify(urunler)
+        },
+        success: function(response) {
+            if (response.success) {
+                // Teslim alınanları güncelle (mevcut miktarlara ekle)
+                urunler.forEach(u => {
+                    const mevcutMiktar = teslimAlinanlar[u.detay_id] ? teslimAlinanlar[u.detay_id].miktar : 0;
+                    teslimAlinanlar[u.detay_id] = {
+                        miktar: mevcutMiktar + u.miktar,
+                        depo_id: u.depo_id
+                    };
+                });
+
+                // Listeyi yeniden render et
+                renderTeslimAlUrunler();
+                ozetGuncelle();
+                checkboxDegisti(); // Checkbox durumunu güncelle
+
+                showToast('success', `${urunler.length} ürün başarıyla teslim alındı`);
+                tumTeslimKontrol();
+            } else {
+                showToast('error', response.message || 'Toplu teslim başarısız');
+            }
+            btn.prop('disabled', true).html('<i class="icon-check-square me-1"></i> Seçilenleri Teslim Al');
+        },
+        error: function() {
+            showToast('error', 'Bağlantı hatası');
+            btn.prop('disabled', true).html('<i class="icon-check-square me-1"></i> Seçilenleri Teslim Al');
+        }
+    });
+}
+
+// ========================================
+// EKSİK/HATALI ÜRÜN BİLDİR
+// ========================================
+function eksikBildirAc(detayId) {
+    const urun = teslimAlUrunListesi.find(u => u.id == detayId);
+    if (!urun) return;
+
+    const mevcutTeslim = teslimAlinanlar[detayId] ? teslimAlinanlar[detayId].miktar : 0;
+    const mevcutSorun = sorunBildirilenler[detayId] ? sorunBildirilenler[detayId].miktar : 0;
+    const kalanMiktar = urun.miktar - mevcutTeslim - mevcutSorun;
+
+    $('#eksikDetayId').val(detayId);
+    $('#eksikMiktar').val(Math.min(1, kalanMiktar)).attr('max', kalanMiktar);
+    $('#eksikMaxMiktar').text(kalanMiktar);
+    $('#eksikAciklama').val('');
+    $('input[name="sorunTipi"][value="eksik"]').prop('checked', true);
+
+    // Ürün bilgisi
+    const resimSrc = urun.resim_url ? resimUrl(urun.resim_url) : 'images/no-image.png';
+    let detay = [];
+    if (urun.telefon_model_adi) detay.push(urun.telefon_model_adi);
+    if (urun.telefon_renk_adi) detay.push(urun.telefon_renk_adi);
+    if (urun.model_adi) detay.push(urun.model_adi);
+    if (urun.renk_adi) detay.push(urun.renk_adi);
+
+    $('#eksikUrunBilgi').html(`
+        <img src="${resimSrc}" alt="${urun.urun_adi}" onerror="this.onerror=null;this.src='images/no-image.png'">
+        <div class="bilgi-text">
+            <div class="urun-adi">${urun.urun_adi}</div>
+            <div class="urun-detay">${detay.join(' • ') || urun.urun_kodu || ''}</div>
+        </div>
+    `);
+
+    eksikBildirModal = new bootstrap.Modal(document.getElementById('eksikBildirModal'));
+    eksikBildirModal.show();
+}
+
+function eksikBildirKapat() {
+    if (eksikBildirModal) eksikBildirModal.hide();
+}
+
+function eksikBildirKaydet() {
+    const detayId = $('#eksikDetayId').val();
+    const sorunTipi = $('input[name="sorunTipi"]:checked').val();
+    const miktar = parseInt($('#eksikMiktar').val()) || 0;
+    const aciklama = $('#eksikAciklama').val().trim();
+    const siparisId = $('#teslimAlSiparisId').val();
+
+    if (miktar <= 0) {
+        showToast('warning', 'Geçerli miktar girin');
+        return;
+    }
+
+    $.ajax({
+        url: 'ajax/tedarik-teslim-al.php',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            islem: 'sorun_bildir',
+            siparis_id: siparisId,
+            detay_id: detayId,
+            sorun_tipi: sorunTipi,
+            miktar: miktar,
+            aciklama: aciklama
+        },
+        success: function(response) {
+            if (response.success) {
+                sorunBildirilenler[detayId] = {
+                    sorun_tipi: sorunTipi,
+                    miktar: miktar,
+                    aciklama: aciklama
+                };
+
+                eksikBildirKapat();
+                renderTeslimAlUrunler();
+                ozetGuncelle();
+                showToast('success', 'Sorun bildirildi');
+            } else {
+                showToast('error', response.message || 'Sorun bildirilemedi');
+            }
+        },
+        error: function() {
+            showToast('error', 'Bağlantı hatası');
+        }
+    });
+}
+
+// ========================================
+// YARDIMCI FONKSİYONLAR
+// ========================================
+function kategoriFiltrele() {
+    renderTeslimAlUrunler();
+}
+
+function varsayilanDepoUygula() {
+    const depoId = $('#teslimVarsayilanDepo').val();
+    if (!depoId) return;
+
+    // Tüm depo seçicilerini güncelle
+    $('.teslim-depo-secim select').val(depoId).trigger('change');
+    showToast('info', 'Varsayılan depo tüm ürünlere uygulandı');
+}
+
+function ozetGuncelle() {
+    let toplamSiparis = 0;
+    let toplamTeslim = 0;
+    let toplamEksik = 0;
+
+    teslimAlUrunListesi.forEach(urun => {
+        toplamSiparis += urun.miktar;
+
+        if (teslimAlinanlar[urun.id]) {
+            toplamTeslim += teslimAlinanlar[urun.id].miktar;
+        }
+
+        if (sorunBildirilenler[urun.id]) {
+            toplamEksik += sorunBildirilenler[urun.id].miktar;
+        }
+    });
+
+    $('#teslimOzetSiparis').text(toplamSiparis);
+    $('#teslimOzetAlinan').text(toplamTeslim);
+    $('#teslimOzetEksik').text(toplamEksik);
+
+    if (toplamEksik > 0) {
+        $('#teslimOzetEksikWrap').show();
+    } else {
+        $('#teslimOzetEksikWrap').hide();
+    }
+}
+
+function tumTeslimKontrol() {
+    const teslimEdilmemis = teslimAlUrunListesi.filter(u => {
+        const teslim = teslimAlinanlar[u.id] ? teslimAlinanlar[u.id].miktar : 0;
+        const sorun = sorunBildirilenler[u.id] ? sorunBildirilenler[u.id].miktar : 0;
+        return (u.miktar - teslim - sorun) > 0;
+    });
+
+    if (teslimEdilmemis.length === 0) {
+        // Tüm ürünler işlendi
+        Swal.fire({
+            title: 'İşlem Tamamlandı!',
+            html: '<p>Tüm ürünler işlendi. Sipariş teslim edildi olarak işaretlenecek.</p>',
+            icon: 'success',
+            confirmButtonColor: '#22c55e',
+            confirmButtonText: 'Tamam'
+        }).then(() => {
+            teslimAlModal.hide();
+            if (typeof tedarikYukle === 'function') {
+                tedarikYukle();
+            }
+        });
+    }
+}
+
+// ========================================
+// YENİ DEPO MODAL
+// ========================================
+function yeniDepoModalAc() {
+    $('#yeniDepoForm')[0].reset();
+    yeniDepoModal = new bootstrap.Modal(document.getElementById('yeniDepoModal'));
+    yeniDepoModal.show();
+}
+
+function yeniDepoModalKapat() {
+    if (yeniDepoModal) yeniDepoModal.hide();
+}
+
+function yeniDepoKaydet() {
+    const depoAdi = $('#yeniDepoAdi').val().trim();
+    if (!depoAdi) {
+        showToast('warning', 'Depo adı zorunludur');
+        return;
+    }
+
+    $.ajax({
+        url: 'ajax/depo/kaydet.php',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            depo_adi: depoAdi,
+            sehir: $('#yeniDepoSehir').val().trim(),
+            adres: $('#yeniDepoAdres').val().trim(),
+            yetkili_adi: $('#yeniDepoYetkili').val().trim(),
+            telefon: $('#yeniDepoTelefon').val().trim(),
+            varsayilan: $('#yeniDepoVarsayilan').is(':checked') ? '1' : '0'
+        },
+        success: function(response) {
+            if (response.success) {
+                yeniDepoModalKapat();
+                showToast('success', 'Depo oluşturuldu');
+
+                // Yeni depoyu listeye ekle
+                teslimAlDepolar.push(response.depo);
+                renderDepoSelectOptions();
+                renderTeslimAlUrunler();
+
+                // Varsayılan olarak seç
+                $('#teslimVarsayilanDepo').val(response.depo.id);
+            } else {
+                showToast('error', response.message || 'Depo oluşturulamadı');
+            }
+        },
+        error: function() {
+            showToast('error', 'Bağlantı hatası');
+        }
+    });
+}
+
+// ========================================
+// DOCUMENT READY
+// ========================================
+$(document).ready(function() {
+    $('#tedarikDetayModal, #tedarikKargoModal').on('hidden.bs.modal', function() {
+        $(this).find('.modal-body').html('');
+    });
+
+    $('#teslimAlModal').on('hidden.bs.modal', function() {
+        $('#teslimAlSiparisId').val('');
+        $('#teslimAlUrunler').html('');
+        $('#teslimTumunuSec').prop('checked', false).prop('indeterminate', false);
+        teslimAlUrunListesi = [];
+        teslimAlinanlar = {};
+        sorunBildirilenler = {};
+    });
+});

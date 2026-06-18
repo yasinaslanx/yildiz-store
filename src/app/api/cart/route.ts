@@ -2,9 +2,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireSessionUser } from "@/lib/session";
 
-function formatCartItem(item: any) {
+function formatCartItem(item: any, userRole?: string) {
   const variant = item.variant;
   const product = variant.product;
+
+  const isDealer = userRole === "DEALER";
+  const finalPrice = isDealer && variant.wholesalePrice ? Number(variant.wholesalePrice) : Number(variant.price);
 
   return {
     id: item.id,
@@ -14,7 +17,7 @@ function formatCartItem(item: any) {
     variantId: variant.id,
     color: variant.color,
     storage: variant.storage ?? undefined,
-    price: Number(variant.price),
+    price: finalPrice,
     quantity: item.quantity,
     image: variant.images?.[0]?.url ?? product.images?.[0]?.url ?? "",
     slug: product.slug,
@@ -43,7 +46,7 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      data: cart?.items.map(formatCartItem) ?? [],
+      data: cart?.items.map(item => formatCartItem(item, user.role)) ?? [],
     });
   } catch (error) {
     if ((error as Error).message === "UNAUTHORIZED") {

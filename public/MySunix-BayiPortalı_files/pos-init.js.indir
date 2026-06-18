@@ -1,0 +1,51 @@
+(function() {
+    'use strict';
+    var F = window.Form;
+    if (!F || !F.Pos || !F.Pos.Config) return;
+
+    var mod = F.Config.mod;
+    if (F.Pos.Config.aktifModlar.indexOf(mod) === -1) return;
+    if (F.Config.readonly) return;
+
+    F.Pos.Toggle.init();
+    if (F.Pos.Detay) F.Pos.Detay.init();
+
+    var ilkAcilis = true;
+    var autoPos = new URLSearchParams(window.location.search).get('pos') === '1';
+
+    F.Events.on('pos:acildi', function() {
+        if (ilkAcilis) {
+            F.Pos.Kategori.yukle();
+            F.Pos.Grid.init();
+            F.Pos.Kart.init();
+            ilkAcilis = false;
+        }
+        F.Pos.State.sifirlaUrunler();
+        F.Pos.Grid.temizle();
+        F.Pos.Grid.yukle(1);
+
+        setTimeout(function() {
+            var aramaInput = document.getElementById('frmPosArama');
+            if (aramaInput) aramaInput.focus({preventScroll: true});
+        }, 100);
+    });
+
+    if (autoPos) {
+        F.Events.on('form:hazir', function() {
+            setTimeout(function() { F.Pos.Toggle.ac(); }, 80);
+        });
+    }
+
+    F.Events.on('pos:kategori-secildi', function() {
+        F.Pos.State.sifirlaUrunler();
+        F.Pos.Grid.temizle();
+        F.Pos.Grid.yukle(1);
+    });
+
+    F.Events.on('musteri:secildi', function() {
+        if (F.Pos.State.aktif) {
+            F.Pos.Grid.fiyatlariGuncelle();
+        }
+    });
+
+})();

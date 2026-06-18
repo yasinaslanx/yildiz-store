@@ -1,0 +1,23 @@
+(function() {
+    'use strict';
+    var F = window.Form;
+    if (!F || !F.Pos) return;
+
+    F.Pos.State = {
+        aktif: false,
+        kategoriler: null,
+        aktifKategoriId: null,
+        urunler: [],
+        sayfa: 1,
+        sonSayfa: false,
+        yukleniyor: false,
+        aramaQuery: '',
+        siralama: localStorage.getItem('frm_pos_siralama') || 'varsayilan'
+    };
+
+    F.Pos.State.sifirlaUrunler = function() {
+        F.Pos.State.urunler = [];
+        F.Pos.State.sayfa = 1;
+        F.Pos.State.sonSayfa = false;
+    };
+})();

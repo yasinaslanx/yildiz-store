@@ -20,6 +20,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         description: body.description,
         brand: body.brand,
         active: body.active,
+        ...(body.isEarlyAccess !== undefined ? { isEarlyAccess: body.isEarlyAccess } : {}),
       },
     });
 

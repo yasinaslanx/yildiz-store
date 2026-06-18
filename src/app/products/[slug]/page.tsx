@@ -9,9 +9,18 @@ type PageProps = {
   }>;
 };
 
+import { getSessionUser } from "@/lib/session";
+
 async function getProduct(slug: string) {
+  const user = await getSessionUser();
+  const isDealerOrAdmin = user?.role === "DEALER" || user?.role === "dealer" || user?.role === "ADMIN" || user?.role === "admin";
+
   const product = await prisma.product.findFirst({
-    where: { slug, active: true },
+    where: { 
+      slug, 
+      active: true,
+      ...(!isDealerOrAdmin ? { isEarlyAccess: false } : {})
+    },
     include: {
       category: true,
       variants: {
@@ -38,6 +47,7 @@ async function getProduct(slug: string) {
     variants: product.variants.map(v => ({
       ...v,
       price: Number(v.price),
+      wholesalePrice: v.wholesalePrice ? Number(v.wholesalePrice) : null,
     }))
   };
 }
