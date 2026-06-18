@@ -17,6 +17,8 @@ export async function GET() {
         firstName: true,
         lastName: true,
         role: true,
+        dealerTier: true,
+        permissions: true,
         createdAt: true,
       }
     });

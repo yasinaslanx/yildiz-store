@@ -176,3 +176,128 @@ export async function sendOtpEmail(to: string, code: string) {
     console.error("Resend Exception:", error);
   }
 }
+
+export async function sendAbandonedCartEmail(
+  to: string,
+  firstName: string,
+  couponCode: string,
+  cartItems: { name: string; price: number; image?: string }[],
+  siteUrl: string = "https://sunixstore.com"
+) {
+  const itemRows = cartItems.slice(0, 3).map(item => `
+    <tr>
+      <td style="padding:12px 0;border-bottom:1px solid #f5f5f4;">
+        <table cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding-right:16px;">
+              ${item.image
+                ? `<img src="${item.image}" width="60" height="60" style="border-radius:12px;object-fit:cover;border:1px solid #e7e5e4;" />`
+                : `<div style="width:60px;height:60px;background:#f5f5f4;border-radius:12px;"></div>`}
+            </td>
+            <td>
+              <p style="margin:0;font-size:13px;font-weight:700;color:#1c1917;">${item.name}</p>
+              <p style="margin:4px 0 0;font-size:12px;color:#a8a29e;">${item.price.toLocaleString("tr-TR")} ₺</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  `).join("");
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Sepetiniz Sizi Bekliyor</title>
+    </head>
+    <body style="margin:0;padding:0;background-color:#f5f5f4;font-family:Arial,sans-serif;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 20px;">
+        <tr>
+          <td align="center">
+            <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border:2px solid #e7e5e4;border-radius:24px;overflow:hidden;">
+              <!-- Header -->
+              <tr>
+                <td style="padding:40px 48px 32px;border-bottom:2px solid #f5f5f4;">
+                  <table cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="width:40px;height:40px;border:2px solid #1c1917;border-radius:10px;text-align:center;vertical-align:middle;font-size:20px;">★</td>
+                      <td style="padding-left:12px;font-size:18px;font-weight:900;color:#1c1917;letter-spacing:-0.5px;text-transform:uppercase;">Sunix Store</td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <!-- Body -->
+              <tr>
+                <td style="padding:48px;">
+                  <p style="margin:0 0 8px;font-size:10px;font-weight:900;color:#a8a29e;text-transform:uppercase;letter-spacing:3px;">Sepetiniz Sizi Bekliyor 🛒</p>
+                  <h1 style="margin:0 0 16px;font-size:28px;font-weight:900;color:#1c1917;letter-spacing:-1px;">Merhaba ${firstName}!</h1>
+                  <p style="margin:0 0 32px;font-size:14px;color:#57534e;line-height:1.7;">
+                    Sepetinizde ürünler bıraktınız. Hâlâ buradalar ve sizin için hazır bekliyor!
+                    Siparişi tamamlamak için size özel <strong style="color:#1c1917;">%5 indirim kuponu</strong> hazırladık.
+                  </p>
+
+                  <!-- Cart Items -->
+                  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+                    ${itemRows}
+                  </table>
+
+                  <!-- Coupon Box -->
+                  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+                    <tr>
+                      <td style="background:#f5f5f4;border:2px dashed #d6d3d1;border-radius:16px;padding:24px;text-align:center;">
+                        <p style="margin:0 0 8px;font-size:10px;font-weight:900;color:#a8a29e;text-transform:uppercase;letter-spacing:3px;">Kupon Kodunuz</p>
+                        <p style="margin:0;font-size:28px;font-weight:900;color:#1c1917;letter-spacing:4px;">${couponCode}</p>
+                        <p style="margin:8px 0 0;font-size:11px;color:#a8a29e;">48 saat geçerli · Tek kullanımlık</p>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <!-- CTA Button -->
+                  <table cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="border-radius:100px;background:#1c1917;">
+                        <a href="${siteUrl}/cart" style="display:inline-block;padding:18px 40px;font-size:12px;font-weight:900;color:#ffffff;text-decoration:none;text-transform:uppercase;letter-spacing:2px;">
+                          Sepete Git ve Tamamla →
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <p style="margin:32px 0 0;font-size:12px;color:#a8a29e;line-height:1.7;">
+                    Bu e-postayı istemiyorsanız, bir daha gönderilmeyecektir. Sepetinizdeki ürünlerin stoğu sınırlı olabilir.
+                  </p>
+                </td>
+              </tr>
+              <!-- Footer -->
+              <tr>
+                <td style="padding:24px 48px;background:#f5f5f4;border-top:2px solid #e7e5e4;">
+                  <p style="margin:0;font-size:11px;color:#a8a29e;text-align:center;">
+                    © 2025 Sunix Store. Tüm hakları saklıdır.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  try {
+    const { error } = await resend.emails.send({
+      from: "Sunix Store <bildirim@sunixstore.com>",
+      to: [to],
+      subject: `🛒 ${firstName}, sepetiniz sizi bekliyor! Özel kuponunuz: ${couponCode}`,
+      html,
+    });
+
+    if (error) {
+      console.error("Abandoned Cart Email Error:", error);
+    }
+  } catch (error) {
+    console.error("Abandoned Cart Email Exception:", error);
+  }
+}

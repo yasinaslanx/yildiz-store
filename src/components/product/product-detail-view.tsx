@@ -150,7 +150,12 @@ export function ProductDetailView({ product }: { product: Product }) {
   };
 
   const isDealer = user?.role === "DEALER" || user?.role === "dealer";
-  const finalPrice = selectedVariant ? (isDealer && selectedVariant.wholesalePrice ? Number(selectedVariant.wholesalePrice) : Number(selectedVariant.price)) : Number(product.price || 0);
+  const dealerTier = (user as any)?.dealerTier as "BRONZE" | "SILVER" | "GOLD" | undefined;
+  const TIER_EXTRA_DISCOUNT = { BRONZE: 0, SILVER: 3, GOLD: 7 };
+  const tierExtraDiscount = isDealer && dealerTier ? (TIER_EXTRA_DISCOUNT[dealerTier] || 0) : 0;
+
+  const wholesaleBase = selectedVariant ? (isDealer && selectedVariant.wholesalePrice ? Number(selectedVariant.wholesalePrice) : Number(selectedVariant.price)) : Number(product.price || 0);
+  const finalPrice = tierExtraDiscount > 0 ? wholesaleBase * (1 - tierExtraDiscount / 100) : wholesaleBase;
   const finalOldPrice = selectedVariant.oldPrice && selectedVariant.oldPrice > finalPrice ? selectedVariant.oldPrice : (finalPrice * 1.25);
 
   return (
@@ -225,6 +230,13 @@ export function ProductDetailView({ product }: { product: Product }) {
                   {isDealer && (
                     <span className="bg-blue-50 text-blue-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
                       Bayi Fiyatı
+                    </span>
+                  )}
+                  {isDealer && dealerTier && dealerTier !== "BRONZE" && (
+                    <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
+                      dealerTier === "GOLD" ? "bg-yellow-50 text-yellow-700" : "bg-slate-100 text-slate-700"
+                    }`}>
+                      {dealerTier === "GOLD" ? "🥇" : "🥈"} +%{tierExtraDiscount} Tier İndirimi
                     </span>
                   )}
                   {selectedVariant.oldPrice && selectedVariant.oldPrice > finalPrice ? (

@@ -15,6 +15,7 @@ model User {
   passwordHash String?
   role         UserRole           @default(USER)
   permissions  String[]           @default([])
+  dealerTier   DealerTier         @default(BRONZE)
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
   points       Int                @default(0)
@@ -25,6 +26,7 @@ model User {
   orders       Order[]
   questions    ProductQuestion[]
   reviews      ProductReview[]
+  cartReminder CartReminder?
 }
 
 model Address {
@@ -397,4 +399,18 @@ model BundleDeal {
   updatedAt        DateTime  @updatedAt
   triggerProduct   Product   @relation("BundleTrigger", fields: [triggerProductId], references: [id])
   bundleProduct    Product   @relation("BundleTarget", fields: [bundleProductId], references: [id])
+}
+
+model CartReminder {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  sentAt      DateTime @default(now())
+  couponCode  String?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum DealerTier {
+  BRONZE
+  SILVER
+  GOLD
 }
