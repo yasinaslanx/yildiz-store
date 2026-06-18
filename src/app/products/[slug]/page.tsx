@@ -13,7 +13,7 @@ import { getSessionUser } from "@/lib/session";
 
 async function getProduct(slug: string) {
   const user = await getSessionUser();
-  const isDealerOrAdmin = user?.role === "DEALER" || user?.role === "dealer" || user?.role === "ADMIN" || user?.role === "admin";
+  const isDealerOrAdmin = (user?.role as string) === "DEALER" || (user?.role as string) === "dealer" || (user?.role as string) === "ADMIN" || (user?.role as string) === "admin";
 
   const product = await prisma.product.findFirst({
     where: { 

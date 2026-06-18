@@ -18,6 +18,7 @@ type AdminVariant = {
   color: string;
   storage?: string | null;
   price: number;
+  wholesalePrice?: number | null;
   oldPrice?: number | null;
   stock: number;
   active: boolean;
@@ -127,7 +128,7 @@ export default function AdminProductsPage() {
             Hızlı / Toplu İşlemler
           </button>
           <button 
-            onClick={() => { setEditingProduct(null); setForm({ name: "", brand: "", description: "", categoryId: "", mainImage: "", newVariants: [] }); setIsModalOpen(true); }}
+            onClick={() => { setEditingProduct(null); setForm({ name: "", brand: "", description: "", categoryId: "", isEarlyAccess: false, mainImage: "", newVariants: [] }); setIsModalOpen(true); }}
             className="cursor-pointer rounded-full border-2 border-black bg-white px-10 py-4 text-[11px] font-black uppercase tracking-widest text-stone-900 shadow-xl shadow-stone-100 transition hover:bg-stone-50 active:scale-95"
           >
              + Yeni Ürün Ekle

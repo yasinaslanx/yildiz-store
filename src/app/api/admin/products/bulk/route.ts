@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       }
 
       // Calculate new price and round it (e.g. 500.5 -> 501, 500.4 -> 500)
-      const newPrice = Math.round(variant.price * multiplier);
+      const newPrice = Math.round(Number(variant.price) * multiplier);
 
       await prisma.productVariant.update({
         where: { id: variant.id },
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
 
       // Update all variants in a transaction
       const updatePromises = variants.map(v => {
-        const newPrice = Math.round(v.price * multiplier);
+        const newPrice = Math.round(Number(v.price) * multiplier);
         return prisma.productVariant.update({
           where: { id: v.id },
           data: { price: newPrice }

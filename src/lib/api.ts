@@ -351,6 +351,7 @@ export async function updateAdminVariantRequest(
   variantId: string,
   payload: {
     price?: number;
+    wholesalePrice?: number | null;
     oldPrice?: number | null;
     stock?: number;
     active?: boolean;

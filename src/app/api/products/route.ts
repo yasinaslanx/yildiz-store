@@ -44,7 +44,7 @@ function formatProduct(product: any, isDealer: boolean = false) {
 export async function GET(request: Request) {
   try {
     const user = await getSessionUser();
-    const isDealer = user?.role === "DEALER";
+    const isDealer = (user?.role as string) === "DEALER" || (user?.role as string) === "dealer";
 
     const { searchParams } = new URL(request.url);
 
@@ -67,7 +67,7 @@ export async function GET(request: Request) {
     const skip = (page - 1) * limit;
 
     const earlyAccess = searchParams.get("earlyAccess") === "true";
-    const canSeeEarlyAccess = user?.role === "DEALER" || user?.role === "ADMIN" || user?.role === "dealer" || user?.role === "admin";
+    const canSeeEarlyAccess = (user?.role as string) === "DEALER" || (user?.role as string) === "ADMIN" || (user?.role as string) === "dealer" || (user?.role as string) === "admin";
 
     const where: any = {
       active: true,

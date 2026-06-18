@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
-import { v4 as uuidv4 } from "uuid";
+
 
 export async function POST(request: Request) {
   try {
     const user = await getSessionUser();
-    if (!user || (user.role !== "DEALER" && user.role !== "dealer")) {
+    if (!user || ((user.role as string) !== "DEALER" && (user.role as string) !== "dealer")) {
       return NextResponse.json(
         { success: false, message: "Sadece bayiler indirim talebinde bulunabilir." },
         { status: 403 }
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       data: {
         orderNumber,
         userId: user.id,
-        customerName: `${user.firstName} ${user.lastName}`,
+        customerName: `${(user as any).firstName || (user as any).name || "Bayi"} ${(user as any).lastName || ""}`.trim(),
         customerEmail: user.email,
         customerPhone: "BAYI-TALEP", // Placeholder
         shippingAddress: "BAYI-TALEP", // Placeholder

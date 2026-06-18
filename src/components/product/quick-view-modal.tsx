@@ -62,7 +62,7 @@ export function QuickViewModal({ isOpen, onClose, product }: QuickViewModalProps
   const displayImage = (typeof imageObj === 'string' ? imageObj : imageObj?.url) || product.image || "https://placehold.co/600x600/f5f5f4/a8a29e?text=Gorsel+Yok";
 
   const isDealer = user?.role === "DEALER" || user?.role === "dealer";
-  const finalPrice = selectedVariant ? (isDealer && selectedVariant.wholesalePrice ? Number(selectedVariant.wholesalePrice) : Number(selectedVariant.price)) : Number(product.price || 0);
+  const finalPrice = selectedVariant ? (isDealer && (selectedVariant as any).wholesalePrice ? Number((selectedVariant as any).wholesalePrice) : Number(selectedVariant.price)) : Number(product.price || 0);
 
   function handleAddToCart() {
     addItem({

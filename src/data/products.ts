@@ -5,6 +5,7 @@ export type ProductVariant = {
   color: string;
   storage?: string;
   price: number;
+  wholesalePrice?: number | null;
   oldPrice?: number | null;
   stock: number;
   sku: string;
