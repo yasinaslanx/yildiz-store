@@ -187,14 +187,14 @@ export function Navbar() {
               {pathname === "/contact" && <span className="absolute -bottom-2 left-0 h-[3px] w-full rounded-full bg-stone-900 animate-in fade-in zoom-in-50 duration-500" />}
             </Link>
             
-            {isMounted && user?.role === "admin" && (
+            {isMounted && (user?.role === "admin" || user?.role === "ADMIN") && (
               <Link
-                href="/admin/support"
+                href="/admin"
                 className={`relative text-[10px] font-black uppercase tracking-[0.25em] transition-all duration-300 px-4 py-2 rounded-xl bg-stone-50 border border-stone-100 hover:border-black ${
-                  pathname.startsWith("/admin/support") ? "text-stone-900 border-black" : "text-stone-400"
+                  pathname.startsWith("/admin") ? "text-stone-900 border-black" : "text-stone-400"
                 }`}
               >
-                Destek Panel
+                Admin Panel
               </Link>
             )}
           </nav>
@@ -430,9 +430,9 @@ export function Navbar() {
                       <span className="italic tracking-tighter">Bayi Portalı</span>
                       <ChevronRight size={16} className="text-blue-300" />
                     </Link>
-                    {isMounted && user?.role === "admin" && (
+                    {isMounted && (user?.role === "admin" || user?.role === "ADMIN") && (
                        <Link
-                        href="/admin/support"
+                        href="/admin"
                         onClick={() => setIsMobileMenuOpen(false)}
                         className="flex items-center justify-between rounded-2xl bg-stone-900 p-5 text-sm font-black uppercase tracking-tight text-white"
                       >

@@ -8,7 +8,6 @@ import { useUi } from "@/store/ui-store";
 
 function DealerLoginForm() {
   const router = useRouter();
-  const { login } = useAuth();
   const { showToast } = useUi();
 
   const [form, setForm] = useState({
@@ -86,15 +85,6 @@ function DealerLoginForm() {
               }
               className="w-full rounded-2xl border border-stone-200 bg-stone-50/30 px-5 py-4 text-sm font-bold text-stone-900 outline-none transition focus:border-blue-500 focus:bg-white"
             />
-          </div>
-
-          <div className="flex justify-end px-1">
-             <Link 
-               href="/forgot-password" 
-               className="text-xs font-black uppercase tracking-widest text-blue-500 underline underline-offset-4 transition hover:text-blue-700"
-             >
-               Şifremi Unuttum
-             </Link>
           </div>
 
           <button

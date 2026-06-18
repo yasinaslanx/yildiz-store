@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { companyName, taxOffice, taxNumber, phone, email, password, address } = body;
 
-    if (!companyName || !taxOffice || !taxNumber || !phone || !password || !address) {
+    if (!companyName || !taxOffice || !taxNumber || !phone || !password || !address || !email) {
       return NextResponse.json(
         { success: false, message: "Lütfen zorunlu tüm alanları doldurun." },
         { status: 400 }
@@ -61,29 +61,26 @@ export async function POST(request: Request) {
       );
     }
 
-    // Email verilmişse, daha önce kullanılmış mı?
-    if (email) {
-      const existingEmail = await prisma.user.findUnique({
-        where: { email },
-      });
-      if (existingEmail) {
-        return NextResponse.json(
-          { success: false, message: "Bu e-posta adresi ile zaten bir kayıt mevcut." },
-          { status: 400 }
-        );
-      }
+    // Email daha önce kullanılmış mı?
+    const existingEmail = await prisma.user.findUnique({
+      where: { email },
+    });
+    if (existingEmail) {
+      return NextResponse.json(
+        { success: false, message: "Bu e-posta adresi ile zaten bir kayıt mevcut." },
+        { status: 400 }
+      );
     }
 
     // Kullanıcıyı oluştur
     const hashedPassword = await hashPassword(password);
-    const finalEmail = email || `dealer_${phone.replace(/\D/g, '')}@sunix.local`;
 
     const newUser = await prisma.user.create({
       data: {
         firstName: companyName.substring(0, 50), // Şirket adını geçici olarak firstName'e yaz
         lastName: "Bayi",
         phone,
-        email: finalEmail,
+        email,
         passwordHash: hashedPassword,
         role: "USER", // Onaylanana kadar USER kalır
       },

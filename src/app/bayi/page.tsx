@@ -14,7 +14,7 @@ export default function DealerPortalPage() {
     if (!isLoading) {
       if (!user) {
         router.push("/bayi-girisi");
-      } else if (user.role !== "DEALER" && user.role !== "dealer" && user.role !== "ADMIN" && user.role !== "admin") {
+      } else if (user.role !== "DEALER" && user.role !== "ADMIN") {
         router.push("/dealer-application");
       }
     }

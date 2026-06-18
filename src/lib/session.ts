@@ -13,13 +13,14 @@ export type SessionUser = {
   id: string;
   email: string;
   role: "USER" | "ADMIN" | "DEALER";
+  permissions?: string[];
 };
 
 export async function createSessionToken(user: SessionUser) {
   return new SignJWT(user)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("7d")
+    .setExpirationTime("30d")
     .sign(secret);
 }
 
@@ -27,16 +28,18 @@ export async function setSessionCookie(user: SessionUser) {
   const token = await createSessionToken(user);
   const cookieStore = await cookies();
 
-  cookieStore.set(SESSION_COOKIE_NAME, token, {
+  cookieStore.set({
+    name: SESSION_COOKIE_NAME,
+    value: token,
     httpOnly: true,
-    sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: 60 * 60 * 24 * 30, // 30 days
   });
 }
 
-export async function clearSessionCookie() {
+export async function deleteSessionCookie() {
   const cookieStore = await cookies();
 
   cookieStore.delete(SESSION_COOKIE_NAME);
@@ -63,6 +66,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
         id: true,
         email: true,
         role: true,
+        permissions: true,
       },
     });
 
@@ -72,16 +76,19 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       id: user.id,
       email: user.email,
       role: user.role as "USER" | "ADMIN" | "DEALER",
+      permissions: user.permissions || [],
     };
 
     // Sentry user context
     Sentry.setUser({
       id: sessionUser.id,
       email: sessionUser.email,
+      role: sessionUser.role,
     });
 
     return sessionUser;
-  } catch {
+  } catch (error) {
+    console.error("SESSION ERROR:", error);
     return null;
   }
 }
@@ -100,6 +107,22 @@ export async function requireAdminUser() {
   const user = await requireSessionUser();
 
   if (user.role !== "ADMIN") {
+    throw new Error("FORBIDDEN");
+  }
+
+  return user;
+}
+
+export async function requirePermission(permission: string) {
+  const user = await requireAdminUser();
+
+  // Süper adminler için her şeye izin ver
+  const isSuperAdmin = user.email === "admin@sunixstore.com" || user.email === "aslanyasin320@gmail.com";
+  if (isSuperAdmin) {
+    return user;
+  }
+
+  if (!user.permissions?.includes(permission)) {
     throw new Error("FORBIDDEN");
   }
 

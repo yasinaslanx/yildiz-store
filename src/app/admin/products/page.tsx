@@ -39,6 +39,7 @@ type AdminProduct = {
     name: string;
     slug: string;
   };
+  images?: { url: string }[];
   variants: AdminVariant[];
 };
 
@@ -97,7 +98,7 @@ export default function AdminProductsPage() {
       description: product.description,
       categoryId: product.categoryId,
       isEarlyAccess: product.isEarlyAccess,
-      mainImage: product.variants[0]?.images?.[0]?.url || "",
+      mainImage: product.images?.[0]?.url || product.variants[0]?.images?.[0]?.url || "",
       newVariants: [],
     });
     setIsModalOpen(true);
@@ -184,7 +185,7 @@ export default function AdminProductsPage() {
                             <div className="flex items-center gap-4">
                                <div className="h-14 w-14 rounded-2xl border border-stone-100 bg-white p-2 flex-shrink-0">
                                   <img 
-                                    src={product.variants[0]?.images?.[0]?.url || "https://placehold.co/100"} 
+                                    src={product.images?.[0]?.url || product.variants[0]?.images?.[0]?.url || "https://placehold.co/100"} 
                                     alt={product.name} 
                                     className="h-full w-full object-contain"
                                   />

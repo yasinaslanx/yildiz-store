@@ -11,7 +11,8 @@ const secret = new TextEncoder().encode(
 type SessionUser = {
   id: string;
   email: string;
-  role: "USER" | "ADMIN";
+  role: "USER" | "ADMIN" | "DEALER";
+  permissions?: string[];
 };
 
 // Çerezden kullanıcı oturum bilgisini çözen yardımcı fonksiyon
@@ -36,7 +37,8 @@ async function getSessionUser(
     return {
       id: payload.id,
       email: payload.email,
-      role: payload.role as "USER" | "ADMIN",
+      role: payload.role as "USER" | "ADMIN" | "DEALER",
+      permissions: payload.permissions || [],
     };
   } catch {
     return null;

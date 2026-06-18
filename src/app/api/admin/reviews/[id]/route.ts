@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/session";
+import { requirePermission } from "@/lib/session";
 import { adminReviewSchema } from "@/lib/validations/review";
 import { ZodError } from "zod";
 import { getZodErrorMessage } from "@/lib/validation";
@@ -9,13 +9,10 @@ const db = prisma as any;
 
 export async function PATCH(
   request: NextRequest,
-  context: any
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getSessionUser();
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json({ success: false, message: "Yetkisiz." }, { status: 403 });
-    }
+    await requirePermission("PRODUCTS");
 
     const params = await context.params;
     const id = params?.id;
@@ -51,10 +48,7 @@ export async function DELETE(
   context: any
 ) {
   try {
-    const user = await getSessionUser();
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json({ success: false, message: "Yetkisiz." }, { status: 403 });
-    }
+    await requirePermission("PRODUCTS");
 
     const params = await context.params;
     const id = params?.id;

@@ -194,11 +194,19 @@ export default function AdminDealersPage() {
                     </button>
                   </div>
                 ) : (
-                  <div className={`flex items-center justify-center gap-2 h-12 rounded-2xl font-black uppercase tracking-widest text-[10px] ${
-                    app.status === "APPROVED" ? "bg-green-50 text-green-600 border border-green-100" : "bg-red-50 text-red-600 border border-red-100"
+                  <div className={`flex items-center justify-between gap-2 h-12 rounded-2xl font-black uppercase tracking-widest text-[10px] px-4 ${
+                    app.status === "APPROVED" ? "bg-green-50 text-green-600 border border-green-100" : "bg-red-50 text-red-600 border border-red-100 justify-center"
                   }`}>
                     {app.status === "APPROVED" ? (
-                      <><Check className="w-4 h-4" /> Onaylandı</>
+                      <>
+                        <div className="flex items-center gap-2"><Check className="w-4 h-4" /> Onaylandı</div>
+                        <button 
+                          onClick={() => handleUpdateStatus(app.id, "REJECTED")} 
+                          className="text-red-500 hover:bg-red-50 bg-white px-3 py-1.5 rounded-xl border border-red-100 shadow-sm transition-colors flex items-center gap-1"
+                        >
+                          İptal Et
+                        </button>
+                      </>
                     ) : (
                       <><X className="w-4 h-4" /> Reddedildi</>
                     )}

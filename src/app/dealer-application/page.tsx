@@ -214,10 +214,11 @@ export default function DealerApplicationPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 ml-4">E-posta (İsteğe Bağlı)</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 ml-4">E-posta (Zorunlu)</label>
               <input
                 type="email"
                 name="email"
+                required
                 value={formData.email}
                 onChange={handleChange}
                 className="w-full rounded-2xl border-2 border-stone-100 bg-stone-50 px-6 py-4 text-sm font-medium transition-all focus:border-stone-900 focus:bg-white focus:outline-none"

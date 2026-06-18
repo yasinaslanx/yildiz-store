@@ -6,13 +6,10 @@ type ApiResponse<T> = {
   message?: string;
 };
 
-export async function registerRequest(payload: {
-  firstName: string;
-  lastName: string;
+export async function sendOtpRequest(payload: {
   email: string;
-  password: string;
 }) {
-  const response = await fetch("/api/auth/register", {
+  const response = await fetch("/api/auth/send-otp", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -20,20 +17,22 @@ export async function registerRequest(payload: {
     body: JSON.stringify(payload),
   });
 
-  const result = (await response.json()) as ApiResponse<AuthUser>;
+  const result = (await response.json()) as ApiResponse<null>;
 
   return {
     ok: response.ok && result.success,
-    data: result.data,
     message: result.message || "",
   };
 }
 
-export async function loginRequest(payload: {
+export async function verifyOtpRequest(payload: {
   email: string;
-  password: string;
+  code: string;
+  firstName?: string;
+  lastName?: string;
+  isRegister: boolean;
 }) {
-  const response = await fetch("/api/auth/login", {
+  const response = await fetch("/api/auth/verify-otp", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

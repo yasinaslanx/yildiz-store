@@ -1,16 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/session";
+import { requirePermission } from "@/lib/session";
 
 export async function GET(request: Request) {
   try {
-    const user = await getSessionUser();
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json(
-        { success: false, message: "Yetkisiz erişim." },
-        { status: 403 }
-      );
-    }
+    await requirePermission("USERS");
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") || "PENDING"; // PENDING, APPROVED, REJECTED

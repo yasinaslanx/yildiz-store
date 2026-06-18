@@ -114,10 +114,10 @@ export async function GET() {
         })),
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("ADMIN DASHBOARD ERROR:", error);
     return NextResponse.json(
-      { success: false, message: "Dashboard verileri alınamadı." },
+      { success: false, message: "Dashboard verileri alınamadı: " + error.message, stack: error.stack },
       { status: 500 },
     );
   }

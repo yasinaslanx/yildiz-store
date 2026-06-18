@@ -15,6 +15,7 @@ const adminMenu = [
   { href: "/admin/stock-alerts", label: "Stok Bekleyenler", icon: "🔔" },
   { href: "/admin/support", label: "Canlı Destek", icon: "💬" },
   { href: "/admin/dealers", label: "Bayi Yönetimi", icon: "🤝" },
+  { href: "/admin/users", label: "Kullanıcı Yönetimi", icon: "👥" },
   { href: "/admin/quotes", label: "İndirim Talepleri", icon: "💰" },
 ];
 
@@ -24,7 +25,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { user, isLoading } = useAuth();
 
   useEffect(() => {
-    if (!isLoading && (!user || (user.role !== "admin" && user.role !== "ADMIN"))) {
+    if (!isLoading && (!user || user.role !== "ADMIN")) {
       router.push("/");
     }
   }, [user, isLoading, router]);
@@ -37,18 +38,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  if (!user || (user.role !== "admin" && user.role !== "ADMIN")) return null;
+  if (!user || user.role !== "ADMIN") return null;
 
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
       {/* Sidebar / Sub-nav */}
       <aside className="w-full border-r border-stone-100 bg-white lg:w-72">
-        <div className="sticky top-[73px] p-6 lg:p-8">
+        <div className="sticky top-[73px] p-6 lg:p-8 h-[calc(100vh-73px)] overflow-y-auto">
           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-stone-400">Yönetim</p>
           <h2 className="mt-2 text-2xl font-black text-stone-900 tracking-tighter">Panel</h2>
           
           <nav className="mt-10 space-y-2">
-            {adminMenu.map((item) => {
+            {adminMenu.filter(item => {
+              // Super admin her şeyi görür
+              if (user?.email === "admin@sunixstore.com" || user?.email === "aslanyasin320@gmail.com") return true;
+              
+              // Herkese açık olan ana sayfa
+              if (item.href === "/admin") return true;
+
+              // İzin kontrolleri
+              const p = user?.permissions || [];
+              if (item.href === "/admin/orders" || item.href === "/admin/quotes") return p.includes("ORDERS");
+              if (item.href === "/admin/products" || item.href === "/admin/categories" || item.href === "/admin/stock-alerts") return p.includes("PRODUCTS");
+              if (item.href === "/admin/dealers" || item.href === "/admin/users") return p.includes("USERS");
+              if (item.href === "/admin/support") return p.includes("SUPPORT");
+              if (item.href === "/admin/coupons") return p.includes("MARKETING");
+              if (item.href === "/admin/warehouse") return p.includes("WAREHOUSE");
+
+              return false;
+            }).map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link

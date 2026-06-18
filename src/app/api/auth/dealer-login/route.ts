@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       where: { phone },
     });
 
-    if (!user) {
+    if (!user || !user.passwordHash) {
       return NextResponse.json(
         { success: false, message: "Telefon numarası veya şifre hatalı." },
         { status: 401 },

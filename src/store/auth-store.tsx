@@ -8,9 +8,9 @@ import {
   useState,
 } from "react";
 import {
-  loginRequest,
+  sendOtpRequest,
+  verifyOtpRequest,
   logoutRequest,
-  registerRequest,
 } from "@/lib/auth-api";
 
 export type UserRole = "user" | "admin" | "dealer" | "USER" | "ADMIN" | "DEALER";
@@ -21,18 +21,19 @@ export type AuthUser = {
   lastName: string;
   email: string;
   role: UserRole;
+  permissions?: string[];
 };
 
-type RegisterPayload = {
-  firstName: string;
-  lastName: string;
+type SendOtpPayload = {
   email: string;
-  password: string;
 };
 
-type LoginPayload = {
+type VerifyOtpPayload = {
   email: string;
-  password: string;
+  code: string;
+  firstName?: string;
+  lastName?: string;
+  isRegister: boolean;
 };
 
 type AuthResult = {
@@ -44,8 +45,8 @@ type AuthContextType = {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  register: (payload: RegisterPayload) => Promise<AuthResult>;
-  login: (payload: LoginPayload) => Promise<AuthResult>;
+  sendOtp: (payload: SendOtpPayload) => Promise<AuthResult>;
+  verifyOtp: (payload: VerifyOtpPayload) => Promise<AuthResult>;
   logout: () => Promise<void>;
 };
 
@@ -70,32 +71,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const register = async (payload: RegisterPayload): Promise<AuthResult> => {
-    const result = await registerRequest(payload);
+  const sendOtp = async (payload: SendOtpPayload): Promise<AuthResult> => {
+    const result = await sendOtpRequest(payload);
 
-    if (!result.ok || !result.data) {
+    if (!result.ok) {
       return {
         success: false,
-        message: result.message || "Kayıt başarısız.",
+        message: result.message || "Kod gönderilemedi.",
       };
     }
 
-    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(result.data));
-    setUser(result.data);
-
     return {
       success: true,
-      message: "Kayıt başarılı.",
+      message: result.message || "Doğrulama kodu gönderildi.",
     };
   };
 
-  const login = async (payload: LoginPayload): Promise<AuthResult> => {
-    const result = await loginRequest(payload);
+  const verifyOtp = async (payload: VerifyOtpPayload): Promise<AuthResult> => {
+    const result = await verifyOtpRequest(payload);
 
     if (!result.ok || !result.data) {
       return {
         success: false,
-        message: result.message || "Giriş başarısız.",
+        message: result.message || "Doğrulama başarısız.",
       };
     }
 
@@ -104,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return {
       success: true,
-      message: "Giriş başarılı.",
+      message: result.message || "Giriş başarılı.",
     };
   };
 
@@ -119,8 +117,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       isAuthenticated: !!user,
       isLoading,
-      register,
-      login,
+      sendOtp,
+      verifyOtp,
       logout,
     }),
     [user, isLoading],

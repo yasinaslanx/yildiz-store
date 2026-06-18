@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/session";
+import { requirePermission } from "@/lib/session";
 
 type RouteContext = {
   params: Promise<{
@@ -10,13 +10,7 @@ type RouteContext = {
 
 export async function PATCH(request: Request, context: RouteContext) {
   try {
-    const user = await getSessionUser();
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json(
-        { success: false, message: "Yetkisiz erişim." },
-        { status: 403 }
-      );
-    }
+    await requirePermission("USERS");
 
     const { id } = await context.params;
     const body = await request.json();
@@ -54,6 +48,12 @@ export async function PATCH(request: Request, context: RouteContext) {
       await prisma.user.update({
         where: { id: application.userId },
         data: { role: "DEALER" },
+      });
+    } else if (status === "REJECTED") {
+      // If REJECTED or cancelled later, demote back to USER
+      await prisma.user.update({
+        where: { id: application.userId },
+        data: { role: "USER" },
       });
     }
 

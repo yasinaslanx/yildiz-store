@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/session";
+import { requirePermission } from "@/lib/session";
 
 const db = prisma as any;
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getSessionUser();
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json({ success: false, message: "Yetkisiz erişim." }, { status: 403 });
-    }
+    await requirePermission("PRODUCTS");
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
