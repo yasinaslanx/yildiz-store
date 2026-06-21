@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 type ProductGalleryProps = {
   images: { url: string }[] | string[];
   alt: string;
+  featured?: boolean;
 };
 
 const PLACEHOLDER = "/placeholder.png";
@@ -17,7 +18,7 @@ function getUrl(img: { url: string } | string): string {
   return img.url || PLACEHOLDER;
 }
 
-export function ProductGallery({ images, alt }: ProductGalleryProps) {
+export function ProductGallery({ images, alt, featured }: ProductGalleryProps) {
   const urls = (images || []).map(getUrl).filter(Boolean);
   const [activeImage, setActiveImage] = useState(urls[0] || PLACEHOLDER);
 
@@ -60,24 +61,17 @@ export function ProductGallery({ images, alt }: ProductGalleryProps) {
         </AnimatePresence>
         
         {/* Zarif Rozetler (Türkçe) */}
-        <div className="absolute top-10 left-10 flex flex-col gap-3 z-10">
-           <motion.div 
-             initial={{ x: -20, opacity: 0 }}
-             animate={{ x: 0, opacity: 1 }}
-             className="bg-black text-white px-6 py-2 rounded-full shadow-2xl"
-           >
-             <p className="text-[10px] font-black uppercase tracking-[0.3em] leading-none">En Çok Satan</p>
-           </motion.div>
-
-           <motion.div 
-             initial={{ x: -20, opacity: 0 }}
-             animate={{ x: 0, opacity: 1 }}
-             transition={{ delay: 0.1 }}
-             className="bg-white/90 backdrop-blur-md border border-stone-100 px-6 py-2 rounded-full shadow-lg"
-           >
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-stone-900 leading-none">Amiral Gemisi Serisi</p>
-           </motion.div>
-        </div>
+        {featured && (
+          <div className="absolute top-10 left-10 flex flex-col gap-3 z-10">
+             <motion.div 
+               initial={{ x: -20, opacity: 0 }}
+               animate={{ x: 0, opacity: 1 }}
+               className="bg-black text-white px-6 py-2 rounded-full shadow-2xl"
+             >
+               <p className="text-[10px] font-black uppercase tracking-[0.3em] leading-none">Öne Çıkan</p>
+             </motion.div>
+          </div>
+        )}
 
         <div className="absolute bottom-10 right-10">
            <div className="bg-stone-900 text-white px-5 py-2 rounded-full shadow-xl">

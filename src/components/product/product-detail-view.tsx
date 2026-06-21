@@ -171,7 +171,7 @@ export function ProductDetailView({ product }: { product: Product }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_500px] gap-8 lg:gap-20">
         <div className="order-1 lg:col-start-1 lg:row-start-1">
-          <ProductGallery images={colorImages} alt={`${product.name} ${selectedColor}`} />
+          <ProductGallery images={colorImages} alt={`${product.name} ${selectedColor}`} featured={product.featured} />
         </div>
 
         <div className="order-2 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:sticky lg:top-32 h-fit space-y-8 lg:space-y-16">

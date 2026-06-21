@@ -103,9 +103,11 @@ export function ProductCard({ product }: ProductCardProps) {
                </div>
              </>
            )}
-           <div className="bg-black text-white px-4 py-1.5 rounded-full shadow-lg">
-              <p className="text-[9px] font-black uppercase tracking-[0.2em] leading-none">En Çok Satan</p>
-           </div>
+           {product.featured && (
+             <div className="bg-black text-white px-4 py-1.5 rounded-full shadow-lg">
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] leading-none">Öne Çıkan</p>
+             </div>
+           )}
         </div>
 
         {/* Aksiyon Butonları */}
