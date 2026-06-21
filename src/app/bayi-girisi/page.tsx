@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/store/auth-store";
@@ -9,6 +9,13 @@ import { useUi } from "@/store/ui-store";
 function DealerLoginForm() {
   const router = useRouter();
   const { showToast } = useUi();
+  const { user, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated && (user?.role === "DEALER" || user?.role === "dealer")) {
+      router.push("/bayi");
+    }
+  }, [user, isAuthenticated, router]);
 
   const [form, setForm] = useState({
     phone: "",

@@ -248,7 +248,7 @@ export function Navbar() {
             <div className="h-8 w-px bg-stone-100 hidden sm:block" />
 
             {/* Bayi Girişi Link */}
-            <Link href="/bayi-girisi" className="hidden sm:flex items-center gap-3 group">
+            <Link href={isAuthenticated && (user?.role === "DEALER" || user?.role === "dealer") ? "/bayi" : "/bayi-girisi"} className="hidden sm:flex items-center gap-3 group">
                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white group-active:scale-95">
                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                </div>
@@ -423,7 +423,7 @@ export function Navbar() {
                     </Link>
 
                     <Link
-                      href="/bayi-girisi"
+                      href={isAuthenticated && (user?.role === "DEALER" || user?.role === "dealer") ? "/bayi" : "/bayi-girisi"}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="flex items-center justify-between rounded-2xl bg-blue-50/50 p-5 text-sm font-black uppercase tracking-tight text-blue-600 hover:bg-blue-100 border border-blue-100"
                     >
