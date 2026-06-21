@@ -57,7 +57,10 @@ export async function POST(request: Request) {
       const name = row[1]?.toString().trim() || "İsimsiz Ürün";
       const stock = row[3] ? parseInt(row[3].toString().replace(/[^0-9]/g, '')) || 0 : 0;
       
-      let buyPrice = row[5] ? parseFloat(row[5]) * exchangeRate : 0;\n      let branchPrice = row[6] ? parseFloat(row[6]) * exchangeRate : 0;\n      let wholesalePrice = row[7] ? parseFloat(row[7]) * exchangeRate : 0;\n      let retailPrice = row[8] ? parseFloat(row[8]) * exchangeRate : 0;
+      let buyPrice = row[5] ? parseFloat(row[5]) * exchangeRate : 0;
+      let branchPrice = row[6] ? parseFloat(row[6]) * exchangeRate : 0;
+      let wholesalePrice = row[7] ? parseFloat(row[7]) * exchangeRate : 0;
+      let retailPrice = row[8] ? parseFloat(row[8]) * exchangeRate : 0;
 
       if (!sku) continue;
 
