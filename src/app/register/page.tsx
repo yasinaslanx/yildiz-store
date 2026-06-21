@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/store/auth-store";
 import { useUi } from "@/store/ui-store";
@@ -19,6 +19,15 @@ export default function RegisterPage() {
   });
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (step === 2 && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+    }
+  }, [step]);
 
   const handleSendCode = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -143,6 +152,7 @@ export default function RegisterPage() {
             <div className="space-y-2 text-center">
               <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Doğrulama Kodu</label>
               <input
+                ref={inputRef}
                 type="text"
                 required
                 maxLength={6}

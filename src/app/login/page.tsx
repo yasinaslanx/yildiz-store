@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/store/auth-store";
@@ -20,6 +20,16 @@ function LoginForm() {
   const [code, setCode] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (step === 2 && inputRef.current) {
+      // Add a slight delay to allow transition to start/finish
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+    }
+  }, [step]);
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,9 +138,9 @@ function LoginForm() {
             <div className="space-y-2 text-center">
               <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Doğrulama Kodu</label>
               <input
+                ref={inputRef}
                 type="text"
                 required
-                autoFocus
                 maxLength={6}
                 placeholder="000000"
                 value={code}
