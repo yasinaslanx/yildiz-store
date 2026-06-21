@@ -57,10 +57,16 @@ export async function POST(request: Request) {
       const name = row[1]?.toString().trim() || "İsimsiz Ürün";
       const stock = row[3] ? parseInt(row[3].toString().replace(/[^0-9]/g, '')) || 0 : 0;
       
-      const buyPrice = row[5] ? parseFloat(row[5]) * exchangeRate : undefined;
-      const branchPrice = row[6] ? parseFloat(row[6]) * exchangeRate : undefined;
-      const wholesalePrice = row[7] ? parseFloat(row[7]) * exchangeRate : undefined;
-      const price = row[8] ? parseFloat(row[8]) * exchangeRate : 0;
+      let buyPrice = row[5] ? parseFloat(row[5]) : 0;
+      let branchPrice = row[6] ? parseFloat(row[6]) : 0;
+      let wholesalePrice = row[7] ? parseFloat(row[7]) : 0;
+      let price = row[8] ? parseFloat(row[8]) : 0;
+
+      // Tüm fiyatları alış fiyatına (buyPrice) sabitle (Yeni istenen mantık)
+      const basePrice = buyPrice > 0 ? buyPrice : (price > 0 ? price : 0);
+
+      const finalBuyPrice = basePrice * exchangeRate;
+      const finalPrice = basePrice * exchangeRate;
 
       if (!sku) continue;
 
@@ -69,15 +75,12 @@ export async function POST(request: Request) {
       });
 
       if (existingVariant) {
-        // Mevcut ürünü güncelle (Sadece fiyatlar ve stok)
+        // Mevcut ürünü güncelle (SADECE stok ve alış fiyatı! Kullanıcının özel zamlarını ezme)
         await prisma.productVariant.update({
           where: { id: existingVariant.id },
           data: {
             stock: stock,
-            price: price,
-            wholesalePrice: wholesalePrice,
-            branchPrice: branchPrice,
-            buyPrice: buyPrice
+            buyPrice: finalBuyPrice
           }
         });
         stats.updatedStocks++;
@@ -134,10 +137,10 @@ export async function POST(request: Request) {
             productId: product.id,
             sku: sku,
             color: "Standart",
-            price: price || 0,
-            wholesalePrice: wholesalePrice,
-            branchPrice: branchPrice,
-            buyPrice: buyPrice,
+            price: finalPrice,
+            wholesalePrice: finalPrice,
+            branchPrice: finalPrice,
+            buyPrice: finalBuyPrice,
             stock: stock
           }
         });
