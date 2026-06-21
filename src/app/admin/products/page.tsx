@@ -683,12 +683,20 @@ export default function AdminProductsPage() {
                    <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 pl-1">Hangi Fiyatlara Etki Etsin?</label>
                    <select 
                      value={bulkTarget}
-                     onChange={e => setBulkTarget(e.target.value as "retail" | "wholesale" | "both")}
+                     onChange={e => setBulkTarget(e.target.value)}
                      className="w-full rounded-2xl border border-stone-100 bg-stone-50 px-6 py-4 text-sm font-bold text-stone-900 outline-none focus:border-black transition-all shadow-inner appearance-none cursor-pointer"
                    >
-                     <option value="both">Tüm Fiyatlara (Perakende + Toptan)</option>
-                     <option value="retail">Sadece Normal Müşterilere (Perakende)</option>
-                     <option value="wholesale">Sadece Bayilere (Toptan)</option>
+                     <optgroup label="SİTE FİYATLARI (MÜŞTERİ VE BAYİYE ETKİ EDER)">
+                       <option value="all_site">Tüm Site Fiyatlarına</option>
+                       <option value="price">Sadece Sitedeki Perakende Fiyatına (Normal Müşteri)</option>
+                       <option value="dealerPrice">Sadece Sitedeki Bayi Fiyatına</option>
+                     </optgroup>
+                     <optgroup label="ADMİN PANELİ (SADECE REFERANS FİYATLARA ETKİ EDER)">
+                       <option value="buyPrice">Alış Fiyatına Zam / İndirim</option>
+                       <option value="branchPrice">Şube Fiyatına Zam / İndirim</option>
+                       <option value="wholesalePrice">Toptan Fiyata Zam / İndirim</option>
+                       <option value="retailPrice">Perakende Fiyatına Zam / İndirim (Referans)</option>
+                     </optgroup>
                    </select>
                 </div>
 
