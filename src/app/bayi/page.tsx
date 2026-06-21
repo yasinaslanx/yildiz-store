@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Package, Percent, ShoppingBag, Clock, ArrowRight, Trophy, TrendingUp, Zap, ChevronRight } from "lucide-react";
 import { DealerOffersBanner } from "@/components/dealer-offers-banner";
+import { DealerOffersCards } from "@/components/dealer-offers-cards";
 
 type TierData = {
   tier: "BRONZE" | "SILVER" | "GOLD";
@@ -166,6 +167,9 @@ export default function DealerPortalPage() {
       ) : tierLoading ? (
         <div className="mb-10 h-48 rounded-[2.5rem] bg-stone-50 animate-pulse border border-stone-100" />
       ) : null}
+
+      {/* Special Offers Cards Section */}
+      <DealerOffersCards />
 
       {/* Quick access grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
