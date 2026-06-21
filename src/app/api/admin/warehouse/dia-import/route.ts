@@ -57,16 +57,7 @@ export async function POST(request: Request) {
       const name = row[1]?.toString().trim() || "İsimsiz Ürün";
       const stock = row[3] ? parseInt(row[3].toString().replace(/[^0-9]/g, '')) || 0 : 0;
       
-      let buyPrice = row[5] ? parseFloat(row[5]) : 0;
-      let branchPrice = row[6] ? parseFloat(row[6]) : 0;
-      let wholesalePrice = row[7] ? parseFloat(row[7]) : 0;
-      let price = row[8] ? parseFloat(row[8]) : 0;
-
-      // Tüm fiyatları alış fiyatına (buyPrice) sabitle (Yeni istenen mantık)
-      const basePrice = buyPrice > 0 ? buyPrice : (price > 0 ? price : 0);
-
-      const finalBuyPrice = basePrice * exchangeRate;
-      const finalPrice = basePrice * exchangeRate;
+      let buyPrice = row[5] ? parseFloat(row[5]) * exchangeRate : 0;\n      let branchPrice = row[6] ? parseFloat(row[6]) * exchangeRate : 0;\n      let wholesalePrice = row[7] ? parseFloat(row[7]) * exchangeRate : 0;\n      let retailPrice = row[8] ? parseFloat(row[8]) * exchangeRate : 0;
 
       if (!sku) continue;
 
@@ -78,10 +69,7 @@ export async function POST(request: Request) {
         // Mevcut ürünü güncelle (SADECE stok ve alış fiyatı! Kullanıcının özel zamlarını ezme)
         await prisma.productVariant.update({
           where: { id: existingVariant.id },
-          data: {
-            stock: stock,
-            buyPrice: finalBuyPrice
-          }
+          data: { stock: stock, buyPrice: buyPrice, branchPrice: branchPrice, wholesalePrice: wholesalePrice, retailPrice: retailPrice }
         });
         stats.updatedStocks++;
 
@@ -137,11 +125,7 @@ export async function POST(request: Request) {
             productId: product.id,
             sku: sku,
             color: "Standart",
-            price: finalPrice,
-            wholesalePrice: finalPrice,
-            branchPrice: finalPrice,
-            buyPrice: finalBuyPrice,
-            stock: stock
+            stock: stock, buyPrice: buyPrice, branchPrice: branchPrice, wholesalePrice: wholesalePrice, retailPrice: retailPrice, price: buyPrice, dealerPrice: buyPrice
           }
         });
         stats.newVariants++;

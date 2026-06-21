@@ -31,7 +31,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const favorite = isFavorite(firstVariant?.id || product.id);
   
   const isDealer = user?.role === "DEALER" || user?.role === "dealer";
-  const finalPrice = firstVariant ? (isDealer && firstVariant.wholesalePrice ? Number(firstVariant.wholesalePrice) : Number(firstVariant.price)) : Number(product.price || 0);
+  const finalPrice = firstVariant ? (isDealer && firstVariant.dealerPrice ? Number(firstVariant.dealerPrice) : Number(firstVariant.price)) : Number(product.price || 0);
 
   // Demo amaçlı: Bazı ürünlere (ID'si çift olanlara) otomatik indirim göster
   const hasDemoDiscount = product.id.length % 2 === 0;

@@ -93,10 +93,12 @@ model ProductVariant {
   active         Boolean        @default(true)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
-  oldPrice       Decimal?       @db.Decimal(10, 2)
-  buyPrice       Decimal?       @db.Decimal(10, 2)
-  branchPrice    Decimal?       @db.Decimal(10, 2)
+  retailPrice    Decimal?       @db.Decimal(10, 2)
+  dealerPrice    Decimal?       @db.Decimal(10, 2)
   wholesalePrice Decimal?       @db.Decimal(10, 2)
+  branchPrice    Decimal?       @db.Decimal(10, 2)
+  buyPrice       Decimal?       @db.Decimal(10, 2)
+  oldPrice       Decimal?       @db.Decimal(10, 2)
   cartItems      CartItem[]
   favorites      Favorite[]
   images         ProductImage[]

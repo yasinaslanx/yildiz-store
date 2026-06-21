@@ -386,7 +386,7 @@ export default function AdminProductsPage() {
                           <p className="text-[10px] font-black uppercase tracking-widest text-stone-400">Varyant Ekle (Opsiyonel)</p>
                           <button 
                             type="button" 
-                            onClick={() => setForm({...form, newVariants: [...form.newVariants, { sku: "", color: "", storage: "", price: 0, wholesalePrice: 0, oldPrice: "", stock: 0 }]})}
+                            onClick={() => setForm({...form, newVariants: [...form.newVariants, { sku: "", color: "", storage: "", price: 0, dealerPrice: 0, wholesalePrice: 0, branchPrice: 0, buyPrice: 0, retailPrice: 0, oldPrice: "", stock: 0 }]})}
                             className="rounded-full bg-stone-100 px-4 py-2 text-[9px] font-black uppercase tracking-widest text-stone-600 hover:bg-stone-200 transition active:scale-95"
                           >
                             + Yeni Varyant
@@ -592,6 +592,11 @@ export default function AdminProductsPage() {
                              color: v.color,
                              storage: v.storage,
                              price: Number(v.price),
+                             dealerPrice: Number(v.dealerPrice || 0),
+                             wholesalePrice: Number(v.wholesalePrice || 0),
+                             branchPrice: Number(v.branchPrice || 0),
+                             buyPrice: Number(v.buyPrice || 0),
+                             retailPrice: Number(v.retailPrice || 0),
                              stock: Number(v.stock),
                              oldPrice: v.oldPrice ? Number(v.oldPrice) : null
                            })),

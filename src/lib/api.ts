@@ -327,6 +327,11 @@ export async function createAdminProductRequest(payload: {
     color: string;
     storage?: string | null;
     price: number;
+  dealerPrice?: number;
+  wholesalePrice?: number;
+  branchPrice?: number;
+  buyPrice?: number;
+  retailPrice?: number;
     stock: number;
   }[];
 }) {
@@ -375,6 +380,11 @@ export async function updateAdminVariantRequest(
   variantId: string,
   payload: {
     price?: number;
+  dealerPrice?: number;
+  wholesalePrice?: number;
+  branchPrice?: number;
+  buyPrice?: number;
+  retailPrice?: number;
     wholesalePrice?: number | null;
     oldPrice?: number | null;
     stock?: number;
@@ -593,7 +603,7 @@ export async function deleteAdminCoupon(id: string) {
   return true;
 }
 
-export async function bulkUpdatePricesRequest(payload: { action: "increase" | "decrease", percentage: number, targetSku?: string, priceTarget?: "retail" | "wholesale" | "both" }) {
+export async function bulkUpdatePricesRequest(payload: { action: "increase" | "decrease", type?: "percentage" | "flat", amount: number, targetSku?: string, priceTarget?: "price" | "dealerPrice" | "wholesalePrice" | "branchPrice" | "buyPrice" | "retailPrice" | "all_site" | "all_reference" }) {
   const res = await fetch("/api/admin/products/bulk", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

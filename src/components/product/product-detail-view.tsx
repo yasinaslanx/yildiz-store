@@ -46,7 +46,7 @@ type Product = {
     color: string;
     storage?: string | null;
     price: number;
-    wholesalePrice?: number | null;
+    dealerPrice?: number | null;
     oldPrice?: number;
     stock: number;
     active: boolean;
@@ -154,7 +154,7 @@ export function ProductDetailView({ product }: { product: Product }) {
   const TIER_EXTRA_DISCOUNT = { BRONZE: 3, SILVER: 6, GOLD: 10 };
   const tierExtraDiscount = isDealer && dealerTier ? (TIER_EXTRA_DISCOUNT[dealerTier] || 0) : 0;
 
-  const wholesaleBase = selectedVariant ? (isDealer && selectedVariant.wholesalePrice ? Number(selectedVariant.wholesalePrice) : Number(selectedVariant.price)) : Number(product.price || 0);
+  const wholesaleBase = selectedVariant ? (isDealer && selectedVariant.dealerPrice ? Number(selectedVariant.dealerPrice) : Number(selectedVariant.price)) : Number(product.price || 0);
   const finalPrice = tierExtraDiscount > 0 ? wholesaleBase * (1 - tierExtraDiscount / 100) : wholesaleBase;
   const finalOldPrice = selectedVariant.oldPrice && selectedVariant.oldPrice > finalPrice ? selectedVariant.oldPrice : (finalPrice * 1.25);
 
