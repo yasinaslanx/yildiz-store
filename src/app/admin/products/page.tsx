@@ -59,7 +59,7 @@ export default function AdminProductsPage() {
   const [bulkAction, setBulkAction] = useState<"increase" | "decrease">("increase");
   const [bulkPercentage, setBulkPercentage] = useState("");
   const [bulkSku, setBulkSku] = useState("");
-  const [bulkTarget, setBulkTarget] = useState<"retail" | "wholesale" | "both">("both");
+  const [bulkTarget, setBulkTarget] = useState<any>("all_site");
   const [isBulkSubmitting, setIsBulkSubmitting] = useState(false);
 
   // Form State

@@ -327,11 +327,11 @@ export async function createAdminProductRequest(payload: {
     color: string;
     storage?: string | null;
     price: number;
-  dealerPrice?: number;
-  wholesalePrice?: number;
-  branchPrice?: number;
-  buyPrice?: number;
-  retailPrice?: number;
+  dealerPrice?: number | null;
+  wholesalePrice?: number | null;
+  branchPrice?: number | null;
+  buyPrice?: number | null;
+  retailPrice?: number | null;
     stock: number;
   }[];
 }) {
@@ -380,11 +380,11 @@ export async function updateAdminVariantRequest(
   variantId: string,
   payload: {
     price?: number;
-  dealerPrice?: number;
-  wholesalePrice?: number;
-  branchPrice?: number;
-  buyPrice?: number;
-  retailPrice?: number;
+  dealerPrice?: number | null;
+  wholesalePrice?: number | null;
+  branchPrice?: number | null;
+  buyPrice?: number | null;
+  retailPrice?: number | null;
     wholesalePrice?: number | null;
     oldPrice?: number | null;
     stock?: number;
