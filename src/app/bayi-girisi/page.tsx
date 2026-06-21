@@ -42,7 +42,11 @@ function DealerLoginForm() {
         return;
       }
       
-      // sync auth store (it fetches /api/auth/me)
+      // Save to localStorage so auth-store picks it up
+      if (data.data) {
+        localStorage.setItem("sunix-store-auth-user", JSON.stringify(data.data));
+      }
+
       window.location.href = "/bayi";
     } catch (err) {
       showToast("Bir hata oluştu.", "error");

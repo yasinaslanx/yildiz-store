@@ -69,7 +69,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
       }
     }
-    setIsLoading(false);
+
+    // Always sync with the server to ensure session is valid and sync missing localStorage
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data) {
+          setUser(data.data);
+          localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.data));
+        } else {
+          // If server says unauthorized, clear client state
+          setUser(null);
+          localStorage.removeItem(AUTH_USER_KEY);
+          sessionStorage.removeItem(AUTH_USER_KEY);
+        }
+      })
+      .catch(() => {
+        // Silent catch, keep existing state if network fails
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
   const sendOtp = async (payload: SendOtpPayload): Promise<AuthResult> => {
