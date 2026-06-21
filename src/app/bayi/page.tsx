@@ -218,9 +218,9 @@ export default function DealerPortalPage() {
             </thead>
             <tbody className="divide-y divide-stone-50">
               {[
-                { tier: "BRONZE", range: "0 – 5.000 ₺", discount: "0%", emoji: "🥉" },
-                { tier: "SILVER", range: "5.000 – 20.000 ₺", discount: "+%3", emoji: "🥈" },
-                { tier: "GOLD", range: "20.000 ₺ ve üzeri", discount: "+%7", emoji: "🥇" },
+                { tier: "BRONZE", range: "0 - 5.000 ₺", discount: "%3", emoji: "🥉" },
+                { tier: "SILVER", range: "5.000 - 20.000 ₺", discount: "%6", emoji: "🥈" },
+                { tier: "GOLD", range: "20.000 ₺ ve üzeri", discount: "%10", emoji: "🥇" },
               ].map(row => (
                 <tr key={row.tier} className={`transition-colors ${tierData?.tier === row.tier ? "bg-stone-50 font-bold" : ""}`}>
                   <td className="py-4 pr-6">

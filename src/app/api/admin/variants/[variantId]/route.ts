@@ -9,7 +9,7 @@ type RouteContext = {
 
 export async function PATCH(request: Request, context: RouteContext) {
   try {
-    await requireAdminUser();
+    const adminUser = await requireAdminUser();
 
     const { variantId } = await context.params;
     const body = await request.json();
@@ -18,6 +18,8 @@ export async function PATCH(request: Request, context: RouteContext) {
       where: { id: variantId },
       select: { stock: true }
     });
+
+
 
     const variant = await prisma.productVariant.update({
       where: { id: variantId },
@@ -40,6 +42,21 @@ export async function PATCH(request: Request, context: RouteContext) {
         images: true
       }
     });
+
+    // Record StockLog if stock changed
+    if (oldVariant && body.stock !== undefined && oldVariant.stock !== body.stock) {
+      const change = body.stock - oldVariant.stock;
+      await prisma.stockLog.create({
+        data: {
+          variantId,
+          userId: adminUser.id,
+          previousStock: oldVariant.stock,
+          newStock: body.stock,
+          change: change,
+          reason: "Manuel Güncelleme"
+        }
+      });
+    }
 
     // Stok 0'dan büyük bir değere çıktıysa haber ver bekleyenlere mail gönder
     if (oldVariant && oldVariant.stock === 0 && variant.stock > 0) {

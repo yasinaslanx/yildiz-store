@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+// Force restart: 1
+
 const nextConfig: NextConfig = {
   // iyzipay uses dynamic require() which is incompatible with Turbopack bundling
   serverExternalPackages: ["iyzipay"],

@@ -8,6 +8,8 @@ import {
   updateAdminVariantRequest,
   fetchAdminCategories,
   bulkUpdatePricesRequest,
+  deleteAdminProductRequest,
+  deleteAdminVariantRequest,
 } from "@/lib/api";
 import { ImageUpload } from "@/components/admin/image-upload";
 import toast from "react-hot-toast";
@@ -57,6 +59,7 @@ export default function AdminProductsPage() {
   const [bulkAction, setBulkAction] = useState<"increase" | "decrease">("increase");
   const [bulkPercentage, setBulkPercentage] = useState("");
   const [bulkSku, setBulkSku] = useState("");
+  const [bulkTarget, setBulkTarget] = useState<"retail" | "wholesale" | "both">("both");
   const [isBulkSubmitting, setIsBulkSubmitting] = useState(false);
 
   // Form State
@@ -110,6 +113,40 @@ export default function AdminProductsPage() {
       setProducts(prev => prev.map(p => p.id === product.id ? { ...p, active: !p.active } : p));
     } catch (err) {
       alert("Durum güncellenemedi");
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!editingProduct) return;
+    if (!window.confirm("Bu ürünü ve ürüne ait tüm görselleri, varyantları KESİNLİKLE silmek istediğinize emin misiniz? Bu işlem geri alınamaz!")) return;
+
+    try {
+      await deleteAdminProductRequest(editingProduct.id);
+      setIsModalOpen(false);
+      loadData();
+      toast.success("Ürün silindi");
+    } catch (err) {
+      alert("Ürün silinemedi");
+    }
+  };
+
+  const handleDeleteVariant = async (variantId: string) => {
+    if (!window.confirm("Bu varyantı kalıcı olarak silmek istediğinize emin misiniz?")) return;
+
+    try {
+      await deleteAdminVariantRequest(variantId);
+      toast.success("Varyant silindi");
+      loadData();
+      
+      // Update local state so UI reflects deletion without full modal reload
+      if (editingProduct) {
+        setEditingProduct({
+          ...editingProduct,
+          variants: editingProduct.variants.filter(v => v.id !== variantId)
+        });
+      }
+    } catch (err) {
+      alert("Varyant silinemedi");
     }
   };
 
@@ -401,6 +438,12 @@ export default function AdminProductsPage() {
                                </div>
                                <div>
                                   <p className="text-xs font-black text-stone-900 uppercase tracking-widest">{v.color} {v.storage ? `/ ${v.storage}` : ''}</p>
+                                  <button
+                                    onClick={() => handleDeleteVariant(v.id)}
+                                    className="mt-2 text-[9px] font-black uppercase text-red-500 hover:text-red-700 hover:underline tracking-widest"
+                                  >
+                                    Varyantı Sil
+                                  </button>
                                </div>
                                <div className="flex flex-col gap-4">
                                   <div className="flex items-center gap-4">
@@ -513,6 +556,14 @@ export default function AdminProductsPage() {
               </div>
 
               <div className="p-10 border-t border-stone-100 bg-stone-50/50 flex gap-4">
+                 {editingProduct && (
+                   <button 
+                     onClick={handleDeleteProduct}
+                     className="flex-1 rounded-full border-2 border-red-100 bg-red-50 py-5 text-[11px] font-black uppercase tracking-widest text-red-600 transition hover:bg-red-100 hover:border-red-200 active:scale-95"
+                   >
+                      Ürünü Sil
+                   </button>
+                 )}
                  <button 
                    onClick={() => setIsModalOpen(false)}
                    className="flex-1 rounded-full border-2 border-stone-100 bg-white py-5 text-[11px] font-black uppercase tracking-widest text-stone-400 transition hover:border-stone-200 hover:text-stone-600 active:scale-95"
@@ -623,6 +674,19 @@ export default function AdminProductsPage() {
                 </div>
 
                 <div className="space-y-1.5">
+                   <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 pl-1">Hangi Fiyatlara Etki Etsin?</label>
+                   <select 
+                     value={bulkTarget}
+                     onChange={e => setBulkTarget(e.target.value as "retail" | "wholesale" | "both")}
+                     className="w-full rounded-2xl border border-stone-100 bg-stone-50 px-6 py-4 text-sm font-bold text-stone-900 outline-none focus:border-black transition-all shadow-inner appearance-none cursor-pointer"
+                   >
+                     <option value="both">Tüm Fiyatlara (Perakende + Toptan)</option>
+                     <option value="retail">Sadece Normal Müşterilere (Perakende)</option>
+                     <option value="wholesale">Sadece Bayilere (Toptan)</option>
+                   </select>
+                </div>
+
+                <div className="space-y-1.5">
                    <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 pl-1">Yüzde Oranı (%)</label>
                    <input 
                      type="number" 
@@ -664,10 +728,11 @@ export default function AdminProductsPage() {
                        await bulkUpdatePricesRequest({
                          action: bulkAction,
                          percentage: Number(bulkPercentage),
-                         targetSku: bulkTab === "single" ? bulkSku : undefined
+                         targetSku: bulkTab === "single" ? bulkSku : undefined,
+                         priceTarget: bulkTarget
                        });
                        
-                       toast.success("Fiyatlar başarıyla güncellendi!");
+                       toast.success("Fiyatlar güncellendi");
                        setIsBulkModalOpen(false);
                        loadData();
                      } catch(err: any) {

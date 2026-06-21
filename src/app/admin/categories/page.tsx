@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchAdminCategories, createAdminCategory, updateAdminCategory } from "@/lib/api";
+import { fetchAdminCategories, createAdminCategory, updateAdminCategory, deleteAdminCategoryRequest } from "@/lib/api";
 import { ImageUpload } from "@/components/admin/image-upload";
 import toast from "react-hot-toast";
 
@@ -84,6 +84,23 @@ export default function AdminCategoriesPage() {
       loadCategories();
     } catch (err) {
       alert("Kategori kaydedilemedi");
+    }
+  };
+
+  const handleDelete = async (deleteProducts: boolean) => {
+    if (!editingCategory) return;
+    
+    if (!window.confirm(deleteProducts ? "Bu kategori ve İÇİNDEKİ TÜM ÜRÜNLER kalıcı olarak silinecektir. Onaylıyor musunuz?" : "Sadece kategori silinecek, ürünler sistemde 'Kategorisiz' olarak kalacaktır. Onaylıyor musunuz?")) {
+      return;
+    }
+
+    try {
+      await deleteAdminCategoryRequest(editingCategory.id, deleteProducts);
+      setIsModalOpen(false);
+      loadCategories();
+      toast.success("Kategori silindi");
+    } catch (err) {
+      alert("Kategori silinemedi");
     }
   };
 
@@ -211,20 +228,44 @@ export default function AdminCategoriesPage() {
                   </div>
               </div>
 
-              <div className="p-10 border-t border-stone-100 bg-stone-50/50 flex gap-4">
-                 <button 
-                   onClick={() => setIsModalOpen(false)}
-                   className="flex-1 rounded-full border-2 border-stone-100 bg-white py-5 text-[11px] font-black uppercase tracking-widest text-stone-400 transition hover:border-stone-200 hover:text-stone-600 active:scale-95"
-                 >
-                    İptal
-                 </button>
-                 <button 
-                   onClick={handleSave}
-                   disabled={!form.name}
-                   className="flex-1 rounded-full border-2 border-black bg-stone-900 py-5 text-[11px] font-black uppercase tracking-widest text-white shadow-xl shadow-stone-200 transition hover:bg-black active:scale-95 disabled:opacity-50"
-                 >
-                    {editingCategory ? 'Güncelle' : 'Kaydet'}
-                 </button>
+              <div className="p-10 border-t border-stone-100 bg-stone-50/50 flex flex-col gap-4">
+                 {editingCategory && (
+                    <div className="flex gap-4 p-4 mb-2 bg-red-50/50 rounded-2xl border border-red-100">
+                      <div className="flex-1 space-y-2">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-red-600">Tehlikeli Bölge</p>
+                        <p className="text-xs font-medium text-stone-600">Bu kategoriyi silerken içindeki ürünlere ne yapılacağını seçin:</p>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => handleDelete(false)}
+                            className="flex-1 rounded-xl bg-red-100 py-3 px-2 text-[10px] font-black uppercase text-red-700 hover:bg-red-200 transition"
+                          >
+                            Sadece Kategoriyi Sil
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(true)}
+                            className="flex-1 rounded-xl bg-red-600 py-3 px-2 text-[10px] font-black uppercase text-white shadow-xl shadow-red-200 hover:bg-red-700 transition"
+                          >
+                            Tüm Ürünlerle Sil
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                 )}
+                 <div className="flex gap-4">
+                   <button 
+                     onClick={() => setIsModalOpen(false)}
+                     className="flex-1 rounded-full border-2 border-stone-100 bg-white py-5 text-[11px] font-black uppercase tracking-widest text-stone-400 transition hover:border-stone-200 hover:text-stone-600 active:scale-95"
+                   >
+                      İptal
+                   </button>
+                   <button 
+                     onClick={handleSave}
+                     disabled={!form.name}
+                     className="flex-1 rounded-full border-2 border-black bg-stone-900 py-5 text-[11px] font-black uppercase tracking-widest text-white shadow-xl shadow-stone-200 transition hover:bg-black active:scale-95 disabled:opacity-50"
+                   >
+                      {editingCategory ? 'Güncelle' : 'Kaydet'}
+                   </button>
+                 </div>
               </div>
            </div>
         </div>

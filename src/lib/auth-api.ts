@@ -31,6 +31,7 @@ export async function verifyOtpRequest(payload: {
   firstName?: string;
   lastName?: string;
   isRegister: boolean;
+  rememberMe?: boolean;
 }) {
   const response = await fetch("/api/auth/verify-otp", {
     method: "POST",

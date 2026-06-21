@@ -4,7 +4,7 @@ import { setSessionCookie } from "@/lib/session";
 
 export async function POST(req: Request) {
   try {
-    const { email, code, firstName, lastName, isRegister } = await req.json();
+    const { email, code, firstName, lastName, isRegister, rememberMe = false } = await req.json();
 
     if (!email || !code) {
       return NextResponse.json(
@@ -90,7 +90,7 @@ export async function POST(req: Request) {
       permissions: user.permissions || [],
     };
 
-    await setSessionCookie(sessionUser);
+    await setSessionCookie(sessionUser, rememberMe);
 
     const safeUser = {
       id: user.id,

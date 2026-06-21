@@ -238,6 +238,30 @@ export async function toggleFavoriteRequest(payload: {
   return result.data as { active: boolean };
 }
 
+export async function deleteAdminProductRequest(productId: string) {
+  const response = await fetch(`/api/admin/products/${productId}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) throw new Error("Ürün silinemedi");
+  return response.json();
+}
+
+export async function deleteAdminVariantRequest(variantId: string) {
+  const response = await fetch(`/api/admin/products/variants/${variantId}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) throw new Error("Varyant silinemedi");
+  return response.json();
+}
+
+export async function deleteAdminCategoryRequest(categoryId: string, deleteProducts: boolean) {
+  const response = await fetch(`/api/admin/categories/${categoryId}?deleteProducts=${deleteProducts}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) throw new Error("Kategori silinemedi");
+  return response.json();
+}
+
 export async function fetchAdminOrders() {
   const response = await fetch("/api/admin/orders", {
     cache: "no-store",
@@ -569,7 +593,7 @@ export async function deleteAdminCoupon(id: string) {
   return true;
 }
 
-export async function bulkUpdatePricesRequest(payload: { action: "increase" | "decrease", percentage: number, targetSku?: string }) {
+export async function bulkUpdatePricesRequest(payload: { action: "increase" | "decrease", percentage: number, targetSku?: string, priceTarget?: "retail" | "wholesale" | "both" }) {
   const res = await fetch("/api/admin/products/bulk", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

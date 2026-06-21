@@ -34,6 +34,7 @@ type VerifyOtpPayload = {
   firstName?: string;
   lastName?: string;
   isRegister: boolean;
+  rememberMe?: boolean;
 };
 
 type AuthResult = {
@@ -59,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const raw = localStorage.getItem(AUTH_USER_KEY);
+    const raw = localStorage.getItem(AUTH_USER_KEY) || sessionStorage.getItem(AUTH_USER_KEY);
 
     if (raw) {
       try {
@@ -97,7 +98,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
     }
 
-    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(result.data));
+    if (payload.rememberMe) {
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(result.data));
+    } else {
+      sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(result.data));
+    }
     setUser(result.data);
 
     return {
@@ -109,6 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     await logoutRequest();
     localStorage.removeItem(AUTH_USER_KEY);
+    sessionStorage.removeItem(AUTH_USER_KEY);
     setUser(null);
   };
 

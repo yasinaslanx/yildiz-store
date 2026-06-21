@@ -6,7 +6,8 @@
     "dev": "next dev --webpack",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "bot": "tsx telegram-bot.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -31,6 +32,7 @@
     "lucide-react": "^0.454.0",
     "next": "16.2.2",
     "next-themes": "^0.4.6",
+    "node-fetch": "^2.7.0",
     "pg": "^8.20.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -38,6 +40,10 @@
     "react-hot-toast": "^2.6.0",
     "recharts": "^3.8.1",
     "resend": "^6.12.3",
+    "slugify": "^1.6.9",
+    "ssh2": "^1.17.0",
+    "telegraf": "^4.16.3",
+    "xlsx": "^0.18.5",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },

@@ -18,6 +18,7 @@ function LoginForm() {
   const [step, setStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSendCode = async (e: React.FormEvent) => {
@@ -53,6 +54,7 @@ function LoginForm() {
       email,
       code,
       isRegister: false,
+      rememberMe,
     });
 
     if (!result.success) {
@@ -100,6 +102,19 @@ function LoginForm() {
               />
             </div>
 
+            <div className="flex items-center justify-center space-x-2">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded border-stone-300 text-stone-900 focus:ring-black cursor-pointer"
+              />
+              <label htmlFor="rememberMe" className="text-xs font-bold text-stone-600 cursor-pointer select-none">
+                Beni Hatırla
+              </label>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
@@ -115,6 +130,7 @@ function LoginForm() {
               <input
                 type="text"
                 required
+                autoFocus
                 maxLength={6}
                 placeholder="000000"
                 value={code}

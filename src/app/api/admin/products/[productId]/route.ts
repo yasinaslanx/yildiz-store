@@ -37,3 +37,24 @@ export async function PATCH(request: Request, context: RouteContext) {
     );
   }
 }
+
+export async function DELETE(request: Request, context: RouteContext) {
+  try {
+    await requireAdminUser();
+
+    const { productId } = await context.params;
+
+    // Ürünü sil (Prisma'daki onDelete: Cascade sayesinde varyantlar ve görseller otomatik silinir)
+    await prisma.product.delete({
+      where: { id: productId },
+    });
+
+    return NextResponse.json({ success: true, message: "Ürün silindi." });
+  } catch (error) {
+    console.error("DELETE PRODUCT ERROR:", error);
+    return NextResponse.json(
+      { success: false, message: "Ürün silinemedi." },
+      { status: 500 }
+    );
+  }
+}

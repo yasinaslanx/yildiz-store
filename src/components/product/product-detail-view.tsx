@@ -151,7 +151,7 @@ export function ProductDetailView({ product }: { product: Product }) {
 
   const isDealer = user?.role === "DEALER" || user?.role === "dealer";
   const dealerTier = (user as any)?.dealerTier as "BRONZE" | "SILVER" | "GOLD" | undefined;
-  const TIER_EXTRA_DISCOUNT = { BRONZE: 0, SILVER: 3, GOLD: 7 };
+  const TIER_EXTRA_DISCOUNT = { BRONZE: 3, SILVER: 6, GOLD: 10 };
   const tierExtraDiscount = isDealer && dealerTier ? (TIER_EXTRA_DISCOUNT[dealerTier] || 0) : 0;
 
   const wholesaleBase = selectedVariant ? (isDealer && selectedVariant.wholesalePrice ? Number(selectedVariant.wholesalePrice) : Number(selectedVariant.price)) : Number(product.price || 0);
@@ -232,12 +232,14 @@ export function ProductDetailView({ product }: { product: Product }) {
                       Bayi Fiyatı
                     </span>
                   )}
-                  {isDealer && dealerTier && dealerTier !== "BRONZE" && (
-                    <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
-                      dealerTier === "GOLD" ? "bg-yellow-50 text-yellow-700" : "bg-slate-100 text-slate-700"
+                  {isDealer && dealerTier && (
+                    <div className={`mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+                      dealerTier === "GOLD" ? "bg-yellow-50 text-yellow-700 border-yellow-100" : 
+                      dealerTier === "SILVER" ? "bg-slate-100 text-slate-700 border-slate-200" :
+                      "bg-orange-50 text-orange-700 border-orange-100"
                     }`}>
-                      {dealerTier === "GOLD" ? "🥇" : "🥈"} +%{tierExtraDiscount} Tier İndirimi
-                    </span>
+                      {dealerTier === "GOLD" ? "🥇" : dealerTier === "SILVER" ? "🥈" : "🥉"} +%{tierExtraDiscount} Tier İndirimi
+                    </div>
                   )}
                   {selectedVariant.oldPrice && selectedVariant.oldPrice > finalPrice ? (
                     <span className="bg-green-50 text-green-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">

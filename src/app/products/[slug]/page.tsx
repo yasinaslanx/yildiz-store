@@ -10,8 +10,9 @@ type PageProps = {
 };
 
 import { getSessionUser } from "@/lib/session";
+import { cache } from "react";
 
-async function getProduct(slug: string) {
+const getProduct = cache(async (slug: string) => {
   const user = await getSessionUser();
   const isDealerOrAdmin = (user?.role as string) === "DEALER" || (user?.role as string) === "dealer" || (user?.role as string) === "ADMIN" || (user?.role as string) === "admin";
 
@@ -52,7 +53,7 @@ async function getProduct(slug: string) {
       wholesalePrice: v.wholesalePrice ? Number(v.wholesalePrice) : null,
     }))
   };
-}
+});
 
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const { slug } = await props.params;

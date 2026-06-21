@@ -27,6 +27,7 @@ model User {
   questions    ProductQuestion[]
   reviews      ProductReview[]
   cartReminder CartReminder?
+  stockLogs    StockLog[]
 }
 
 model Address {
@@ -61,24 +62,24 @@ model Category {
 }
 
 model Product {
-  id          String            @id @default(cuid())
-  categoryId  String
-  name        String
-  slug        String            @unique
-  description String
-  brand       String
-  active      Boolean           @default(true)
-  isEarlyAccess Boolean         @default(false)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  featured    Boolean           @default(false)
-  category        Category          @relation(fields: [categoryId], references: [id])
-  images          ProductImage[]
-  questions       ProductQuestion[]
-  reviews         ProductReview[]
-  variants        ProductVariant[]
-  bundleTriggers  BundleDeal[]      @relation("BundleTrigger")
-  bundleTargets   BundleDeal[]      @relation("BundleTarget")
+  id             String            @id @default(cuid())
+  categoryId     String?
+  name           String
+  slug           String            @unique
+  description    String
+  brand          String
+  active         Boolean           @default(true)
+  isEarlyAccess  Boolean           @default(false)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  featured       Boolean           @default(false)
+  category       Category?         @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  images         ProductImage[]
+  questions      ProductQuestion[]
+  reviews        ProductReview[]
+  variants       ProductVariant[]
+  bundleTriggers BundleDeal[]      @relation("BundleTrigger")
+  bundleTargets  BundleDeal[]      @relation("BundleTarget")
 }
 
 model ProductVariant {
@@ -93,12 +94,15 @@ model ProductVariant {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   oldPrice       Decimal?       @db.Decimal(10, 2)
+  buyPrice       Decimal?       @db.Decimal(10, 2)
+  branchPrice    Decimal?       @db.Decimal(10, 2)
   wholesalePrice Decimal?       @db.Decimal(10, 2)
   cartItems      CartItem[]
   favorites      Favorite[]
   images         ProductImage[]
   product        Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
   alerts         StockAlert[]
+  stockLogs      StockLog[]
 }
 
 model ProductImage {
@@ -167,7 +171,7 @@ model Order {
   trackingUrl        String?
   isQuoteRequest     Boolean         @default(false)
   quoteNote          String?
-  quoteStatus        String?         // PENDING, APPROVED, REJECTED
+  quoteStatus        String? // PENDING, APPROVED, REJECTED
   earnedPoints       Int             @default(0)
   spentPoints        Int             @default(0)
   currency           String          @default("TRY")
@@ -402,15 +406,28 @@ model BundleDeal {
 }
 
 model CartReminder {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  sentAt      DateTime @default(now())
-  couponCode  String?
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  sentAt     DateTime @default(now())
+  couponCode String?
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum DealerTier {
   BRONZE
   SILVER
   GOLD
+}
+
+model StockLog {
+  id            String         @id @default(cuid())
+  variantId     String
+  userId        String?
+  previousStock Int
+  newStock      Int
+  change        Int
+  reason        String?
+  createdAt     DateTime       @default(now())
+  variant       ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  user          User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
 }

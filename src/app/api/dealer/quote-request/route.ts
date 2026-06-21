@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
+import { sendTelegramMessage } from "@/lib/telegram";
 
 
 export async function POST(request: Request) {
@@ -54,6 +55,22 @@ export async function POST(request: Request) {
         },
       },
     });
+
+    // Send Telegram Notification
+    try {
+      const customerName = `${(user as any).firstName || "Bayi"} ${(user as any).lastName || ""}`.trim();
+      let telegramMsg = `🚨 *YENİ BAYİ SİPARİŞİ (TALEP) !* 🚨\n\n`;
+      telegramMsg += `👤 *Bayi:* ${customerName}\n`;
+      telegramMsg += `📧 *Email:* ${user.email}\n`;
+      telegramMsg += `💰 *Toplam Tutar:* ${Number(totalAmount).toLocaleString('tr-TR')} ₺\n`;
+      telegramMsg += `🛍️ *Ürün Sayısı:* ${items.length} çeşit\n\n`;
+      telegramMsg += `📝 *Sipariş Kodu:* \`${orderNumber}\`\n\n`;
+      telegramMsg += `_Sisteme giriş yapıp onaylayabilirsiniz._`;
+      
+      await sendTelegramMessage(telegramMsg);
+    } catch (e) {
+      console.error("Telegram bildirim hatası", e);
+    }
 
     return NextResponse.json({
       success: true,

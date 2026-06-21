@@ -2,8 +2,8 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
 
-const globalForPrisma2 = globalThis as unknown as {
-  prisma_v2: PrismaClient | undefined
+const globalForPrisma3 = globalThis as unknown as {
+  prisma_v3: PrismaClient | undefined
 }
 
 const connectionString = process.env.DATABASE_URL!
@@ -25,10 +25,10 @@ const createPrismaClient = () => {
   })
 }
 
-export const prisma = globalForPrisma2.prisma_v2 ?? createPrismaClient()
+export const prisma = globalForPrisma3.prisma_v3 ?? createPrismaClient()
 
 if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma2.prisma_v2 = prisma
+  globalForPrisma3.prisma_v3 = prisma
 }
 
 // Log models once to console

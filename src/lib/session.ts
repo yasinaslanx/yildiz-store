@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { jwtVerify, SignJWT } from "jose";
 import { prisma } from "@/lib/prisma";
 import * as Sentry from "@sentry/nextjs";
+import { cache } from "react";
 
 const SESSION_COOKIE_NAME = "ys_session";
 
@@ -16,27 +17,32 @@ export type SessionUser = {
   permissions?: string[];
 };
 
-export async function createSessionToken(user: SessionUser) {
+export async function createSessionToken(user: SessionUser, rememberMe: boolean = true) {
   return new SignJWT(user)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("30d")
+    .setExpirationTime(rememberMe ? "30d" : "1d")
     .sign(secret);
 }
 
-export async function setSessionCookie(user: SessionUser) {
-  const token = await createSessionToken(user);
+export async function setSessionCookie(user: SessionUser, rememberMe: boolean = true) {
+  const token = await createSessionToken(user, rememberMe);
   const cookieStore = await cookies();
 
-  cookieStore.set({
+  const cookieOptions: any = {
     name: SESSION_COOKIE_NAME,
     value: token,
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 30, // 30 days
-  });
+  };
+
+  if (rememberMe) {
+    cookieOptions.maxAge = 60 * 60 * 24 * 30; // 30 days
+  }
+
+  cookieStore.set(cookieOptions);
 }
 
 export async function deleteSessionCookie() {
@@ -46,7 +52,7 @@ export async function deleteSessionCookie() {
   Sentry.setUser(null);
 }
 
-export async function getSessionUser(): Promise<SessionUser | null> {
+export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
@@ -91,7 +97,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     console.error("SESSION ERROR:", error);
     return null;
   }
-}
+});
 
 export async function requireSessionUser() {
   const user = await getSessionUser();

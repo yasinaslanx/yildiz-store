@@ -3,9 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/session";
 
 export const TIER_DISCOUNTS = {
-  BRONZE: 0,
-  SILVER: 3,
-  GOLD: 7,
+  BRONZE: 3,
+  SILVER: 6,
+  GOLD: 10,
 };
 
 const TIER_THRESHOLDS = {
