@@ -22,6 +22,7 @@ export type CartItem = {
   quantity: number;
   image: string;
   slug?: string;
+  hasSpecialOffer?: boolean;
 };
 
 type CartContextType = {

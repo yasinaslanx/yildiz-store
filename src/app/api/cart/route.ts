@@ -7,7 +7,20 @@ function formatCartItem(item: any, userRole?: string) {
   const product = variant.product;
 
   const isDealer = userRole === "DEALER";
-  const finalPrice = isDealer && variant.wholesalePrice ? Number(variant.wholesalePrice) : Number(variant.price);
+  let finalPrice = isDealer && variant.wholesalePrice ? Number(variant.wholesalePrice) : Number(variant.price);
+
+  let hasSpecialOffer = false;
+
+  if (isDealer && product.dealerOffers && product.dealerOffers.length > 0) {
+    const eligibleOffers = product.dealerOffers
+      .filter((o: any) => item.quantity >= o.minQuantity)
+      .sort((a: any, b: any) => b.minQuantity - a.minQuantity);
+      
+    if (eligibleOffers.length > 0) {
+      finalPrice = Number(eligibleOffers[0].specialPrice);
+      hasSpecialOffer = true;
+    }
+  }
 
   return {
     id: item.id,
@@ -21,6 +34,7 @@ function formatCartItem(item: any, userRole?: string) {
     quantity: item.quantity,
     image: variant.images?.[0]?.url ?? product.images?.[0]?.url ?? "",
     slug: product.slug,
+    hasSpecialOffer
   };
 }
 
@@ -36,7 +50,14 @@ export async function GET() {
             variant: {
               include: {
                 images: true,
-                product: { include: { images: true } },
+                product: { 
+                  include: { 
+                    images: true,
+                    dealerOffers: {
+                      where: { active: true }
+                    }
+                  } 
+                },
               },
             },
           },

@@ -92,7 +92,13 @@ export default function CartPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] font-black uppercase tracking-[0.3em] text-stone-400">{item.brand}</p>
                   <h2 className="mt-1 text-lg font-black tracking-tight text-stone-900 uppercase">{item.productName}</h2>
-                  <p className="mt-1 text-xs font-bold uppercase tracking-widest text-stone-400">
+                  {item.hasSpecialOffer && (
+                    <div className="mt-1.5 inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border border-yellow-200">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                      Toplu Alım İndirimi Uygulandı
+                    </div>
+                  )}
+                  <p className="mt-2 text-xs font-bold uppercase tracking-widest text-stone-400">
                     {item.color}{item.storage ? ` · ${item.storage}` : ""}
                   </p>
                   <div className="flex flex-col items-start gap-1">
