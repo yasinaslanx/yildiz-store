@@ -142,28 +142,28 @@ export default function HomePage() {
                       100% { transform: translateX(250%); }
                     }
                   `}</style>
-                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
                      {sunixCategories.map((cat, i) => (
                         <Link
                            key={i}
                            href={cat.url}
-                           className={`relative flex items-center gap-[14px] pl-[10px] pr-[22px] py-[10px] rounded-[16px] border backdrop-blur-md transition-all duration-300 hover:translate-x-[3px] group overflow-hidden ${cat.isRed ? 'bg-white border-[#0d1e3a14]' : 'bg-white/65 hover:bg-white border-[#0d1e3a14] hover:border-[#0d1e3a38]'}`}
+                           className={`relative flex items-center gap-5 pl-4 pr-8 py-4 rounded-[20px] border backdrop-blur-md transition-all duration-300 hover:translate-y-[-4px] hover:shadow-xl group overflow-hidden ${cat.isRed ? 'bg-white border-[#0d1e3a14] shadow-md' : 'bg-white border-[#0d1e3a14] hover:border-[#0d1e3a38] shadow-sm'}`}
                         >
                            {cat.isRed && (
-                              <div className="absolute left-0 bottom-0 h-[2px] w-[40%] bg-gradient-to-r from-transparent via-[#e30613] to-transparent pointer-events-none" style={{ animation: 'sunix-new-slide 2.8s linear infinite' }} />
+                              <div className="absolute left-0 bottom-0 h-[3px] w-[50%] bg-gradient-to-r from-transparent via-[#e30613] to-transparent pointer-events-none" style={{ animation: 'sunix-new-slide 2.8s linear infinite' }} />
                            )}
-                           <div className="flex w-[62px] h-[62px] shrink-0 items-center justify-center rounded-full bg-white border border-[#0d1e3a0f] shadow-[0_10px_24px_-8px_rgba(13,30,58,0.18)] overflow-hidden transition-all duration-300 group-hover:shadow-[0_10px_24px_-8px_rgba(13,30,58,0.25)]">
+                           <div className="flex w-[76px] h-[76px] shrink-0 items-center justify-center rounded-full bg-stone-50 border border-[#0d1e3a0f] shadow-[0_10px_24px_-8px_rgba(13,30,58,0.12)] overflow-hidden transition-all duration-500 group-hover:scale-110 group-hover:shadow-[0_10px_24px_-8px_rgba(13,30,58,0.25)]">
                               {cat.icon === "zap" ? (
-                                 <svg className="h-[22px] w-[22px] text-[#e30613] fill-current" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={0}>
+                                 <svg className="h-[28px] w-[28px] text-[#e30613] fill-current drop-shadow-md" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={0}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                                  </svg>
                               ) : cat.image ? (
-                                 <div className="relative w-[80%] h-[80%]">
-                                    <Image src={cat.image} alt={cat.name} fill sizes="62px" className="object-contain scale-[1.3] mix-blend-multiply" />
+                                 <div className="relative w-[85%] h-[85%]">
+                                    <Image src={cat.image} alt={cat.name} fill sizes="76px" className="object-contain scale-[1.3] mix-blend-multiply" />
                                  </div>
                               ) : null}
                            </div>
-                           <span className={`font-bold text-[14px] tracking-tight leading-snug ${cat.isRed ? 'text-[#e30613]' : 'text-[#0f172a]'}`}>
+                           <span className={`font-black text-base tracking-tight leading-snug ${cat.isRed ? 'text-[#e30613]' : 'text-[#0f172a]'}`}>
                               {cat.name}
                            </span>
                         </Link>
