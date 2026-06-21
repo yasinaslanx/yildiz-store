@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Check, X, Building2, Phone, FileText, UserCircle, Tag, Plus, Trash2, Edit } from "lucide-react";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 
 type DealerApplication = {
   id: string;
