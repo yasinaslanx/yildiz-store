@@ -19,7 +19,7 @@ export async function GET(req: Request) {
       where: {
         OR: [
           { AND: nameConditions },
-          { code: { contains: query, mode: "insensitive" } }
+          { variants: { some: { sku: { contains: query, mode: "insensitive" } } } }
         ]
       },
       select: {
