@@ -34,6 +34,7 @@ type DealerOffer = {
     id: string;
     name: string;
     images: { url: string }[];
+    variants?: { wholesalePrice: number | null, price: number }[];
   };
 };
 
@@ -41,6 +42,7 @@ type ProductSearch = {
   id: string;
   name: string;
   images: { url: string }[];
+  variants?: { wholesalePrice: number | null, price: number }[];
 };
 
 export default function AdminDealersPage() {
@@ -386,7 +388,12 @@ export default function AdminDealersPage() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {offers.map(offer => (
+              {offers.map(offer => {
+                const basePrice = offer.product.variants?.[0]?.wholesalePrice || offer.product.variants?.[0]?.price || 0;
+                const isDiscounted = basePrice > offer.specialPrice;
+                const discountPercent = isDiscounted ? Math.round(((basePrice - offer.specialPrice) / basePrice) * 100) : 0;
+                
+                return (
                 <div key={offer.id} className={`bg-white rounded-[2.5rem] p-8 border ${offer.active ? "border-blue-100 shadow-lg shadow-blue-500/5" : "border-stone-100 opacity-60"} relative overflow-hidden transition-all`}>
                   {/* Decorative corner */}
                   {offer.active && <div className="absolute -top-12 -right-12 w-24 h-24 bg-blue-500 rounded-full opacity-10" />}
@@ -402,6 +409,9 @@ export default function AdminDealersPage() {
                     <div>
                       {offer.title && <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">{offer.title}</p>}
                       <h3 className="font-bold text-stone-900 leading-tight line-clamp-2">{offer.product.name}</h3>
+                      {isDiscounted && (
+                        <p className="text-[9px] font-black text-red-500 bg-red-50 w-max px-1.5 py-0.5 rounded mt-1">%{discountPercent} İNDİRİM</p>
+                      )}
                     </div>
                   </div>
 
@@ -412,7 +422,12 @@ export default function AdminDealersPage() {
                     </div>
                     <div className="text-right">
                       <p className="text-[9px] font-black uppercase tracking-widest text-stone-400">Birim Fiyatı</p>
-                      <p className="font-black text-blue-600 text-lg">{Number(offer.specialPrice).toLocaleString("tr-TR")} TL</p>
+                      <div className="flex items-end gap-1.5 flex-col">
+                        {isDiscounted && (
+                          <span className="text-[10px] line-through text-stone-400 font-bold decoration-red-500/50">{Number(basePrice).toLocaleString("tr-TR")} TL</span>
+                        )}
+                        <p className="font-black text-blue-600 text-lg leading-none">{Number(offer.specialPrice).toLocaleString("tr-TR")} TL</p>
+                      </div>
                     </div>
                   </div>
 
@@ -444,7 +459,8 @@ export default function AdminDealersPage() {
                     </button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -493,7 +509,14 @@ export default function AdminDealersPage() {
                               <div className="w-10 h-10 rounded-xl bg-stone-100 overflow-hidden flex-shrink-0">
                                 {p.images[0] && <img src={p.images[0].url} className="w-full h-full object-cover" />}
                               </div>
-                              <span className="font-bold text-sm text-stone-700 line-clamp-1">{p.name}</span>
+                              <div className="flex-1 text-left">
+                                <span className="font-bold text-sm text-stone-700 line-clamp-1">{p.name}</span>
+                                {p.variants?.[0] && (
+                                  <span className="text-[10px] font-bold text-stone-400">
+                                    Normal Fiyat: {Number(p.variants[0].wholesalePrice || p.variants[0].price).toLocaleString("tr-TR")} TL
+                                  </span>
+                                )}
+                              </div>
                             </button>
                           ))}
                         </div>
@@ -505,7 +528,14 @@ export default function AdminDealersPage() {
                         <div className="w-10 h-10 rounded-xl bg-white overflow-hidden flex-shrink-0 border border-blue-100">
                           {offerProduct.images[0] && <img src={offerProduct.images[0].url} className="w-full h-full object-cover" />}
                         </div>
-                        <span className="font-bold text-sm text-blue-900 line-clamp-1">{offerProduct.name}</span>
+                        <div className="flex-1 text-left">
+                          <span className="font-bold text-sm text-blue-900 line-clamp-1">{offerProduct.name}</span>
+                          {offerProduct.variants?.[0] && (
+                            <div className="text-[10px] font-bold text-blue-600 mt-0.5">
+                              Normal Bayi Fiyatı: <span className="line-through opacity-70">{Number(offerProduct.variants[0].wholesalePrice || offerProduct.variants[0].price).toLocaleString("tr-TR")} TL</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                       <button onClick={() => setOfferProduct(null)} className="text-blue-500 hover:text-blue-700 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 bg-white rounded-lg">Değiştir</button>
                     </div>

@@ -14,6 +14,7 @@ type DealerOffer = {
     name: string;
     slug: string;
     images: { url: string }[];
+    variants?: { wholesalePrice: number | null, price: number }[];
   };
 };
 
@@ -50,6 +51,10 @@ export function DealerOffersBanner() {
   if (offers.length === 0) return null;
 
   const currentOffer = offers[currentIndex];
+  
+  const basePrice = currentOffer.product.variants?.[0]?.wholesalePrice || currentOffer.product.variants?.[0]?.price || 0;
+  const isDiscounted = basePrice > currentOffer.specialPrice;
+  const discountPercent = isDiscounted ? Math.round(((basePrice - currentOffer.specialPrice) / basePrice) * 100) : 0;
 
   return (
     <div className="w-full bg-blue-600 text-white overflow-hidden relative border-b-4 border-blue-800">
@@ -76,9 +81,19 @@ export function DealerOffersBanner() {
                 {currentOffer.minQuantity} adet ve üzeri
               </span>
               <span> alımlarda birim fiyat sadece </span>
+              {isDiscounted && (
+                <span className="line-through text-yellow-300/60 ml-1 decoration-red-500">
+                  {Number(basePrice).toLocaleString("tr-TR")} TL
+                </span>
+              )}
               <span className="bg-yellow-400 text-blue-900 px-2 py-0.5 rounded-md font-black ml-1 shadow-sm">
                 {Number(currentOffer.specialPrice).toLocaleString("tr-TR")} TL
               </span>
+              {isDiscounted && (
+                <span className="ml-2 text-[10px] font-black uppercase tracking-widest text-white bg-red-500 px-1.5 py-0.5 rounded shadow-sm">
+                  %{discountPercent} İNDİRİM
+                </span>
+              )}
             </p>
           </div>
         </div>

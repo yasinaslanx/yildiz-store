@@ -10,10 +10,15 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: true, data: [] });
     }
 
+    const queryTerms = query.split(/\s+/).filter(Boolean);
+    const nameConditions = queryTerms.map(term => ({
+      name: { contains: term, mode: "insensitive" as const }
+    }));
+
     const products = await prisma.product.findMany({
       where: {
         OR: [
-          { name: { contains: query, mode: "insensitive" } },
+          { AND: nameConditions },
           { diaCode: { contains: query, mode: "insensitive" } }
         ]
       },
@@ -23,6 +28,10 @@ export async function GET(req: Request) {
         images: {
           take: 1,
           select: { url: true }
+        },
+        variants: {
+          take: 1,
+          select: { wholesalePrice: true, price: true }
         }
       },
       take: 10

@@ -32,7 +32,11 @@ export async function GET() {
             id: true,
             name: true,
             slug: true,
-            images: { take: 1 }
+            images: { take: 1 },
+            variants: {
+              take: 1,
+              select: { wholesalePrice: true, price: true }
+            }
           }
         }
       },
