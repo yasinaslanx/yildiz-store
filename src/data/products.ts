@@ -6,6 +6,10 @@ export type ProductVariant = {
   storage?: string;
   price: number;
   wholesalePrice?: number | null;
+  dealerPrice?: number | null;
+  retailPrice?: number | null;
+  branchPrice?: number | null;
+  buyPrice?: number | null;
   oldPrice?: number | null;
   stock: number;
   sku: string;

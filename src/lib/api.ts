@@ -380,12 +380,11 @@ export async function updateAdminVariantRequest(
   variantId: string,
   payload: {
     price?: number;
-  dealerPrice?: number | null;
-  wholesalePrice?: number | null;
-  branchPrice?: number | null;
-  buyPrice?: number | null;
-  retailPrice?: number | null;
+    dealerPrice?: number | null;
     wholesalePrice?: number | null;
+    branchPrice?: number | null;
+    buyPrice?: number | null;
+    retailPrice?: number | null;
     oldPrice?: number | null;
     stock?: number;
     active?: boolean;
