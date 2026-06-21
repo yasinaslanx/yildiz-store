@@ -1,21 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
-import * as jwt from "jsonwebtoken";
+import { getSessionUser } from "@/lib/session";
 
 export async function GET() {
   try {
-    const cookieStore = cookies();
-    const token = cookieStore.get("admin_token")?.value;
+    const user = await getSessionUser();
 
-    if (!token) {
+    if (!user) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "fallback_secret") as { role: string };
     
     // Yalnızca DEALER veya ADMIN görebilir
-    if (decoded.role !== "DEALER" && decoded.role !== "ADMIN") {
+    if (user.role !== "DEALER" && user.role !== "ADMIN") {
       return NextResponse.json({ success: false, message: "Sadece bayiler görebilir" }, { status: 403 });
     }
 

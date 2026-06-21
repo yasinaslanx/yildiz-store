@@ -19,7 +19,7 @@ export async function GET(req: Request) {
       where: {
         OR: [
           { AND: nameConditions },
-          { diaCode: { contains: query, mode: "insensitive" } }
+          { code: { contains: query, mode: "insensitive" } }
         ]
       },
       select: {
