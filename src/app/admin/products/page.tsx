@@ -58,6 +58,7 @@ export default function AdminProductsPage() {
   const [bulkTab, setBulkTab] = useState<"all" | "single">("all");
   const [bulkAction, setBulkAction] = useState<"increase" | "decrease">("increase");
   const [bulkPercentage, setBulkPercentage] = useState("");
+  const [bulkType, setBulkType] = useState<"percentage" | "flat">("percentage");
   const [bulkSku, setBulkSku] = useState("");
   const [bulkTarget, setBulkTarget] = useState<any>("all_site");
   const [isBulkSubmitting, setIsBulkSubmitting] = useState(false);
@@ -691,8 +692,12 @@ export default function AdminProductsPage() {
                    </select>
                 </div>
 
-                <div className="space-y-1.5">
-                   <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 pl-1">Yüzde Oranı (%)</label>
+                 <div className="space-y-1.5">
+                   <div className="flex border-b border-stone-100 bg-stone-50/50 rounded-2xl overflow-hidden mb-6">
+                     <button onClick={() => setBulkType("percentage")} className={`flex-1 py-3 text-[11px] font-black uppercase tracking-widest transition ${bulkType === "percentage" ? "bg-stone-200 text-black" : "text-stone-400 hover:bg-stone-100"}`}>Yüzde (%)</button>
+                     <button onClick={() => setBulkType("flat")} className={`flex-1 py-3 text-[11px] font-black uppercase tracking-widest transition ${bulkType === "flat" ? "bg-stone-200 text-black" : "text-stone-400 hover:bg-stone-100"}`}>Sabit TL (₺)</button>
+                   </div>
+                   <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 pl-1">{bulkType === "percentage" ? "Yüzde Oranı (%)" : "Sabit Miktar (TL)"}</label>
                    <input 
                      type="number" 
                      className="w-full rounded-2xl border border-stone-100 bg-stone-50 px-6 py-4 text-2xl font-black text-stone-900 outline-none focus:border-black focus:bg-white transition-all shadow-inner"
@@ -705,7 +710,7 @@ export default function AdminProductsPage() {
                 {bulkTab === "all" && (
                   <div className="p-4 rounded-2xl bg-orange-50 border border-orange-100 text-orange-800 text-xs font-bold flex items-start gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-                    <p>Dikkat! Bu işlem mağazadaki <b>TÜM ÜRÜNLERİN</b> fiyatını <b>%{bulkPercentage || "0"}</b> oranında {bulkAction === "increase" ? "artıracaktır" : "düşürecektir"}. Geri alınamaz.</p>
+                     <p>Dikkat! Bu işlem seçilen hedefteki fiyatları <b>{bulkType === "percentage" ? "%" : "₺"}{bulkPercentage || "0"}</b> {bulkType === "percentage" ? "oranında" : "tutarında"} {bulkAction === "increase" ? "artıracaktır" : "düşürecektir"}. Geri alınamaz.</p>
                   </div>
                 )}
               </div>
@@ -721,7 +726,7 @@ export default function AdminProductsPage() {
                    onClick={async () => {
                      try {
                        if (!bulkPercentage || Number(bulkPercentage) <= 0) {
-                         toast.error("Lütfen geçerli bir yüzde girin");
+                         toast.error("Lütfen geçerli bir değer girin");
                          return;
                        }
                        if (bulkTab === "single" && !bulkSku) {
