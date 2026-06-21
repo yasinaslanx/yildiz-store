@@ -4,9 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Tag, ArrowRight } from "lucide-react";
 
-type DealerOffer = {
+type CustomerOffer = {
   id: string;
-  minQuantity: number;
   specialPrice: number;
   title: string | null;
   product: {
@@ -14,18 +13,18 @@ type DealerOffer = {
     name: string;
     slug: string;
     images: { url: string }[];
-    variants?: { wholesalePrice: number | null, price: number }[];
+    variants?: { retailPrice: number | null, price: number }[];
   };
 };
 
-export function DealerOffersBanner() {
-  const [offers, setOffers] = useState<DealerOffer[]>([]);
+export function CustomerOffersBanner() {
+  const [offers, setOffers] = useState<CustomerOffer[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     const fetchOffers = async () => {
       try {
-        const res = await fetch("/api/dealer-offers");
+        const res = await fetch("/api/customer-offers");
         if (res.ok) {
           const json = await res.json();
           if (json.success && json.data.length > 0) {
@@ -33,7 +32,7 @@ export function DealerOffersBanner() {
           }
         }
       } catch (err) {
-        console.error("Failed to fetch dealer offers", err);
+        console.error("Failed to fetch customer offers", err);
       }
     };
     fetchOffers();
@@ -52,7 +51,7 @@ export function DealerOffersBanner() {
 
   const currentOffer = offers[currentIndex];
   
-  const basePrice = currentOffer.product.variants?.[0]?.wholesalePrice || currentOffer.product.variants?.[0]?.price || 0;
+  const basePrice = currentOffer.product.variants?.[0]?.retailPrice || currentOffer.product.variants?.[0]?.price || 0;
   const isDiscounted = basePrice > currentOffer.specialPrice;
   const discountPercent = isDiscounted ? Math.round(((basePrice - currentOffer.specialPrice) / basePrice) * 100) : 0;
 
@@ -66,21 +65,17 @@ export function DealerOffersBanner() {
             <Tag className="w-5 h-5 text-yellow-300" />
           </div>
           <div className="flex flex-col text-center md:text-left transition-all duration-500 w-full" key={currentOffer.id}>
-            <span className="text-[10px] font-black uppercase tracking-widest text-yellow-300 mb-0.5">Bayi Özel Teklifi</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-yellow-300 mb-0.5">SÜPER FIRSAT</span>
             <p className="text-sm md:text-base font-bold leading-tight">
               {currentOffer.title ? (
                 <span className="mr-2">{currentOffer.title}</span>
               ) : (
-                <span className="mr-2">Sadece Bayilere Özel İndirim!</span>
+                <span className="mr-2">Günün Fırsatı!</span>
               )}
               <span className="font-black text-yellow-300">
                 {currentOffer.product.name}
               </span>
-              <span> ürününde </span>
-              <span className="underline decoration-2 underline-offset-4 decoration-yellow-400">
-                {currentOffer.minQuantity} adet ve üzeri
-              </span>
-              <span> alımlarda birim fiyat sadece </span>
+              <span> ürününde kısa süreliğine </span>
               {isDiscounted && (
                 <span className="line-through text-yellow-300/60 ml-1 decoration-red-500">
                   {Number(basePrice).toLocaleString("tr-TR")} TL

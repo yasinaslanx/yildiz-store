@@ -39,6 +39,7 @@ type Product = {
   image: string;
   price: number;
   stock: number;
+  featured?: boolean;
   category: { id: string, name: string, slug: string } | null;
   variants: {
     id: string;

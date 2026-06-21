@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Metadata } from "next";
 import { NewsletterForm } from "@/components/ui/newsletter-form";
+import { CustomerOffersBanner } from "@/components/customer-offers-banner";
 
 export const metadata: Metadata = {
    title: "Teknoloji Yeniden Tanımlandı",
@@ -32,6 +33,7 @@ const sunixCategories = [
 export default function HomePage() {
    return (
       <div className="flex flex-col gap-0 bg-white overflow-hidden transition-colors duration-500">
+         <CustomerOffersBanner />
          {/* --- HERO SECTION: SIDE BY SIDE --- */}
          <section className="relative w-full overflow-hidden bg-white py-20 lg:py-32 transition-colors duration-500">
             <div className="mx-auto flex max-w-[1440px] flex-col gap-16 lg:flex-row lg:items-center px-6 lg:px-20">

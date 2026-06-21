@@ -81,6 +81,7 @@ model Product {
   bundleTriggers BundleDeal[]      @relation("BundleTrigger")
   bundleTargets  BundleDeal[]      @relation("BundleTarget")
   dealerOffers   DealerOffer[]
+  customerOffers CustomerOffer[]
 }
 
 model ProductVariant {
@@ -442,6 +443,17 @@ model DealerOffer {
   specialPrice Decimal   @db.Decimal(10, 2) // Sabit fiyat
   active       Boolean   @default(true)
   title        String?   // Opsiyonel teklif başlığı
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  product      Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model CustomerOffer {
+  id           String    @id @default(cuid())
+  productId    String
+  specialPrice Decimal   @db.Decimal(10, 2)
+  active       Boolean   @default(true)
+  title        String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   product      Product   @relation(fields: [productId], references: [id], onDelete: Cascade)

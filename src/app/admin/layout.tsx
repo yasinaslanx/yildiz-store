@@ -9,6 +9,7 @@ const adminMenu = [
   { href: "/admin", label: "Kontrol Paneli", icon: "📊" },
   { href: "/admin/orders", label: "Siparişler", icon: "📦" },
   { href: "/admin/products", label: "Ürün Yönetimi", icon: "📱" },
+  { href: "/admin/customer-offers", label: "Müşteri Teklifleri", icon: "🏷️" },
   { href: "/admin/warehouse", label: "Depo Yönetimi", icon: "🏠" },
   { href: "/admin/categories", label: "Kategori Yönetimi", icon: "📁" },
   { href: "/admin/coupons", label: "Kuponlar", icon: "🎟️" },
@@ -60,7 +61,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               // İzin kontrolleri
               const p = user?.permissions || [];
               if (item.href === "/admin/orders" || item.href === "/admin/quotes") return p.includes("ORDERS");
-              if (item.href === "/admin/products" || item.href === "/admin/categories" || item.href === "/admin/stock-alerts") return p.includes("PRODUCTS");
+              if (item.href === "/admin/products" || item.href === "/admin/categories" || item.href === "/admin/stock-alerts" || item.href === "/admin/customer-offers") return p.includes("PRODUCTS");
               if (item.href === "/admin/dealers" || item.href === "/admin/users") return p.includes("USERS");
               if (item.href === "/admin/support") return p.includes("SUPPORT");
               if (item.href === "/admin/coupons" || item.href === "/admin/bundles") return p.includes("MARKETING");
