@@ -732,7 +732,8 @@ export default function AdminProductsPage() {
                        setIsBulkSubmitting(true);
                        await bulkUpdatePricesRequest({
                          action: bulkAction,
-                         percentage: Number(bulkPercentage),
+                         type: bulkType,
+                         amount: Number(bulkPercentage),
                          targetSku: bulkTab === "single" ? bulkSku : undefined,
                          priceTarget: bulkTarget
                        });
