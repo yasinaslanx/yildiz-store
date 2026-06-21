@@ -5,6 +5,7 @@ import { useAuth } from "@/store/auth-store";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Package, Percent, ShoppingBag, Clock, ArrowRight, Trophy, TrendingUp, Zap, ChevronRight } from "lucide-react";
+import { DealerOffersBanner } from "@/components/dealer-offers-banner";
 
 type TierData = {
   tier: "BRONZE" | "SILVER" | "GOLD";
@@ -88,7 +89,9 @@ export default function DealerPortalPage() {
   const tierCfg = tierData ? TIER_CONFIG[tierData.tier] : null;
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-12 lg:py-24 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+    <>
+      <DealerOffersBanner />
+      <div className="mx-auto max-w-7xl px-6 py-12 lg:py-24 animate-in fade-in slide-in-from-bottom-8 duration-1000">
       <header className="mb-12">
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 mb-2">Sunix B2B</p>
         <h1 className="text-4xl lg:text-6xl font-black tracking-tighter text-stone-900 uppercase">Bayi Portalı</h1>
@@ -264,6 +267,7 @@ export default function DealerPortalPage() {
           </Link>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
