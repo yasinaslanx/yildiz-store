@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -45,6 +45,13 @@ export function ProductCard({ product }: ProductCardProps) {
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
     if (!firstVariant) return;
+    
+    // Çoklu varyantı olan ürünlerde doğrudan eklemek yerine Hızlı Seçim Modalı'nı aç
+    if (product.variants.length > 1) {
+      setIsQuickViewOpen(true);
+      return;
+    }
+
     addItem({
       id: `${product.id}-${firstVariant.id}`,
       productId: product.id,

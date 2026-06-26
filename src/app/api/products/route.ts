@@ -57,6 +57,7 @@ export async function GET(request: Request) {
     const maxPrice = searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : undefined;
     const brand = searchParams.get("brand")?.trim();
     const excludeId = searchParams.get("excludeId")?.trim();
+    const idsParam = searchParams.get("ids")?.trim();
     const inStock = searchParams.get("inStock") === "true";
 
     const page = Math.max(Number(searchParams.get("page") ?? "1"), 1);
@@ -141,6 +142,11 @@ export async function GET(request: Request) {
     if (brand) {
       const brands = brand.split(",").map(b => b.trim()).filter(Boolean);
       where.brand = { in: brands, mode: "insensitive" };
+    }
+
+    if (idsParam) {
+      const ids = idsParam.split(",").map(id => id.trim()).filter(Boolean);
+      where.id = { in: ids };
     }
 
     const orderBy =
