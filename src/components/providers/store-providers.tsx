@@ -2,6 +2,7 @@
 
 import { CartProvider } from "@/store/cart-store";
 import { FavoritesProvider } from "@/store/favorites-store";
+import { CompareProvider } from "@/store/compare-store";
 import { OrderProvider } from "@/store/order-store";
 import { OrderHistoryProvider } from "@/store/order-history-store";
 import { UiProvider } from "@/store/ui-store";
@@ -17,10 +18,12 @@ export function StoreProviders({ children }: { children: React.ReactNode }) {
           <OrderProvider>
             <CurrencyProvider>
               <FavoritesProvider>
-                <CartProvider>
-                  {children}
-                  <ToastContainer />
-                </CartProvider>
+                <CompareProvider>
+                  <CartProvider>
+                    {children}
+                    <ToastContainer />
+                  </CartProvider>
+                </CompareProvider>
               </FavoritesProvider>
             </CurrencyProvider>
           </OrderProvider>

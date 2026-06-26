@@ -17,6 +17,7 @@ import { Modal } from "@/components/ui/modal";
 import { InstallmentTable } from "@/components/product/installment-table";
 import { toast } from "react-hot-toast";
 import BundleOffer from "@/components/product/bundle-offer";
+import { StockAlertForm } from "@/components/product/stock-alert-form";
 import Link from "next/link";
 import { 
   ShieldCheck, 
@@ -343,9 +344,7 @@ export function ProductDetailView({ product }: { product: Product }) {
                   </Link>
                 </div>
               ) : (
-                <div className="rounded-[3rem] bg-stone-50 p-12 text-center border border-stone-100">
-                   <p className="text-[11px] font-black uppercase tracking-[0.3em] text-stone-300 italic">Tükendi / Yakında Gelecek</p>
-                </div>
+                <StockAlertForm variantId={selectedVariant.id} />
               )}
 
               {/* Bundle Offers */}

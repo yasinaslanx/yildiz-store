@@ -11,6 +11,7 @@ export type ProductQueryParams = {
   sort?: string;
   minPrice?: number;
   maxPrice?: number;
+  inStock?: boolean;
   page?: number;
   limit?: number;
 };
@@ -25,6 +26,7 @@ export async function fetchProducts(params: ProductQueryParams = {}) {
   if (params.sort) searchParams.set("sort", params.sort);
   if (params.minPrice !== undefined) searchParams.set("minPrice", String(params.minPrice));
   if (params.maxPrice !== undefined) searchParams.set("maxPrice", String(params.maxPrice));
+  if (params.inStock) searchParams.set("inStock", "true");
   if (params.page) searchParams.set("page", String(params.page));
   if (params.limit) searchParams.set("limit", String(params.limit));
 
@@ -56,6 +58,21 @@ export async function fetchCategories() {
 
   return result.data;
 }
+
+export async function fetchBrands(): Promise<string[]> {
+  const response = await fetch("/api/brands", {
+    cache: "no-store",
+  });
+
+  const result = await response.json();
+
+  if (!result.success) {
+    throw new Error(result.message || "Markalar alınamadı");
+  }
+
+  return result.data;
+}
+
 
 export async function fetchProductDetail(slug: string) {
   const response = await fetch(`/api/products/${slug}`, {

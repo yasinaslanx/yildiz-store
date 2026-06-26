@@ -57,6 +57,7 @@ export async function GET(request: Request) {
     const maxPrice = searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : undefined;
     const brand = searchParams.get("brand")?.trim();
     const excludeId = searchParams.get("excludeId")?.trim();
+    const inStock = searchParams.get("inStock") === "true";
 
     const page = Math.max(Number(searchParams.get("page") ?? "1"), 1);
     const limit = Math.min(
@@ -89,6 +90,18 @@ export async function GET(request: Request) {
             ...(minPrice !== undefined ? { gte: minPrice } : {}),
             ...(maxPrice !== undefined ? { lte: maxPrice } : {}),
           }
+        },
+      };
+    }
+
+    // inStock filter
+    if (inStock) {
+      where.variants = {
+        ...(where.variants ?? {}),
+        some: {
+          ...(where.variants?.some ?? {}),
+          active: true,
+          stock: { gt: 0 },
         },
       };
     }

@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/footer";
 import { LiveSupport } from "@/components/layout/live-support";
 import { StoreProviders } from "@/components/providers/store-providers";
 import { MiniCart } from "@/components/cart/mini-cart";
+import { CompareBar } from "@/components/compare/compare-bar";
 import { Toaster } from "react-hot-toast";
 import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/react";
@@ -59,6 +60,9 @@ export default function RootLayout({
           <Footer />
           <Suspense fallback={null}>
             <MiniCart />
+          </Suspense>
+          <Suspense fallback={null}>
+            <CompareBar />
           </Suspense>
           <Suspense fallback={null}>
             <LiveSupport />
