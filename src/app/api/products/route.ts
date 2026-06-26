@@ -139,6 +139,8 @@ export async function GET(request: Request) {
             ? { name: "desc" as const }
             : { createdAt: "desc" as const };
 
+    const isPriceSort = sort === "price-asc" || sort === "price-desc";
+
     const [products, total] = await Promise.all([
       prisma.product.findMany({
         where,
@@ -162,8 +164,7 @@ export async function GET(request: Request) {
           },
         },
         orderBy,
-        skip,
-        take: limit,
+        ...(isPriceSort ? {} : { skip, take: limit }),
       }),
       prisma.product.count({ where }),
     ]);
@@ -176,6 +177,10 @@ export async function GET(request: Request) {
 
     if (sort === "price-desc") {
       formattedProducts = formattedProducts.sort((a, b) => b.price - a.price);
+    }
+
+    if (isPriceSort) {
+      formattedProducts = formattedProducts.slice(skip, skip + limit);
     }
 
     return NextResponse.json({
