@@ -92,7 +92,7 @@ export function Navbar() {
         } finally {
           setIsSearching(false);
         }
-      }, 300);
+      }, 50);
       return () => clearTimeout(delayDebounceFn);
     } else {
       setSearchResults([]);

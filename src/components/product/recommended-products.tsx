@@ -65,12 +65,18 @@ export function RecommendedProducts({
             className="group block space-y-6"
           >
             <div className="relative aspect-[4/5] overflow-hidden rounded-[2.5rem] bg-stone-50 border border-stone-100 transition-all duration-700 group-hover:shadow-2xl group-hover:shadow-stone-200">
-              <Image
-                src={product.image || (product.variants?.[0]?.images?.[0]?.url) || ""}
-                alt={product.name}
-                fill
-                className="object-contain p-10 transition-transform duration-700 group-hover:scale-110"
-              />
+              {product.image || product.variants?.[0]?.images?.[0]?.url ? (
+                <Image
+                  src={product.image || product.variants?.[0]?.images?.[0]?.url}
+                  alt={product.name}
+                  fill
+                  className="object-contain p-10 transition-transform duration-700 group-hover:scale-110 mix-blend-multiply"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-stone-300 bg-stone-50">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                </div>
+              )}
               <div className="absolute bottom-6 left-6 right-6">
                  <span className="bg-white/80 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-stone-900 shadow-sm opacity-0 translate-y-4 transition-all duration-500 group-hover:opacity-100 group-hover:translate-y-0">
                     İncele
