@@ -50,7 +50,12 @@ const getProduct = cache(async (slug: string) => {
     variants: product.variants.map(v => ({
       ...v,
       price: Number(v.price),
+      retailPrice: v.retailPrice ? Number(v.retailPrice) : null,
+      dealerPrice: v.dealerPrice ? Number(v.dealerPrice) : null,
       wholesalePrice: v.wholesalePrice ? Number(v.wholesalePrice) : null,
+      branchPrice: v.branchPrice ? Number(v.branchPrice) : null,
+      buyPrice: v.buyPrice ? Number(v.buyPrice) : null,
+      oldPrice: v.oldPrice ? Number(v.oldPrice) : null,
     }))
   };
 });
