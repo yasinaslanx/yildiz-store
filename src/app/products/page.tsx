@@ -129,6 +129,8 @@ function ProductsContent() {
   const [sliderMax, setSliderMax] = useState(Number(searchParams.get("maxPrice") ?? PRICE_MAX));
 
   const [loading, setLoading] = useState(true);
+  const [isAppendingLoading, setIsAppendingLoading] = useState(false);
+  const isAppendingRef = useRef(false);
   const [error, setError] = useState("");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
@@ -147,7 +149,11 @@ function ProductsContent() {
 
   async function loadData() {
     try {
-      setLoading(true);
+      if (!isAppendingRef.current) {
+        setLoading(true);
+      } else {
+        setIsAppendingLoading(true);
+      }
       setError("");
 
       const [productsResult, categoriesResult, brandsResult] = await Promise.all([
@@ -166,7 +172,17 @@ function ProductsContent() {
         fetchBrands(),
       ]);
 
-      setProducts(productsResult.data);
+      if (isAppendingRef.current) {
+        setProducts(prev => {
+          const existingIds = new Set(prev.map(p => p.id));
+          const newProducts = productsResult.data.filter((p: any) => !existingIds.has(p.id));
+          return [...prev, ...newProducts];
+        });
+        isAppendingRef.current = false;
+      } else {
+        setProducts(productsResult.data);
+      }
+      
       setMeta(productsResult.meta);
       setCategories(categoriesResult);
       setBrands(brandsResult);
@@ -174,6 +190,7 @@ function ProductsContent() {
       setError(err instanceof Error ? err.message : "Ürünler alınamadı.");
     } finally {
       setLoading(false);
+      setIsAppendingLoading(false);
     }
   }
 
@@ -611,30 +628,26 @@ function ProductsContent() {
                 ))}
               </div>
 
-              {/* Pagination */}
-              <div className="mt-20 flex items-center justify-center gap-8 border-t border-stone-100 pt-12">
-                <button
-                  disabled={meta.page <= 1}
-                  onClick={() => updateUrl({ page: meta.page - 1 })}
-                  className="group flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-stone-100 text-stone-400 transition hover:border-black hover:text-stone-900 disabled:opacity-20"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
-                </button>
-
-                <div className="flex items-center gap-4">
-                  <span className="text-xl font-black text-stone-900">{meta.page}</span>
-                  <span className="text-xs font-bold text-stone-200">/</span>
-                  <span className="text-sm font-bold text-stone-400">{meta.totalPages}</span>
+              {/* Load More Button */}
+              {meta.page < meta.totalPages && (
+                <div className="mt-20 flex items-center justify-center border-t border-stone-100 pt-12">
+                  <button
+                    disabled={isAppendingLoading}
+                    onClick={() => {
+                      isAppendingRef.current = true;
+                      updateUrl({ page: meta.page + 1 });
+                    }}
+                    className="group flex items-center gap-3 rounded-full border-2 border-stone-900 bg-white px-10 py-4 text-[10px] font-black uppercase tracking-widest text-stone-900 transition hover:bg-stone-900 hover:text-white disabled:opacity-50"
+                  >
+                    {isAppendingLoading ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-stone-900 border-t-transparent group-hover:border-white group-hover:border-t-transparent" />
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    )}
+                    {isAppendingLoading ? "Yükleniyor..." : "Daha Fazla Ürün Yükle"}
+                  </button>
                 </div>
-
-                <button
-                  disabled={meta.page >= meta.totalPages}
-                  onClick={() => updateUrl({ page: meta.page + 1 })}
-                  className="group flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-stone-100 text-stone-400 transition hover:border-black hover:text-stone-900 disabled:opacity-20"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
-                </button>
-              </div>
+              )}
             </>
           )}
         </section>
