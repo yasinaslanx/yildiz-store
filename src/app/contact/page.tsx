@@ -12,10 +12,33 @@ export default function ContactPage() {
 
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate API call
-    setSubmitted(true);
+    setIsLoading(true);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+      
+      if (data.success) {
+        setSubmitted(true);
+        setForm({ name: "", email: "", subject: "", message: "" });
+      } else {
+        alert(data.message || "Bir hata oluştu. Lütfen tekrar deneyin.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Sunucuya bağlanılamadı. Lütfen daha sonra tekrar deneyin.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -144,9 +167,10 @@ export default function ContactPage() {
 
                       <button 
                         type="submit"
-                        className="w-full cursor-pointer rounded-full border-2 border-black bg-white py-5 text-sm font-black uppercase tracking-widest text-stone-900 shadow-xl shadow-stone-100 transition-all hover:bg-stone-50 active:scale-95"
+                        disabled={isLoading}
+                        className="w-full cursor-pointer rounded-full border-2 border-black bg-white py-5 text-sm font-black uppercase tracking-widest text-stone-900 shadow-xl shadow-stone-100 transition-all hover:bg-stone-50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                         Mesajı Gönder
+                         {isLoading ? "Gönderiliyor..." : "Mesajı Gönder"}
                       </button>
                    </form>
                 </>

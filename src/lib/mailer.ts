@@ -288,7 +288,7 @@ export async function sendAbandonedCartEmail(
 
   try {
     const { error } = await resend.emails.send({
-      from: "Sunix Store <bildirim@sunixstore.com>",
+      from: "Sunix Store <onboarding@resend.dev>",
       to: [to],
       subject: `🛒 ${firstName}, sepetiniz sizi bekliyor! Özel kuponunuz: ${couponCode}`,
       html,
@@ -299,5 +299,48 @@ export async function sendAbandonedCartEmail(
     }
   } catch (error) {
     console.error("Abandoned Cart Email Exception:", error);
+  }
+}
+
+export async function sendContactFormEmail(
+  to: string,
+  name: string,
+  email: string,
+  subject: string,
+  message: string
+) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8" /></head>
+    <body style="font-family:Arial,sans-serif;padding:20px;">
+      <h2>Yeni İletişim Formu Mesajı</h2>
+      <p><strong>Gönderen:</strong> ${name}</p>
+      <p><strong>E-Posta:</strong> ${email}</p>
+      <p><strong>Konu:</strong> ${subject}</p>
+      <hr/>
+      <p><strong>Mesaj:</strong></p>
+      <p style="white-space: pre-wrap;">${message}</p>
+    </body>
+    </html>
+  `;
+
+  try {
+    const { error } = await resend.emails.send({
+      from: 'Sunix Store İletişim <onboarding@resend.dev>',
+      to,
+      subject: `Yeni İletişim Mesajı: ${subject}`,
+      replyTo: email,
+      html,
+    });
+
+    if (error) {
+      console.error("Contact Email Error:", error);
+      return { success: false, error };
+    }
+    return { success: true };
+  } catch (error) {
+    console.error("Contact Email Exception:", error);
+    return { success: false, error };
   }
 }
