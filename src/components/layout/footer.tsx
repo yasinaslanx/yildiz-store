@@ -54,6 +54,7 @@ export function Footer() {
                         <h4 className="font-bold text-stone-900">Menu</h4>
                         <ul className="space-y-4 text-sm font-medium text-stone-500">
                            <li><Link href="/products" className="hover:text-stone-900 transition-colors">Ara</Link></li>
+                           <li><Link href="/order-tracking" className="hover:text-stone-900 transition-colors">Sipariş Takibi (Misafir)</Link></li>
                            <li><Link href="/contact" className="hover:text-stone-900 transition-colors">İletişim</Link></li>
                            <li><Link href="/products?category=outlet" className="hover:text-stone-900 transition-colors">Outlet</Link></li>
                            <li><Link href="#" className="hover:text-stone-900 transition-colors">Gizlilik Politikası</Link></li>
