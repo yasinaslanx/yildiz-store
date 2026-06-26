@@ -130,7 +130,7 @@ export default function HomePage() {
 
          {/* --- YENİ SUNIX KATEGORİLERİ --- */}
          <section className="bg-[#f9fafb] py-20 overflow-hidden border-y border-stone-100">
-            <div className="mx-auto max-w-[1440px] px-6 lg:px-20">
+            <div className="mx-auto max-w-[1440px] px-6 lg:px-12">
                <div className="mb-10">
                   <p className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400">Keşfet</p>
                   <h2 className="mt-2 text-4xl font-black tracking-tighter text-stone-900 uppercase">Tüm Kategoriler</h2>
@@ -142,7 +142,7 @@ export default function HomePage() {
                       100% { transform: translateX(250%); }
                     }
                   `}</style>
-                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                      {sunixCategories.map((cat, i) => (
                         <Link
                            key={i}
