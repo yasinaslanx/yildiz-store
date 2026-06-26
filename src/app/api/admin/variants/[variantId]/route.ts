@@ -26,7 +26,11 @@ export async function PATCH(request: Request, context: RouteContext) {
       data: {
         stock: body.stock,
         price: body.price,
+        dealerPrice: body.dealerPrice,
         wholesalePrice: body.wholesalePrice,
+        retailPrice: body.retailPrice,
+        branchPrice: body.branchPrice,
+        buyPrice: body.buyPrice,
         oldPrice: body.oldPrice,
         sku: body.sku,
         images: body.image ? {
