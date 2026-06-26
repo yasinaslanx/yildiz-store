@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     }
 
     const data = await req.json();
-    const { productId, specialPrice, active, title } = data;
+    const { productId, specialPrice, active, title, expiresAt } = data;
 
     if (!productId || !specialPrice) {
       return NextResponse.json({ success: false, message: "Eksik bilgi" }, { status: 400 });
@@ -45,6 +45,7 @@ export async function POST(req: Request) {
         specialPrice: parseFloat(specialPrice),
         active: active ?? true,
         title: title || null,
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
       },
     });
 

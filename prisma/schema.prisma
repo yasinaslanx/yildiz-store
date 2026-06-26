@@ -443,6 +443,7 @@ model DealerOffer {
   specialPrice Decimal   @db.Decimal(10, 2) // Sabit fiyat
   active       Boolean   @default(true)
   title        String?   // Opsiyonel teklif başlığı
+  expiresAt    DateTime? 
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   product      Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -454,6 +455,7 @@ model CustomerOffer {
   specialPrice Decimal   @db.Decimal(10, 2)
   active       Boolean   @default(true)
   title        String?
+  expiresAt    DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   product      Product   @relation(fields: [productId], references: [id], onDelete: Cascade)

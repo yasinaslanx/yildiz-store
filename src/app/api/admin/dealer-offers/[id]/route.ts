@@ -7,13 +7,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     await requireAdminUser();
     const { id } = await params;
     const body = await req.json();
-    const { active, minQuantity, specialPrice, title } = body;
+    const { active, minQuantity, specialPrice, title, expiresAt } = body;
 
     const data: any = {};
     if (active !== undefined) data.active = active;
     if (minQuantity !== undefined) data.minQuantity = parseInt(minQuantity);
     if (specialPrice !== undefined) data.specialPrice = parseFloat(specialPrice);
     if (title !== undefined) data.title = title;
+    if (expiresAt !== undefined) data.expiresAt = expiresAt ? new Date(expiresAt) : null;
 
     const offer = await prisma.dealerOffer.update({
       where: { id },

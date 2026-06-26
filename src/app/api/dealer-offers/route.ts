@@ -18,6 +18,10 @@ export async function GET() {
     const offers = await prisma.dealerOffer.findMany({
       where: {
         active: true,
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: new Date() } }
+        ],
         product: {
           active: true
         }

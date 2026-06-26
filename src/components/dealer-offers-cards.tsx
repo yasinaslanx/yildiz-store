@@ -6,9 +6,10 @@ import { ArrowRight, Tag, Flame } from "lucide-react";
 
 type Offer = {
   id: string;
-  title: string | null;
   minQuantity: number;
   specialPrice: number;
+  title: string | null;
+  expiresAt?: string | null;
   product: {
     id: string;
     name: string;
@@ -64,6 +65,21 @@ export function DealerOffersCards() {
           const isDiscounted = basePrice > offer.specialPrice;
           const discountPercent = isDiscounted ? Math.round(((basePrice - offer.specialPrice) / basePrice) * 100) : 0;
 
+          let remainingText = null;
+          if (offer.expiresAt) {
+            const diffMs = new Date(offer.expiresAt).getTime() - new Date().getTime();
+            if (diffMs > 0) {
+              const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+              const hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
+              if (days > 0) remainingText = `${days} gün ${hours} saat kaldı`;
+              else if (hours > 0) remainingText = `${hours} saat kaldı`;
+              else {
+                const mins = Math.floor((diffMs / 1000 / 60) % 60);
+                remainingText = `${mins} dk kaldı`;
+              }
+            }
+          }
+
           return (
             <Link 
               href={`/products/${offer.product.slug}`} 
@@ -77,6 +93,14 @@ export function DealerOffersCards() {
                 <div className="absolute top-6 left-6 z-10">
                   <span className="bg-red-600 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-md">
                     {offer.title}
+                  </span>
+                </div>
+              )}
+              {remainingText && (
+                <div className="absolute top-6 right-6 z-10">
+                  <span className="bg-stone-900/80 backdrop-blur-sm border border-white/10 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-md flex items-center gap-1 animate-pulse">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    {remainingText}
                   </span>
                 </div>
               )}

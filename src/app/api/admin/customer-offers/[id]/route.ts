@@ -11,7 +11,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     const { id } = await params;
     const data = await req.json();
-    const { productId, specialPrice, active, title } = data;
+    const { productId, specialPrice, active, title, expiresAt } = data;
 
     const offer = await prisma.customerOffer.update({
       where: { id },
@@ -20,6 +20,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         specialPrice: parseFloat(specialPrice),
         active: active ?? true,
         title: title || null,
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
       },
     });
 

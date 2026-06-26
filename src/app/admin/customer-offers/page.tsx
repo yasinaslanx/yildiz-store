@@ -10,6 +10,7 @@ type CustomerOffer = {
   specialPrice: number;
   active: boolean;
   title: string | null;
+  expiresAt?: string | null;
   createdAt: string;
   product: {
     name: string;
@@ -33,6 +34,7 @@ export default function AdminCustomerOffersPage() {
   // Form States
   const [offerProduct, setOfferProduct] = useState<ProductSearch | null>(null);
   const [offerTitle, setOfferTitle] = useState("");
+  const [offerExpiresAt, setOfferExpiresAt] = useState("");
   const [offerPrice, setOfferPrice] = useState(0);
   const [active, setActive] = useState(true);
 
@@ -100,6 +102,7 @@ export default function AdminCustomerOffersPage() {
           specialPrice: offerPrice,
           active,
           title: offerTitle || null,
+          expiresAt: offerExpiresAt || null,
         }),
       });
 
@@ -134,6 +137,7 @@ export default function AdminCustomerOffersPage() {
   const resetForm = () => {
     setOfferProduct(null);
     setOfferTitle("");
+    setOfferExpiresAt("");
     setOfferPrice(0);
     setActive(true);
     setEditingOffer(null);
@@ -195,6 +199,7 @@ export default function AdminCustomerOffersPage() {
                         onClick={() => {
                           setEditingOffer(offer);
                           setOfferTitle(offer.title || "");
+                          setOfferExpiresAt(offer.expiresAt ? new Date(offer.expiresAt).toISOString().slice(0, 16) : "");
                           setOfferPrice(Number(offer.specialPrice));
                           setActive(offer.active);
                           setIsModalOpen(true);
@@ -278,6 +283,16 @@ export default function AdminCustomerOffersPage() {
                   value={offerTitle}
                   onChange={(e) => setOfferTitle(e.target.value)}
                   placeholder="Örn: Günün Fırsatı!, Hafta Sonu İndirimi..."
+                  className="w-full px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-stone-700">Bitiş Tarihi (Opsiyonel)</label>
+                <input
+                  type="datetime-local"
+                  value={offerExpiresAt}
+                  onChange={(e) => setOfferExpiresAt(e.target.value)}
                   className="w-full px-4 py-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>

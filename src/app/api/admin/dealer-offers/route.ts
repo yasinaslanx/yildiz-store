@@ -32,7 +32,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { productId, minQuantity, specialPrice, title } = body;
+    const { productId, minQuantity, specialPrice, title, expiresAt } = body;
 
     if (!productId || !minQuantity || !specialPrice) {
       return NextResponse.json({ success: false, message: "Eksik bilgi girdiniz." }, { status: 400 });
@@ -44,6 +44,7 @@ export async function POST(req: Request) {
         minQuantity: parseInt(minQuantity),
         specialPrice: parseFloat(specialPrice),
         title,
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
         active: true
       }
     });

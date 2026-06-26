@@ -8,6 +8,7 @@ type CustomerOffer = {
   id: string;
   specialPrice: number;
   title: string | null;
+  expiresAt?: string | null;
   product: {
     id: string;
     name: string;
@@ -55,6 +56,22 @@ export function CustomerOffersBanner() {
   const isDiscounted = basePrice > currentOffer.specialPrice;
   const discountPercent = isDiscounted ? Math.round(((basePrice - currentOffer.specialPrice) / basePrice) * 100) : 0;
 
+  const getRemainingTimeText = (expiresAt?: string | null) => {
+    if (!expiresAt) return null;
+    const diffMs = new Date(expiresAt).getTime() - new Date().getTime();
+    if (diffMs <= 0) return null;
+    
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
+    
+    if (days > 0) return `${days} gün ${hours} saat kaldı`;
+    if (hours > 0) return `${hours} saat`;
+    const mins = Math.floor((diffMs / 1000 / 60) % 60);
+    return `${mins} dakika`;
+  };
+
+  const remainingText = getRemainingTimeText(currentOffer.expiresAt);
+
   return (
     <div className="w-full bg-blue-600 text-white overflow-hidden relative border-b-4 border-blue-800">
       <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
@@ -87,6 +104,12 @@ export function CustomerOffersBanner() {
               {isDiscounted && (
                 <span className="ml-2 text-[10px] font-black uppercase tracking-widest text-white bg-red-500 px-1.5 py-0.5 rounded shadow-sm">
                   %{discountPercent} İNDİRİM
+                </span>
+              )}
+              {remainingText && (
+                <span className="ml-2 text-[10px] font-black uppercase tracking-widest text-white bg-stone-900/40 px-2 py-0.5 rounded-full border border-white/20 inline-flex items-center gap-1 animate-pulse">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  {remainingText}
                 </span>
               )}
             </p>

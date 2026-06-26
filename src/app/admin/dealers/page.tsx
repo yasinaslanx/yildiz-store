@@ -29,6 +29,7 @@ type DealerOffer = {
   specialPrice: number;
   active: boolean;
   title: string | null;
+  expiresAt?: string | null;
   createdAt: string;
   product: {
     id: string;
@@ -64,6 +65,7 @@ export default function AdminDealersPage() {
   // Form States for Offer
   const [offerProduct, setOfferProduct] = useState<ProductSearch | null>(null);
   const [offerTitle, setOfferTitle] = useState("");
+  const [offerExpiresAt, setOfferExpiresAt] = useState("");
   const [offerMinQty, setOfferMinQty] = useState(100);
   const [offerPrice, setOfferPrice] = useState(0);
 
@@ -179,7 +181,8 @@ export default function AdminDealersPage() {
           productId: offerProduct.id,
           minQuantity: offerMinQty,
           specialPrice: offerPrice,
-          title: offerTitle || null
+          title: offerTitle || null,
+          expiresAt: offerExpiresAt || null
         })
       });
 
@@ -229,6 +232,7 @@ export default function AdminDealersPage() {
     setSearchQuery("");
     setSearchResults([]);
     setOfferTitle("");
+    setOfferExpiresAt("");
     setOfferMinQty(100);
     setOfferPrice(0);
     setIsOfferModalOpen(true);
@@ -443,6 +447,7 @@ export default function AdminDealersPage() {
                         setEditingOffer(offer);
                         setOfferProduct(offer.product);
                         setOfferTitle(offer.title || "");
+                        setOfferExpiresAt(offer.expiresAt ? new Date(offer.expiresAt).toISOString().slice(0, 16) : "");
                         setOfferMinQty(offer.minQuantity);
                         setOfferPrice(Number(offer.specialPrice));
                         setIsOfferModalOpen(true);
@@ -551,6 +556,17 @@ export default function AdminDealersPage() {
                   value={offerTitle}
                   onChange={(e) => setOfferTitle(e.target.value)}
                   placeholder="Örn: 100 Adet Kırılmaz Alana Büyük İndirim!"
+                  className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-6 py-4 text-sm font-bold text-stone-900 outline-none focus:border-black focus:bg-white transition-all shadow-inner"
+                />
+              </div>
+
+              {/* ExpiresAt */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 pl-1">Bitiş Tarihi (Opsiyonel)</label>
+                <input 
+                  type="datetime-local" 
+                  value={offerExpiresAt}
+                  onChange={(e) => setOfferExpiresAt(e.target.value)}
                   className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-6 py-4 text-sm font-bold text-stone-900 outline-none focus:border-black focus:bg-white transition-all shadow-inner"
                 />
               </div>

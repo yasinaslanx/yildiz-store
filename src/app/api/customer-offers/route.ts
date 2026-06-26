@@ -4,7 +4,13 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   try {
     const offers = await prisma.customerOffer.findMany({
-      where: { active: true },
+      where: { 
+        active: true,
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: new Date() } }
+        ]
+      },
       include: {
         product: {
           select: {
