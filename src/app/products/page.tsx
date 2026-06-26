@@ -179,14 +179,15 @@ function ProductsContent() {
             <form 
               onSubmit={(e) => {
                 e.preventDefault();
-                updateUrl({ q: (e.target as any).search.value, page: 1 });
+                updateUrl({ q: q, page: 1 });
               }} 
               className="relative"
             >
               <input 
                 name="search"
                 type="text" 
-                defaultValue={q}
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
                 placeholder="Ürün veya model ara..." 
                 className="w-full rounded-2xl border border-stone-200 bg-stone-50/50 px-6 py-4 text-xs font-bold text-stone-900 outline-none focus:border-black focus:bg-white focus:ring-4 focus:ring-stone-100 transition-all pr-12 shadow-sm"
               />
