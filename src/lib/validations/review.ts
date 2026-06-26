@@ -17,6 +17,8 @@ export const reviewSchema = z.object({
     .min(1, "Yorum zorunludur.")
     .min(10, "Yorum en az 10 karakter olmalıdır.")
     .max(2000, "Yorum en fazla 2000 karakter olabilir."),
+    
+  images: z.array(z.string().url("Geçerli bir resim URL'si girin.")).max(3, "En fazla 3 fotoğraf yükleyebilirsiniz.").optional(),
 });
 
 export const adminReviewSchema = z.object({

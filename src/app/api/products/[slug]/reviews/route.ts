@@ -158,6 +158,7 @@ export async function POST(
         rating: validated.rating,
         title: validated.title,
         comment: validated.comment,
+        images: validated.images || [],
         isVerifiedPurchase: !!orderWithProduct,
         orderId: orderWithProduct?.id || null,
         status: "PENDING"

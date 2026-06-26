@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, CheckCircle2, MessageSquare, AlertCircle, Loader2, User, CornerDownRight } from "lucide-react";
+import { Star, CheckCircle2, MessageSquare, AlertCircle, Loader2, User, CornerDownRight, Camera, X } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,6 +15,7 @@ type Review = {
   rating: number;
   title: string | null;
   comment: string;
+  images: string[];
   isVerifiedPurchase: boolean;
   adminReply: string | null;
   createdAt: string;
@@ -37,6 +38,8 @@ export function ProductReviews({ productSlug, productId }: { productSlug: string
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [userReviewStatus, setUserReviewStatus] = useState<"NONE" | "PENDING" | "APPROVED">("NONE");
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
     resolver: zodResolver(reviewSchema),
@@ -80,6 +83,7 @@ export function ProductReviews({ productSlug, productId }: { productSlug: string
       if (result.success) {
         toast.success(result.message);
         reset();
+        setUploadedImages([]);
         setShowForm(false);
         setUserReviewStatus("PENDING");
       } else {
@@ -89,6 +93,40 @@ export function ProductReviews({ productSlug, productId }: { productSlug: string
       toast.error("Yorum gönderilemedi.");
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    
+    if (uploadedImages.length >= 3) {
+      toast.error("En fazla 3 fotoğraf yükleyebilirsiniz.");
+      return;
+    }
+    
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success) {
+        const newImages = [...uploadedImages, data.url];
+        setUploadedImages(newImages);
+        setValue("images", newImages);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error("Fotoğraf yüklenemedi.");
+    } finally {
+      setIsUploading(false);
+      e.target.value = '';
     }
   }
 
@@ -216,6 +254,37 @@ export function ProductReviews({ productSlug, productId }: { productSlug: string
                     {errors.comment && <p className="text-xs font-bold text-red-500 uppercase">{String(errors.comment.message)}</p>}
                   </div>
 
+                  {/* Fotoğraf Yükleme */}
+                  <div className="space-y-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Fotoğraf Ekle (En Fazla 3)</p>
+                    
+                    <div className="flex flex-wrap gap-4">
+                       {uploadedImages.map((img, i) => (
+                         <div key={i} className="relative h-24 w-24 rounded-2xl overflow-hidden border border-stone-200">
+                            <img src={img} alt="Yüklenen Fotoğraf" className="h-full w-full object-cover" />
+                            <button 
+                              type="button"
+                              onClick={() => {
+                                const updated = uploadedImages.filter((_, idx) => idx !== i);
+                                setUploadedImages(updated);
+                                setValue("images", updated);
+                              }}
+                              className="absolute top-1 right-1 bg-white/80 p-1 rounded-full text-red-500 hover:bg-white transition"
+                            >
+                               <X className="h-3 w-3" />
+                            </button>
+                         </div>
+                       ))}
+                       
+                       {uploadedImages.length < 3 && (
+                         <label className="flex h-24 w-24 cursor-pointer items-center justify-center rounded-2xl border-2 border-dashed border-stone-200 bg-stone-50 text-stone-400 hover:border-stone-900 hover:text-stone-900 transition relative">
+                            {isUploading ? <Loader2 className="h-6 w-6 animate-spin" /> : <Camera className="h-6 w-6" />}
+                            <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
+                         </label>
+                       )}
+                    </div>
+                  </div>
+
                   <button 
                     disabled={isSubmitting}
                     className="w-full bg-stone-900 text-white rounded-full py-6 text-sm font-black uppercase tracking-[0.2em] hover:bg-stone-800 transition active:scale-95 disabled:opacity-50"
@@ -270,6 +339,15 @@ export function ProductReviews({ productSlug, productId }: { productSlug: string
                              <p className="text-sm font-medium leading-relaxed text-stone-500 max-w-3xl">
                                 {review.comment}
                              </p>
+                             {review.images && review.images.length > 0 && (
+                               <div className="flex gap-3 mt-4">
+                                 {review.images.map((img, i) => (
+                                   <a key={i} href={img} target="_blank" rel="noreferrer" className="block relative h-20 w-20 rounded-xl overflow-hidden border border-stone-100 hover:opacity-80 transition">
+                                      <img src={img} alt={`Yorum Görseli ${i}`} className="object-cover h-full w-full" />
+                                   </a>
+                                 ))}
+                               </div>
+                             )}
                           </div>
 
                           {review.adminReply && (

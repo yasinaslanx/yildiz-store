@@ -25,6 +25,7 @@ type Review = {
   rating: number;
   title: string | null;
   comment: string;
+  images: string[];
   status: "PENDING" | "APPROVED" | "REJECTED";
   isVerifiedPurchase: boolean;
   adminReply: string | null;
@@ -195,6 +196,15 @@ export default function AdminReviewsPage() {
                    <div className="space-y-2">
                       {review.title && <h4 className="text-sm font-black uppercase italic text-stone-900">{review.title}</h4>}
                       <p className="text-sm font-medium text-stone-500 leading-relaxed">{review.comment}</p>
+                      {review.images && review.images.length > 0 && (
+                        <div className="flex gap-2 mt-4">
+                          {review.images.map((img, i) => (
+                            <a key={i} href={img} target="_blank" rel="noreferrer">
+                              <img src={img} alt={`Yorum Fotoğrafı ${i + 1}`} className="h-16 w-16 object-cover rounded-xl border border-stone-200" />
+                            </a>
+                          ))}
+                        </div>
+                      )}
                    </div>
 
                    {review.adminReply && (

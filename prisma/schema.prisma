@@ -280,6 +280,7 @@ model ProductReview {
   status             ReviewStatus @default(PENDING)
   isVerifiedPurchase Boolean      @default(false)
   adminReply         String?
+  images             String[]     @default([])
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
   order              Order?       @relation(fields: [orderId], references: [id])
