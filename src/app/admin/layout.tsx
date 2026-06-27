@@ -19,6 +19,7 @@ const adminMenu = [
   { href: "/admin/dealers", label: "Bayi Yönetimi", icon: "🤝" },
   { href: "/admin/users", label: "Kullanıcı Yönetimi", icon: "👥" },
   { href: "/admin/quotes", label: "İndirim Talepleri", icon: "💰" },
+  { href: "/admin/product-requests", label: "Ürün Talepleri", icon: "📦" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -61,7 +62,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               // İzin kontrolleri
               const p = user?.permissions || [];
               if (item.href === "/admin/orders" || item.href === "/admin/quotes") return p.includes("ORDERS");
-              if (item.href === "/admin/products" || item.href === "/admin/categories" || item.href === "/admin/stock-alerts" || item.href === "/admin/customer-offers") return p.includes("PRODUCTS");
+              if (item.href === "/admin/products" || item.href === "/admin/categories" || item.href === "/admin/stock-alerts" || item.href === "/admin/customer-offers" || item.href === "/admin/product-requests") return p.includes("PRODUCTS");
               if (item.href === "/admin/dealers" || item.href === "/admin/users") return p.includes("USERS");
               if (item.href === "/admin/support") return p.includes("SUPPORT");
               if (item.href === "/admin/coupons" || item.href === "/admin/bundles") return p.includes("MARKETING");

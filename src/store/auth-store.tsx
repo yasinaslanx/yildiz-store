@@ -22,15 +22,19 @@ export type AuthUser = {
   email: string;
   role: UserRole;
   permissions?: string[];
+  needsPassword?: boolean;
 };
 
 type SendOtpPayload = {
   email: string;
+  password?: string;
+  isRegister?: boolean;
 };
 
 type VerifyOtpPayload = {
   email: string;
   code: string;
+  password?: string;
   firstName?: string;
   lastName?: string;
   isRegister: boolean;
@@ -40,6 +44,7 @@ type VerifyOtpPayload = {
 type AuthResult = {
   success: boolean;
   message: string;
+  data?: AuthUser;
 };
 
 type AuthContextType = {
@@ -128,6 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return {
       success: true,
       message: result.message || "Giriş başarılı.",
+      data: result.data,
     };
   };
 

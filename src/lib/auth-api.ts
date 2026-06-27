@@ -8,6 +8,8 @@ type ApiResponse<T> = {
 
 export async function sendOtpRequest(payload: {
   email: string;
+  password?: string;
+  isRegister?: boolean;
 }) {
   const response = await fetch("/api/auth/send-otp", {
     method: "POST",
@@ -28,6 +30,7 @@ export async function sendOtpRequest(payload: {
 export async function verifyOtpRequest(payload: {
   email: string;
   code: string;
+  password?: string;
   firstName?: string;
   lastName?: string;
   isRegister: boolean;

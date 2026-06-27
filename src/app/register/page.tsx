@@ -4,7 +4,18 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/store/auth-store";
 import { useUi } from "@/store/ui-store";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+
+function getPasswordStrength(pass: string) {
+  let score = 0;
+  if (!pass) return 0;
+  if (pass.length > 5) score += 25;
+  if (pass.length >= 8) score += 25;
+  if (pass.match(/[A-Z]/)) score += 25;
+  if (pass.match(/[0-9]/)) score += 25;
+  if (pass.match(/[^A-Za-z0-9]/)) score += 25;
+  return Math.min(100, score);
+}
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -16,7 +27,10 @@ export default function RegisterPage() {
     firstName: "",
     lastName: "",
     email: "",
+    password: "",
+    confirmPassword: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -31,13 +45,21 @@ export default function RegisterPage() {
 
   const handleSendCode = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!form.firstName || !form.lastName || !form.email) {
+    if (!form.firstName || !form.lastName || !form.email || !form.password) {
       showToast("Lütfen tüm alanları doldurun.", "error");
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      showToast("Şifreler eşleşmiyor.", "error");
+      return;
+    }
+    if (getPasswordStrength(form.password) < 50) {
+      showToast("Lütfen daha güçlü bir şifre belirleyin.", "error");
       return;
     }
 
     setLoading(true);
-    const result = await sendOtp({ email: form.email });
+    const result = await sendOtp({ email: form.email, isRegister: true });
 
     if (!result.success) {
       showToast(result.message, "error");
@@ -61,6 +83,7 @@ export default function RegisterPage() {
     const result = await verifyOtp({
       email: form.email,
       code,
+      password: form.password,
       firstName: form.firstName,
       lastName: form.lastName,
       isRegister: true,
@@ -134,11 +157,61 @@ export default function RegisterPage() {
                   className="w-full rounded-2xl border border-stone-100 bg-stone-50 px-6 py-4 text-xs font-bold outline-none focus:border-stone-900 focus:bg-white transition-all"
                 />
               </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 pl-1">Şifre</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    placeholder="••••••••"
+                    value={form.password}
+                    onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
+                    className="w-full rounded-2xl border border-stone-100 bg-stone-50 px-6 py-4 text-xs font-bold outline-none transition focus:border-stone-900 focus:bg-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-900 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+                
+                {form.password && (
+                  <div className="mt-2 space-y-1">
+                    <div className="h-1.5 w-full rounded-full bg-stone-100 overflow-hidden flex">
+                      <div 
+                        className={`h-full transition-all duration-300 ${getPasswordStrength(form.password) < 50 ? 'bg-red-500' : getPasswordStrength(form.password) < 75 ? 'bg-orange-500' : 'bg-green-500'}`} 
+                        style={{ width: `${getPasswordStrength(form.password)}%` }} 
+                      />
+                    </div>
+                    <p className={`text-[10px] font-bold ${getPasswordStrength(form.password) < 50 ? 'text-red-500' : getPasswordStrength(form.password) < 75 ? 'text-orange-500' : 'text-green-500'}`}>
+                      {getPasswordStrength(form.password) < 50 ? 'Zayıf' : getPasswordStrength(form.password) < 75 ? 'Orta' : 'Güçlü'}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 pl-1">Şifre Tekrar</label>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  placeholder="••••••••"
+                  value={form.confirmPassword}
+                  onChange={(e) => setForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                  className={`w-full rounded-2xl border bg-stone-50 px-6 py-4 text-xs font-bold outline-none transition focus:bg-white ${form.confirmPassword && form.confirmPassword !== form.password ? 'border-red-300 focus:border-red-500' : 'border-stone-100 focus:border-stone-900'}`}
+                />
+                {form.confirmPassword && form.confirmPassword !== form.password && (
+                  <p className="text-[10px] font-bold text-red-500 mt-1 ml-1">Şifreler eşleşmiyor</p>
+                )}
+              </div>
             </div>
 
             <button
               onClick={() => handleSendCode()}
-              disabled={loading}
+              disabled={loading || !form.password || form.password !== form.confirmPassword || getPasswordStrength(form.password) < 50}
               className="w-full mt-10 rounded-full bg-stone-900 py-6 text-xs font-black uppercase tracking-[0.3em] text-white hover:bg-stone-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-stone-100"
             >
               {loading ? "Kod Gönderiliyor..." : "Doğrulama Kodu Gönder"}

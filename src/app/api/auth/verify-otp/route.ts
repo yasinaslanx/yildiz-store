@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { setSessionCookie } from "@/lib/session";
 
+import bcrypt from "bcryptjs";
+
 export async function POST(req: Request) {
   try {
-    const { email, code, firstName, lastName, isRegister, rememberMe = false } = await req.json();
+    const { email, code, password, firstName, lastName, isRegister, rememberMe = false } = await req.json();
 
     if (!email || !code) {
       return NextResponse.json(
@@ -51,13 +53,19 @@ export async function POST(req: Request) {
         );
       }
       
+      let passwordHash = null;
+      if (password) {
+        passwordHash = await bcrypt.hash(password, 10);
+      }
+
       // Kullanıcıyı oluştur
       user = await prisma.user.create({
         data: {
           email: email.toLowerCase(),
           firstName: firstName || "İsimsiz",
           lastName: lastName || "Kullanıcı",
-          role: isAdmin ? "ADMIN" : "USER"
+          role: isAdmin ? "ADMIN" : "USER",
+          passwordHash,
         }
       });
     } else {
@@ -99,6 +107,7 @@ export async function POST(req: Request) {
       email: user.email,
       role: user.role,
       permissions: user.permissions || [],
+      needsPassword: user.passwordHash === null,
     };
 
     return NextResponse.json({

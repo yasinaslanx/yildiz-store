@@ -28,6 +28,7 @@ model User {
   reviews      ProductReview[]
   cartReminder CartReminder?
   stockLogs    StockLog[]
+  productRequests ProductRequest[]
 }
 
 model Address {
@@ -460,4 +461,27 @@ model CustomerOffer {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   product      Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model ProductRequest {
+  id            String               @id @default(cuid())
+  userId        String?
+  guestName     String?
+  guestEmail    String?
+  productName   String
+  brand         String?
+  description   String?
+  status        ProductRequestStatus @default(PENDING)
+  adminNote     String?
+  estimatedDays Int?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  user          User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+enum ProductRequestStatus {
+  PENDING
+  APPROVED
+  IN_STOCK_SOON
+  REJECTED
 }
