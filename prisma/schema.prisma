@@ -29,6 +29,7 @@ model User {
   cartReminder CartReminder?
   stockLogs    StockLog[]
   productRequests ProductRequest[]
+  dealerTransactions DealerTransaction[]
 }
 
 model Address {
@@ -181,9 +182,13 @@ model Order {
   spentPoints        Int             @default(0)
   currency           String          @default("TRY")
   exchangeRate       Decimal?        @db.Decimal(10, 4)
+  isWholesalePOS     Boolean         @default(false)
+  deliveryType       String?         @default("HAND_DELIVERY")
+  discountAmount     Decimal?        @db.Decimal(10, 2)
   user               User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   items              OrderItem[]
   reviews            ProductReview[]
+  dealerTransactions DealerTransaction[]
 }
 
 model OrderItem {
@@ -257,6 +262,19 @@ model ChatMessage {
   sender    ChatSender
   createdAt DateTime    @default(now())
   session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model DealerTransaction {
+  id          String   @id @default(cuid())
+  userId      String
+  orderId     String?
+  type        String   // "DEBT" (Borç), "PAYMENT" (Ödeme)
+  amount      Decimal  @db.Decimal(10, 2) // in USD
+  currency    String   @default("USD")
+  description String?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order       Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
 }
 
 model PasswordResetToken {
