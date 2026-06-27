@@ -10,6 +10,7 @@ type Transaction = {
   amount: number;
   description: string;
   createdAt: string;
+  orderId?: string;
 };
 
 export default function DealerLedgerPage() {
@@ -79,7 +80,7 @@ export default function DealerLedgerPage() {
   if (loading) return <div className="p-10 text-center">Yükleniyor...</div>;
 
   return (
-    <div className="p-10 max-w-4xl mx-auto space-y-10">
+    <div className="p-10 max-w-7xl mx-auto space-y-10">
       <div className="flex justify-between items-end">
         <div>
            <h1 className="text-3xl font-black uppercase tracking-tighter italic">Cari Hesap Ekstresi</h1>
@@ -129,6 +130,7 @@ export default function DealerLedgerPage() {
                <th className="p-4">Açıklama</th>
                <th className="p-4 text-right">Borç (Alışveriş)</th>
                <th className="p-4 text-right">Alacak (Ödeme)</th>
+               <th className="p-4 text-right">Belge</th>
              </tr>
            </thead>
            <tbody className="text-sm font-bold divide-y divide-stone-100">
@@ -143,10 +145,19 @@ export default function DealerLedgerPage() {
                  <td className="p-4 text-stone-500">{t.description || "-"}</td>
                  <td className="p-4 text-right text-red-600">{t.type === 'DEBT' ? `$${Number(t.amount).toFixed(2)}` : '-'}</td>
                  <td className="p-4 text-right text-green-600">{t.type === 'PAYMENT' ? `$${Number(t.amount).toFixed(2)}` : '-'}</td>
+                 <td className="p-4 text-right">
+                   {t.orderId ? (
+                     <a href={`/admin/pos/${t.orderId}/print`} target="_blank" className="text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-800 underline underline-offset-2">
+                       Fişi Yazdır
+                     </a>
+                   ) : (
+                     <span className="text-stone-300">-</span>
+                   )}
+                 </td>
                </tr>
              ))}
              {transactions.length === 0 && (
-               <tr><td colSpan={5} className="p-8 text-center text-stone-400">Henüz cari işlem bulunmuyor.</td></tr>
+               <tr><td colSpan={6} className="p-8 text-center text-stone-400">Henüz cari işlem bulunmuyor.</td></tr>
              )}
            </tbody>
          </table>

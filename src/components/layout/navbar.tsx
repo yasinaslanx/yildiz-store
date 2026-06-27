@@ -180,7 +180,7 @@ export function Navbar() {
   return (
     <>
       {/* Announcement Bar Marquee */}
-      <div className="relative z-[60] bg-stone-900 text-white py-2.5 overflow-hidden flex items-center border-b border-stone-800">
+      <div className="relative z-[60] bg-stone-900 text-white py-2.5 overflow-hidden flex items-center border-b border-stone-800 print:hidden">
          <div className="flex animate-marquee whitespace-nowrap w-max">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="flex items-center gap-12 px-6 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] flex-shrink-0">
@@ -194,7 +194,7 @@ export function Navbar() {
       </div>
 
       {/* Secondary Bar */}
-      <div className="relative z-[60] bg-stone-50 border-b border-stone-100 py-3 px-6 hidden sm:block">
+      <div className="relative z-[60] bg-stone-50 border-b border-stone-100 py-3 px-6 hidden sm:block print:hidden">
          <div className="mx-auto max-w-[1440px] flex items-center justify-between">
             <div className="flex items-center gap-4">
                <span className="inline-flex items-center rounded-full bg-stone-900 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-white">
@@ -214,7 +214,7 @@ export function Navbar() {
          </div>
       </div>
 
-      <header className="sticky top-0 w-full z-50 border-b border-stone-100 bg-white/70 backdrop-blur-3xl shadow-sm transition-all duration-500">
+      <header className="sticky top-0 w-full z-50 border-b border-stone-100 bg-white/70 backdrop-blur-3xl shadow-sm transition-all duration-500 print:hidden">
         <div className="mx-auto flex max-w-[1440px] items-center px-6 py-5 gap-4 lg:gap-12">
           
           {/* Mobile Menu Button */}

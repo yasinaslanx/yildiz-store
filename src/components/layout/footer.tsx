@@ -28,7 +28,7 @@ const FOOTER_LINKS = {
 
 export function Footer() {
    return (
-      <footer className="border-t border-stone-100 bg-white">
+      <footer className="border-t border-stone-100 bg-white print:hidden">
          <div className="mx-auto max-w-7xl px-6 py-16 lg:py-24">
             <div className="grid gap-16 lg:grid-cols-12">
                {/* Brand and Newsletter */}

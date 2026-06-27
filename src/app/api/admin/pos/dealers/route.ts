@@ -27,9 +27,17 @@ export async function GET(req: Request) {
 
     const formattedDealers = dealers.map(dealer => {
       let balanceUSD = 0;
+      let totalDebtUSD = 0;
+      let totalPaymentUSD = 0;
       dealer.dealerTransactions.forEach(t => {
-        if (t.type === "DEBT") balanceUSD += Number(t.amount);
-        if (t.type === "PAYMENT") balanceUSD -= Number(t.amount);
+        if (t.type === "DEBT") {
+          balanceUSD += Number(t.amount);
+          totalDebtUSD += Number(t.amount);
+        }
+        if (t.type === "PAYMENT") {
+          balanceUSD -= Number(t.amount);
+          totalPaymentUSD += Number(t.amount);
+        }
       });
 
       return {
@@ -38,6 +46,8 @@ export async function GET(req: Request) {
         email: dealer.email,
         phone: dealer.phone || "",
         balanceUSD: balanceUSD,
+        totalDebtUSD,
+        totalPaymentUSD
       };
     });
 
@@ -45,5 +55,46 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error("GET DEALERS ERROR:", error);
     return NextResponse.json({ success: false, message: "Bayiler alınamadı." }, { status: 500 });
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    await requireAdminUser();
+    const body = await req.json();
+    const { firstName, lastName, email, phone } = body;
+
+    if (!firstName || !lastName || !email) {
+      return NextResponse.json({ success: false, message: "Ad, soyad ve e-posta zorunludur." }, { status: 400 });
+    }
+
+    // Pre-hashed dummy password (e.g. 'yildiz123')
+    const passwordHash = "$2a$10$X8T.vI1Gj8pYh8v.8Z1J.eQz1w.7xK0X1V8r6a1Q9w3g5p2b7e5qO";
+
+    const newDealer = await prisma.user.create({
+      data: {
+        firstName,
+        lastName,
+        email,
+        phone: phone || null,
+        passwordHash,
+        role: "DEALER",
+        dealerTier: "BRONZE",
+      }
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      dealer: {
+        id: newDealer.id,
+        name: `${newDealer.firstName} ${newDealer.lastName}`,
+        email: newDealer.email,
+        phone: newDealer.phone || "",
+        balanceUSD: 0
+      }
+    });
+  } catch (error) {
+    console.error("POST DEALER ERROR:", error);
+    return NextResponse.json({ success: false, message: "Cari oluşturulamadı (E-posta veya telefon zaten kayıtlı olabilir)." }, { status: 500 });
   }
 }

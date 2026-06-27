@@ -20,6 +20,7 @@ export async function POST(req: Request) {
       deliveryType,
       exchangeRate,
       note,
+      paidAmountUSD,
     } = body;
 
     if (!items || !items.length) {
@@ -61,7 +62,7 @@ export async function POST(req: Request) {
               color: item.color,
               storage: item.storage,
               image: item.image,
-              price: new Prisma.Decimal(item.priceUSD), // Note: We store the USD price in the item since currency is USD!
+              price: new Prisma.Decimal(item.finalPriceUSD || item.priceUSD), // Store the final discounted price
               quantity: item.quantity,
             }))
           }
@@ -104,6 +105,19 @@ export async function POST(req: Request) {
             description: note || `Toptan Satış Fişi (${orderNumber})`
           }
         });
+
+        if (paidAmountUSD && Number(paidAmountUSD) > 0) {
+          await tx.dealerTransaction.create({
+            data: {
+              userId: dealerId,
+              orderId: order.id,
+              type: "PAYMENT", // Aynı sipariş esnasında tahsilat alındı
+              amount: new Prisma.Decimal(paidAmountUSD),
+              currency: "USD",
+              description: `Satış Anında Tahsilat (${orderNumber})`
+            }
+          });
+        }
       }
 
       return order;

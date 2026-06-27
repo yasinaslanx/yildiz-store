@@ -9,6 +9,7 @@ const adminMenu = [
   { href: "/admin", label: "Kontrol Paneli", icon: "📊" },
   { href: "/admin/pos", label: "Hızlı Satış (POS)", icon: "🛒" },
   { href: "/admin/orders", label: "Siparişler", icon: "📦" },
+  { href: "/admin/ledger", label: "Cari Hesaplar", icon: "📓" },
   { href: "/admin/products", label: "Ürün Yönetimi", icon: "📱" },
   { href: "/admin/customer-offers", label: "Müşteri Teklifleri", icon: "🏷️" },
   { href: "/admin/warehouse", label: "Depo Yönetimi", icon: "🏠" },
@@ -47,7 +48,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
       {/* Sidebar / Sub-nav */}
-      <aside className="w-full border-r border-stone-100 bg-white lg:w-72">
+      <aside className="w-full border-r border-stone-100 bg-white lg:w-72 print:hidden">
         <div className="sticky top-[73px] p-6 lg:p-8 h-[calc(100vh-73px)] overflow-y-auto">
           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-stone-400">Yönetim</p>
           <h2 className="mt-2 text-2xl font-black text-stone-900 tracking-tighter">Panel</h2>
@@ -64,7 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               const p = user?.permissions || [];
               if (item.href === "/admin/orders" || item.href === "/admin/quotes" || item.href === "/admin/pos") return p.includes("ORDERS");
               if (item.href === "/admin/products" || item.href === "/admin/categories" || item.href === "/admin/stock-alerts" || item.href === "/admin/customer-offers" || item.href === "/admin/product-requests") return p.includes("PRODUCTS");
-              if (item.href === "/admin/dealers" || item.href === "/admin/users") return p.includes("USERS");
+              if (item.href === "/admin/dealers" || item.href === "/admin/users" || item.href === "/admin/ledger") return p.includes("USERS");
               if (item.href === "/admin/support") return p.includes("SUPPORT");
               if (item.href === "/admin/coupons" || item.href === "/admin/bundles") return p.includes("MARKETING");
               if (item.href === "/admin/warehouse") return p.includes("WAREHOUSE");
