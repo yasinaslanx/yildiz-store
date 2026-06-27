@@ -7,6 +7,7 @@ import { useEffect } from "react";
 
 const adminMenu = [
   { href: "/admin", label: "Kontrol Paneli", icon: "📊" },
+  { href: "/admin/pos", label: "Hızlı Satış (POS)", icon: "🛒" },
   { href: "/admin/orders", label: "Siparişler", icon: "📦" },
   { href: "/admin/products", label: "Ürün Yönetimi", icon: "📱" },
   { href: "/admin/customer-offers", label: "Müşteri Teklifleri", icon: "🏷️" },
@@ -61,7 +62,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
               // İzin kontrolleri
               const p = user?.permissions || [];
-              if (item.href === "/admin/orders" || item.href === "/admin/quotes") return p.includes("ORDERS");
+              if (item.href === "/admin/orders" || item.href === "/admin/quotes" || item.href === "/admin/pos") return p.includes("ORDERS");
               if (item.href === "/admin/products" || item.href === "/admin/categories" || item.href === "/admin/stock-alerts" || item.href === "/admin/customer-offers" || item.href === "/admin/product-requests") return p.includes("PRODUCTS");
               if (item.href === "/admin/dealers" || item.href === "/admin/users") return p.includes("USERS");
               if (item.href === "/admin/support") return p.includes("SUPPORT");

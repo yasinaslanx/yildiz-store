@@ -10,13 +10,7 @@ export async function GET(req: Request, context: { params: Promise<{ orderId: st
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
-        items: {
-          include: {
-            variant: {
-              select: { sku: true }
-            }
-          }
-        },
+        items: true,
         user: {
           include: {
             dealerTransactions: {
@@ -35,7 +29,24 @@ export async function GET(req: Request, context: { params: Promise<{ orderId: st
       return NextResponse.json({ success: false, message: "Sipariş bulunamadı." }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, order });
+    // Since variant relation doesn't exist on OrderItem in schema, fetch manually:
+    const itemsWithVariants = await Promise.all(order.items.map(async (item) => {
+      const variant = await prisma.productVariant.findUnique({
+        where: { id: item.variantId },
+        select: { sku: true }
+      });
+      return {
+        ...item,
+        variant: variant || { sku: "N/A" }
+      };
+    }));
+
+    const orderToSend = {
+      ...order,
+      items: itemsWithVariants
+    };
+
+    return NextResponse.json({ success: true, order: orderToSend });
   } catch (error) {
     console.error("GET PRINT ORDER ERROR:", error);
     return NextResponse.json({ success: false, message: "Fatura getirilemedi." }, { status: 500 });
