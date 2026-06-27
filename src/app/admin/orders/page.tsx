@@ -50,6 +50,24 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
+  const [shippingModal, setShippingModal] = useState<{
+    orderId: string;
+    orderNumber: string;
+  } | null>(null);
+  const [shippingForm, setShippingForm] = useState({
+    carrier: "Yurtiçi Kargo",
+    trackingNumber: "",
+  });
+
+  const CARRIERS = [
+    "Yurtiçi Kargo",
+    "Aras Kargo",
+    "MNG Kargo",
+    "PTT Kargo",
+    "Sürat Kargo",
+    "UPS",
+    "DHL",
+  ];
 
   useEffect(() => {
     loadOrders();
@@ -67,16 +85,38 @@ export default function AdminOrdersPage() {
     }
   }
 
-  const handleStatusChange = async (orderId: string, status: AdminOrder["status"]) => {
+  const handleStatusChange = async (orderId: string, status: AdminOrder["status"], extra?: { shippingCarrier?: string; trackingNumber?: string }) => {
     try {
       setUpdatingId(orderId);
-      await updateAdminOrderRequest(orderId, { status });
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
+      // Use our new PATCH endpoint
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, ...extra }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      setOrders(prev => prev.map(o => o.id === orderId ? {
+        ...o,
+        status,
+        ...(extra?.shippingCarrier ? { shippingCarrier: extra.shippingCarrier } : {}),
+        ...(extra?.trackingNumber ? { trackingNumber: extra.trackingNumber } : {}),
+      } : o));
     } catch (err) {
-      alert("Durum güncellenemedi");
+      alert("Durum güncellenemedi: " + (err as Error).message);
     } finally {
       setUpdatingId("");
     }
+  };
+
+  const handleShipOrder = async () => {
+    if (!shippingModal) return;
+    await handleStatusChange(shippingModal.orderId, "SHIPPED", {
+      shippingCarrier: shippingForm.carrier,
+      trackingNumber: shippingForm.trackingNumber,
+    });
+    setShippingModal(null);
+    setShippingForm({ carrier: "Yurtiçi Kargo", trackingNumber: "" });
   };
 
   const filteredOrders = filterStatus === "ALL" 
@@ -183,15 +223,17 @@ export default function AdminOrdersPage() {
                                  </button>
                               </>
                             )}
-                            {order.status === 'CONFIRMED' && (
-                               <button 
-                                 onClick={() => handleStatusChange(order.id, 'SHIPPED')}
-                                 disabled={updatingId === order.id}
-                                 className="rounded-xl bg-blue-600 px-4 py-2 text-[9px] font-black uppercase tracking-widest text-white hover:bg-blue-700 transition active:scale-95 disabled:opacity-50"
-                               >
-                                  Kargoya Ver
-                               </button>
-                            )}
+                             {order.status === 'CONFIRMED' && (
+                                <button 
+                                  onClick={() => {
+                                    setShippingModal({ orderId: order.id, orderNumber: order.orderNumber });
+                                  }}
+                                  disabled={updatingId === order.id}
+                                  className="rounded-xl bg-blue-600 px-4 py-2 text-[9px] font-black uppercase tracking-widest text-white hover:bg-blue-700 transition active:scale-95 disabled:opacity-50"
+                                >
+                                   Kargoya Ver
+                                </button>
+                             )}
                             {order.status === 'SHIPPED' && (
                                <button 
                                  onClick={() => handleStatusChange(order.id, 'DELIVERED')}
@@ -360,6 +402,58 @@ export default function AdminOrdersPage() {
                 </div>
              </div>
            ))}
+        </div>
+      )}
+
+      {/* Shipping Modal */}
+      {shippingModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-[3rem] border border-stone-100 bg-white p-10 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-stone-400">Kargo Girişi</p>
+            <h2 className="mt-2 text-2xl font-black tracking-tighter text-stone-900 uppercase">
+              #{shippingModal.orderNumber}
+            </h2>
+            <p className="mt-2 text-xs font-medium text-stone-400">Kargo bilgilerini girin. Müşteriye otomatik e-posta gönderilecektir.</p>
+
+            <div className="mt-8 space-y-5">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Kargo Firması</label>
+                <select
+                  value={shippingForm.carrier}
+                  onChange={e => setShippingForm(prev => ({ ...prev, carrier: e.target.value }))}
+                  className="w-full rounded-2xl border-2 border-stone-100 bg-stone-50 px-5 py-4 text-sm font-bold text-stone-900 outline-none focus:border-stone-900 focus:bg-white transition-all"
+                >
+                  {CARRIERS.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Takip Numarası</label>
+                <input
+                  type="text"
+                  placeholder="Örn: 12345678901"
+                  value={shippingForm.trackingNumber}
+                  onChange={e => setShippingForm(prev => ({ ...prev, trackingNumber: e.target.value }))}
+                  className="w-full rounded-2xl border-2 border-stone-100 bg-stone-50 px-5 py-4 text-sm font-bold text-stone-900 outline-none focus:border-stone-900 focus:bg-white transition-all placeholder:text-stone-300"
+                />
+              </div>
+            </div>
+
+            <div className="mt-8 flex gap-3">
+              <button
+                onClick={() => setShippingModal(null)}
+                className="flex-1 rounded-full border-2 border-stone-200 py-4 text-[10px] font-black uppercase tracking-widest text-stone-900 hover:border-stone-900 transition-colors"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleShipOrder}
+                disabled={!shippingForm.trackingNumber || updatingId === shippingModal.orderId}
+                className="flex-1 rounded-full bg-stone-950 py-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {updatingId === shippingModal.orderId ? "Kaydediliyor..." : "Kargoya Gönder 🚚"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

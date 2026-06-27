@@ -19,6 +19,9 @@ type OrderDetail = {
   shippingCity: string;
   shippingDistrict: string;
   shippingPostalCode?: string | null;
+  shippingCarrier?: string | null;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
   createdAt: string;
   items: {
     id: string;
@@ -127,19 +130,41 @@ export default function OrderDetailPage() {
                  </div>
               </div>
 
-              <div className="mt-12 pt-10 border-t border-stone-50 space-y-8">
-                 <div>
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-stone-900 mb-4">Teslimat Adresi</h3>
-                    <p className="text-xs font-bold text-stone-900">{order.customerName}</p>
-                    <p className="mt-2 text-xs font-medium leading-relaxed text-stone-500 uppercase">
-                       {order.shippingAddress}<br />
-                       {order.shippingDistrict} / {order.shippingCity}
-                    </p>
-                 </div>
-                 <button className="w-full rounded-2xl bg-stone-50 py-4 text-[10px] font-black uppercase tracking-widest text-stone-500 hover:bg-stone-100 transition">
-                    Adresi Kopyala
-                 </button>
-              </div>
+               <div className="mt-12 pt-10 border-t border-stone-50 space-y-8">
+                  <div>
+                     <h3 className="text-[10px] font-black uppercase tracking-widest text-stone-900 mb-4">Teslimat Adresi</h3>
+                     <p className="text-xs font-bold text-stone-900">{order.customerName}</p>
+                     <p className="mt-2 text-xs font-medium leading-relaxed text-stone-500 uppercase">
+                        {order.shippingAddress}<br />
+                        {order.shippingDistrict} / {order.shippingCity}
+                     </p>
+                  </div>
+
+                  {/* Tracking Info */}
+                  {order.trackingNumber && (
+                    <div className="rounded-2xl bg-amber-50 border border-amber-100 p-5 space-y-3">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-amber-600">Kargo Bilgisi</p>
+                      {order.shippingCarrier && (
+                        <p className="text-xs font-black text-stone-900 uppercase">{order.shippingCarrier}</p>
+                      )}
+                      <p className="text-base font-black text-stone-900 tracking-widest">{order.trackingNumber}</p>
+                      {order.trackingUrl && (
+                        <a
+                          href={order.trackingUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-amber-700 hover:text-stone-900 transition-colors"
+                        >
+                          🚚 Kargo Sitesine Git →
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  <button className="w-full rounded-2xl bg-stone-50 py-4 text-[10px] font-black uppercase tracking-widest text-stone-500 hover:bg-stone-100 transition">
+                     Adresi Kopyala
+                  </button>
+               </div>
            </div>
         </aside>
 
@@ -224,9 +249,12 @@ export default function OrderDetailPage() {
                        <span className="text-4xl font-black tracking-tighter">{order.totalAmount.toLocaleString()} ₺</span>
                     </div>
                  </div>
-                 <button className="mt-12 w-full rounded-2xl bg-white py-5 text-[11px] font-black uppercase tracking-widest text-stone-900 hover:bg-stone-50 transition active:scale-95 shadow-xl shadow-stone-800/20">
-                    Faturayı İndir (PDF)
-                 </button>
+                  <button 
+                     onClick={() => window.open(`/api/orders/${order.id}/invoice`, '_blank')}
+                     className="mt-12 w-full rounded-2xl bg-white py-5 text-[11px] font-black uppercase tracking-widest text-stone-900 hover:bg-stone-50 transition active:scale-95 shadow-xl shadow-stone-800/20"
+                  >
+                     Faturayı İndir (PDF)
+                  </button>
               </section>
            </div>
 
