@@ -16,7 +16,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     const oldVariant = await prisma.productVariant.findUnique({
       where: { id: variantId },
-      select: { stock: true }
+      select: { stock: true, price: true, wholesalePrice: true, retailPrice: true, branchPrice: true, buyPrice: true }
     });
 
 
@@ -47,17 +47,39 @@ export async function PATCH(request: Request, context: RouteContext) {
       }
     });
 
-    // Record StockLog if stock changed
+    // Check what changed
+    let reasonParts = [];
+    let stockChanged = false;
+    let change = 0;
+    
     if (oldVariant && body.stock !== undefined && oldVariant.stock !== body.stock) {
-      const change = body.stock - oldVariant.stock;
+      stockChanged = true;
+      change = body.stock - oldVariant.stock;
+      reasonParts.push("Stok Güncellendi");
+    }
+
+    const priceChanged = oldVariant && (
+      (body.price !== undefined && Number(oldVariant.price) !== Number(body.price)) ||
+      (body.wholesalePrice !== undefined && Number(oldVariant.wholesalePrice) !== Number(body.wholesalePrice)) ||
+      (body.retailPrice !== undefined && Number(oldVariant.retailPrice) !== Number(body.retailPrice)) ||
+      (body.branchPrice !== undefined && Number(oldVariant.branchPrice) !== Number(body.branchPrice)) ||
+      (body.buyPrice !== undefined && Number(oldVariant.buyPrice) !== Number(body.buyPrice))
+    );
+
+    if (priceChanged) {
+      reasonParts.push("Fiyat Güncellendi");
+    }
+
+    // Record StockLog if anything changed
+    if (reasonParts.length > 0) {
       await prisma.stockLog.create({
         data: {
           variantId,
           userId: adminUser.id,
-          previousStock: oldVariant.stock,
-          newStock: body.stock,
+          previousStock: oldVariant?.stock || 0,
+          newStock: body.stock !== undefined ? body.stock : (oldVariant?.stock || 0),
           change: change,
-          reason: "Manuel Güncelleme"
+          reason: reasonParts.join(" ve ")
         }
       });
     }

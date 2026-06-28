@@ -37,6 +37,8 @@ export default function WarehousePage() {
   const [displayExchangeRate, setDisplayExchangeRate] = useState<number>(46.45);
   const [viewMode, setViewMode] = useState<"summary" | "low_stock" | "logs">("summary");
   const [logs, setLogs] = useState<any[]>([]);
+  const [editingVariant, setEditingVariant] = useState<Variant | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -435,7 +437,7 @@ export default function WarehousePage() {
                   <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-stone-400">Kategori</th>
                   <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-stone-400">Fiyatlar (A/Ş/T/P)</th>
                   <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-stone-400 text-center">Mevcut Stok</th>
-                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-stone-400">Hızlı İşlem</th>
+                  <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-stone-400 text-center">Hızlı İşlem</th>
                </tr>
             </thead>
             <tbody className="divide-y divide-stone-50">
@@ -515,6 +517,15 @@ export default function WarehousePage() {
                           </button>
                        </div>
                     </td>
+                    <td className="px-8 py-6 text-center">
+                        <button
+                          onClick={() => setEditingVariant(v)}
+                          className="h-10 w-10 mx-auto flex items-center justify-center rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition cursor-pointer shadow-sm"
+                          title="Fiyatları Düzenle"
+                        >
+                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                        </button>
+                     </td>
                  </tr>
                ))}
                </tbody>
@@ -743,6 +754,72 @@ export default function WarehousePage() {
                      Dosya Seç ve Başlat
                   </button>
                </div>
+            </div>
+         </div>
+       )}
+
+       {/* Quick Edit Modal */}
+       {editingVariant && (
+         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 p-4 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="w-full max-w-md rounded-[3rem] bg-white p-8 shadow-2xl relative animate-in zoom-in-95 duration-500">
+               <h3 className="text-xl font-black text-stone-900 mb-2">Hızlı Fiyat Düzenle</h3>
+               <p className="text-sm font-medium text-stone-500 mb-6">{editingVariant.product.name} ({editingVariant.sku})</p>
+               
+               <form onSubmit={async (e) => {
+                 e.preventDefault();
+                 setIsEditing(true);
+                 try {
+                   const formData = new FormData(e.currentTarget);
+                   const payload = {
+                     buyPrice: parseFloat(formData.get("buyPrice") as string) || 0,
+                     branchPrice: parseFloat(formData.get("branchPrice") as string) || 0,
+                     wholesalePrice: parseFloat(formData.get("wholesalePrice") as string) || 0,
+                     retailPrice: parseFloat(formData.get("price") as string) || 0,
+                     price: parseFloat(formData.get("price") as string) || 0,
+                   };
+                   const res = await fetch(`/api/admin/variants/${editingVariant.id}`, {
+                     method: "PATCH",
+                     headers: { "Content-Type": "application/json" },
+                     body: JSON.stringify(payload)
+                   });
+                   const json = await res.json();
+                   if (!json.success) throw new Error(json.message);
+                   
+                   toast.success("Fiyatlar güncellendi!");
+                   setVariants(prev => prev.map(v => v.id === editingVariant.id ? { ...v, ...payload } : v));
+                   setEditingVariant(null);
+                 } catch (err: any) {
+                   toast.error(err.message || "Bir hata oluştu");
+                 } finally {
+                   setIsEditing(false);
+                 }
+               }} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                     <div>
+                        <label className="text-[10px] font-black uppercase text-stone-400 mb-1 block">Alış Fiyatı (₺)</label>
+                        <input name="buyPrice" type="number" step="0.01" defaultValue={editingVariant.buyPrice} className="w-full rounded-xl border border-stone-200 p-3 text-sm font-bold text-stone-900 focus:border-stone-900 outline-none transition" />
+                     </div>
+                     <div>
+                        <label className="text-[10px] font-black uppercase text-stone-400 mb-1 block">Şube Fiyatı (₺)</label>
+                        <input name="branchPrice" type="number" step="0.01" defaultValue={editingVariant.branchPrice} className="w-full rounded-xl border border-stone-200 p-3 text-sm font-bold text-stone-900 focus:border-stone-900 outline-none transition" />
+                     </div>
+                     <div>
+                        <label className="text-[10px] font-black uppercase text-stone-400 mb-1 block">Toptan Fiyatı (₺)</label>
+                        <input name="wholesalePrice" type="number" step="0.01" defaultValue={editingVariant.wholesalePrice} className="w-full rounded-xl border border-stone-200 p-3 text-sm font-bold text-stone-900 focus:border-stone-900 outline-none transition" />
+                     </div>
+                     <div>
+                        <label className="text-[10px] font-black uppercase text-stone-400 mb-1 block">Perakende / Normal (₺)</label>
+                        <input name="price" type="number" step="0.01" defaultValue={editingVariant.price} className="w-full rounded-xl border border-stone-200 p-3 text-sm font-bold text-stone-900 focus:border-stone-900 outline-none transition" />
+                     </div>
+                  </div>
+                  
+                  <div className="flex gap-3 pt-4">
+                     <button type="button" onClick={() => setEditingVariant(null)} className="flex-1 rounded-xl bg-stone-100 p-4 text-xs font-black uppercase tracking-widest text-stone-500 hover:bg-stone-200 transition active:scale-95">İptal</button>
+                     <button type="submit" disabled={isEditing} className="flex-1 rounded-xl bg-stone-900 p-4 text-xs font-black uppercase tracking-widest text-white shadow-lg hover:bg-stone-800 transition active:scale-95 disabled:opacity-50">
+                        {isEditing ? "Kaydediliyor..." : "Kaydet"}
+                     </button>
+                  </div>
+               </form>
             </div>
          </div>
        )}
