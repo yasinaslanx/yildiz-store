@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
-    const { action, type = "percentage", amount, targetSku, priceTarget = "price" } = await req.json();
+    const { action, type = "percentage", amount, targetSku, categoryId, priceTarget = "price" } = await req.json();
 
     if (!action || (action !== "increase" && action !== "decrease")) {
       return NextResponse.json({ error: "Geçersiz işlem türü" }, { status: 400 });
@@ -91,9 +91,12 @@ export async function POST(req: Request) {
 
       return NextResponse.json({ success: true, message: `SKU: ${targetSku} başarıyla güncellendi.` });
     } else {
-      // Fetch all variants
+      // Fetch variants — optionally filtered by category
       const variants = await prisma.productVariant.findMany({
-        select: { id: true, price: true, dealerPrice: true, wholesalePrice: true, branchPrice: true, buyPrice: true, retailPrice: true }
+        where: categoryId
+          ? { product: { categoryId } }
+          : undefined,
+        select: { id: true, price: true, dealerPrice: true, wholesalePrice: true, branchPrice: true, buyPrice: true, retailPrice: true },
       });
 
       const prismaPromises = variants.map(v => {
@@ -112,7 +115,8 @@ export async function POST(req: Request) {
         await prisma.$transaction(chunk as any[]);
       }
 
-      return NextResponse.json({ success: true, message: `Tüm ürünler ${action === 'increase' ? 'zamlandı' : 'indirime girdi'}. (${prismaPromises.length} varyant güncellendi)` });
+      const scope = categoryId ? "Kategorideki ürünler" : "Tüm ürünler";
+      return NextResponse.json({ success: true, message: `${scope} ${action === 'increase' ? 'zamlandı' : 'indirime girdi'}. (${prismaPromises.length} varyant güncellendi)` });
     }
   } catch (error: any) {
     console.error("Bulk update error:", error);

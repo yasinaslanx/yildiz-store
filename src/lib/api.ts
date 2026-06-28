@@ -619,7 +619,7 @@ export async function deleteAdminCoupon(id: string) {
   return true;
 }
 
-export async function bulkUpdatePricesRequest(payload: { action: "increase" | "decrease", type?: "percentage" | "flat", amount: number, targetSku?: string, priceTarget?: "price" | "dealerPrice" | "wholesalePrice" | "branchPrice" | "buyPrice" | "retailPrice" | "all_site" | "all_reference" }) {
+export async function bulkUpdatePricesRequest(payload: { action: "increase" | "decrease", type?: "percentage" | "flat", amount: number, targetSku?: string, categoryId?: string, priceTarget?: "price" | "dealerPrice" | "wholesalePrice" | "branchPrice" | "buyPrice" | "retailPrice" | "all_site" | "all_reference" }) {
   const res = await fetch("/api/admin/products/bulk", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

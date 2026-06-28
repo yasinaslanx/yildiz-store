@@ -208,7 +208,7 @@ export default function WarehousePage() {
 
     setShowDiaModal(false);
     setLoading(true);
-    toast.loading(`Dia verileri yapay zeka ile eşleştiriliyor ve ${exchangeRate} kuruyla TL'ye çevriliyor...`);
+    toast.loading(`Veriler yapay zeka ile eşleştiriliyor ve ${exchangeRate} kuruyla TL'ye çevriliyor...`);
 
     try {
       const formData = new FormData();
@@ -339,7 +339,7 @@ export default function WarehousePage() {
                 <button onClick={handleDownloadProducts} className="w-full text-left px-4 py-4 text-xs font-bold text-stone-600 hover:bg-stone-50 transition border-b border-stone-50">1. Tüm Ürünleri İndir (Excel/CSV)</button>
                 <button onClick={() => fileInputRef.current?.click()} className="w-full text-left px-4 py-4 text-xs font-bold text-stone-600 hover:bg-stone-50 transition border-b border-stone-50">2. Normal Excel/CSV Yükle</button>
                 <button onClick={() => setShowDiaModal(true)} className="w-full text-left px-4 py-4 text-xs font-black text-blue-600 bg-blue-50 hover:bg-blue-100 transition flex items-center justify-between">
-                  Dia'dan Çek / Eşitle
+                  Veri Çek / Eşitle
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                 </button>
              </div>
@@ -702,16 +702,16 @@ export default function WarehousePage() {
            </div>
         </div>
       )}
-       {/* Dia Import Modal */}
+       {/* Import Modal */}
        {showDiaModal && (
-         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-stone-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
-               <div className="p-8">
-                  <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 p-4 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="w-full max-w-md rounded-[3rem] bg-white p-8 shadow-2xl relative animate-in zoom-in-95 duration-500">
+               <div className="flex flex-col items-center text-center">
+                  <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 text-blue-500">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                   </div>
-                  <h3 className="text-xl font-black text-stone-900 mb-2">Dia'dan Çek / Eşitle</h3>
-                  <p className="text-sm font-medium text-stone-500 mb-8">Dia'dan aldığınız excel (.xls) dosyasını seçin ve güncel dolar kurunu girin. Eğer fiyatlar TL ise kuru 1 olarak bırakabilirsiniz.</p>
+                  <h3 className="text-xl font-black text-stone-900 mb-2">Veri Çek / Eşitle</h3>
+                  <p className="text-sm font-medium text-stone-500 mb-8">Sistemden aldığınız excel (.xls) dosyasını seçin ve güncel dolar kurunu girin. Eğer fiyatlar TL ise kuru 1 olarak bırakabilirsiniz.</p>
                   
                   <div className="space-y-6">
                     <div>

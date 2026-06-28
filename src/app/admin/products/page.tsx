@@ -55,11 +55,12 @@ export default function AdminProductsPage() {
 
   // Bulk Operations State
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
-  const [bulkTab, setBulkTab] = useState<"all" | "single">("all");
+  const [bulkTab, setBulkTab] = useState<"all" | "category" | "single">("all");
   const [bulkAction, setBulkAction] = useState<"increase" | "decrease">("increase");
   const [bulkPercentage, setBulkPercentage] = useState("");
   const [bulkType, setBulkType] = useState<"percentage" | "flat">("percentage");
   const [bulkSku, setBulkSku] = useState("");
+  const [bulkCategoryId, setBulkCategoryId] = useState("");
   const [bulkTarget, setBulkTarget] = useState<any>("all_site");
   const [isBulkSubmitting, setIsBulkSubmitting] = useState(false);
 
@@ -643,10 +644,16 @@ export default function AdminProductsPage() {
                   Tüm Ürünler
                 </button>
                 <button
+                  onClick={() => setBulkTab("category")}
+                  className={`flex-1 py-4 text-[11px] font-black uppercase tracking-widest transition border-b-2 ${bulkTab === "category" ? "border-black text-black" : "border-transparent text-stone-400 hover:text-stone-600"}`}
+                >
+                  Kategoriye Göre
+                </button>
+                <button
                   onClick={() => setBulkTab("single")}
                   className={`flex-1 py-4 text-[11px] font-black uppercase tracking-widest transition border-b-2 ${bulkTab === "single" ? "border-black text-black" : "border-transparent text-stone-400 hover:text-stone-600"}`}
                 >
-                  Tekil Ürün (SKU)
+                  Tekil (SKU)
                 </button>
               </div>
 
@@ -661,6 +668,27 @@ export default function AdminProductsPage() {
                        value={bulkSku}
                        onChange={e => setBulkSku(e.target.value.toUpperCase())}
                      />
+                  </div>
+                )}
+
+                {bulkTab === "category" && (
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 pl-1">Kategori Seçin</label>
+                    <select
+                      value={bulkCategoryId}
+                      onChange={e => setBulkCategoryId(e.target.value)}
+                      className="w-full rounded-2xl border border-stone-100 bg-stone-50 px-6 py-4 text-sm font-bold text-stone-900 outline-none focus:border-black transition-all shadow-inner appearance-none cursor-pointer"
+                    >
+                      <option value="">-- Kategori Seçin --</option>
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                    {bulkCategoryId && (
+                      <p className="text-[10px] font-bold text-stone-400 pl-1">
+                        Seçili: <span className="text-stone-900">{categories.find(c => c.id === bulkCategoryId)?.name}</span> — Bu kategorideki tüm ürünlere uygulanacak.
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -737,19 +765,24 @@ export default function AdminProductsPage() {
                          toast.error("Lütfen geçerli bir değer girin");
                          return;
                        }
-                       if (bulkTab === "single" && !bulkSku) {
-                         toast.error("Lütfen bir SKU kodu girin");
-                         return;
-                       }
+                        if (bulkTab === "single" && !bulkSku) {
+                          toast.error("Lütfen bir SKU kodu girin");
+                          return;
+                        }
+                        if (bulkTab === "category" && !bulkCategoryId) {
+                          toast.error("Lütfen bir kategori seçin");
+                          return;
+                        }
                        
                        setIsBulkSubmitting(true);
-                       await bulkUpdatePricesRequest({
-                         action: bulkAction,
-                         type: bulkType,
-                         amount: Number(bulkPercentage),
-                         targetSku: bulkTab === "single" ? bulkSku : undefined,
-                         priceTarget: bulkTarget
-                       });
+                        await bulkUpdatePricesRequest({
+                          action: bulkAction,
+                          type: bulkType,
+                          amount: Number(bulkPercentage),
+                          targetSku: bulkTab === "single" ? bulkSku : undefined,
+                          categoryId: bulkTab === "category" ? bulkCategoryId : undefined,
+                          priceTarget: bulkTarget
+                        });
                        
                        toast.success("Fiyatlar güncellendi");
                        setIsBulkModalOpen(false);
@@ -760,7 +793,7 @@ export default function AdminProductsPage() {
                        setIsBulkSubmitting(false);
                      }
                    }}
-                   disabled={isBulkSubmitting || !bulkPercentage || (bulkTab === "single" && !bulkSku)}
+                   disabled={isBulkSubmitting || !bulkPercentage || (bulkTab === "single" && !bulkSku) || (bulkTab === "category" && !bulkCategoryId)}
                    className={`flex-1 rounded-full border-2 py-4 text-[11px] font-black uppercase tracking-widest text-white shadow-xl transition active:scale-95 disabled:opacity-50 ${bulkAction === "increase" ? "border-green-600 bg-green-500 shadow-green-200 hover:bg-green-600" : "border-red-600 bg-red-500 shadow-red-200 hover:bg-red-600"}`}
                  >
                     {isBulkSubmitting ? 'İşleniyor...' : (bulkAction === "increase" ? 'Zam Yap' : 'İndirim Yap')}

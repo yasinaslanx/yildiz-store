@@ -128,7 +128,7 @@ export async function POST(request: Request) {
             productId: product.id,
             sku: sku,
             color: "Standart",
-            stock: stock, buyPrice: buyPrice, branchPrice: branchPrice, wholesalePrice: wholesalePrice, retailPrice: retailPrice, price: buyPrice, dealerPrice: buyPrice
+            stock: stock, buyPrice: buyPrice, branchPrice: branchPrice, wholesalePrice: wholesalePrice, retailPrice: retailPrice, price: retailPrice, dealerPrice: branchPrice
           }
         });
         stats.newVariants++;
