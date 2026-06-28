@@ -298,10 +298,21 @@ export default function WarehousePage() {
     }
   };
 
-  const filteredVariants = variants.filter(v => 
-    v.sku.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    v.product.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const normalizeSearch = (text: string) => {
+    return text.toLocaleLowerCase('tr-TR')
+      .replace(/i̇/g, 'i').replace(/ı/g, 'i')
+      .replace(/ö/g, 'o').replace(/ü/g, 'u')
+      .replace(/ş/g, 's').replace(/ğ/g, 'g').replace(/ç/g, 'c');
+  };
+
+  const normQuery = normalizeSearch(searchQuery);
+  const searchTerms = normQuery.split(/\s+/).filter(Boolean);
+
+  const filteredVariants = variants.filter(v => {
+    if (!searchQuery) return true;
+    const searchString = normalizeSearch(`${v.sku} ${v.product.name} ${v.product.brand || ''} ${v.color || ''}`);
+    return searchTerms.every(term => searchString.includes(term));
+  });
 
   // Statistics
   const lowStockCount = variants.filter(v => v.stock < 5 && v.stock > 0).length;

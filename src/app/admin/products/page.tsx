@@ -211,10 +211,24 @@ export default function AdminProductsPage() {
               </thead>
               <tbody className="divide-y divide-stone-50">
                   {products
-                    .filter(p => 
-                      p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                      p.variants.some(v => v.sku.toLowerCase().includes(searchQuery.toLowerCase()))
-                    )
+                    .filter(p => {
+                      if (!searchQuery) return true;
+                      const normalizeSearch = (text: string) => {
+                        return text.toLocaleLowerCase('tr-TR')
+                          .replace(/i̇/g, 'i').replace(/ı/g, 'i')
+                          .replace(/ö/g, 'o').replace(/ü/g, 'u')
+                          .replace(/ş/g, 's').replace(/ğ/g, 'g').replace(/ç/g, 'c');
+                      };
+                      const normQuery = normalizeSearch(searchQuery);
+                      const searchTerms = normQuery.split(/\s+/).filter(Boolean);
+                      
+                      const searchString = normalizeSearch(
+                        `${p.name} ${p.brand || ''} ${p.category?.name || ''} ` + 
+                        p.variants.map(v => `${v.sku} ${v.color || ''}`).join(" ")
+                      );
+                      
+                      return searchTerms.every(term => searchString.includes(term));
+                    })
                     .map((product) => {
                     const minPrice = Math.min(...product.variants.map(v => v.price));
                     const maxPrice = Math.max(...product.variants.map(v => v.price));
