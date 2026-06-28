@@ -82,15 +82,25 @@ export default function PosPrintPage() {
   let suanOdenen = 0;
 
   if (order.user && order.user.dealerTransactions) {
+    const orderDate = new Date(order.createdAt).getTime();
+
     order.user.dealerTransactions.forEach((t: any) => {
-      // Eğer bu transaction bu siparişe aitse, o zaman bu sipariş esnasında alınmış nakit tahsilattır veya borçtur.
-      if (t.orderId === order.id) {
-        if (t.type === "PAYMENT") suanOdenen += Number(t.amount);
-        // Bu siparişin "DEBT" kaydı da order.id ile var. Bunu eski bakiyeye katmıyoruz.
-      } else {
-        // Siparişten bağımsız eski işlemler (Eski Borç/Alacak)
+      const txDate = new Date(t.createdAt).getTime();
+
+      // Bu siparişin "DEBT" (Borç) kaydı ise (Siparişi faturaya eklerken oluşturulan borç):
+      // Bunu ne eski bakiyeye ne de ödenene katmıyoruz, çünkü o faturanın kendisidir.
+      if (t.orderId === order.id && t.type === "DEBT") {
+        return; 
+      }
+
+      // Siparişten ÖNCE olan tüm işlemler ESKİ BORÇ'a dahil edilir.
+      if (txDate < orderDate) {
         if (t.type === "DEBT") eskiBakiye += Number(t.amount);
         if (t.type === "PAYMENT") eskiBakiye -= Number(t.amount);
+      } 
+      // Sipariş anında VEYA SONRASINDA yapılan her türlü ödeme (PAYMENT) "Alınan Tahsilat" olarak gösterilir.
+      else if (txDate >= orderDate) {
+        if (t.type === "PAYMENT") suanOdenen += Number(t.amount);
       }
     });
   }

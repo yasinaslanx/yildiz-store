@@ -8,12 +8,23 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
     await requireAdminUser();
     const { id } = await context.params;
 
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: { firstName: true, lastName: true, email: true, phone: true }
+    });
+
+    const dealer = user ? {
+      name: `${user.firstName} ${user.lastName}`.trim(),
+      email: user.email,
+      phone: user.phone
+    } : null;
+
     const transactions = await prisma.dealerTransaction.findMany({
       where: { userId: id },
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ success: true, transactions });
+    return NextResponse.json({ success: true, transactions, dealer });
   } catch (error) {
     console.error("GET DEALER LEDGER ERROR:", error);
     return NextResponse.json({ success: false, message: "Cari hareketler alınamadı." }, { status: 500 });

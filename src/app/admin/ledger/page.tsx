@@ -56,10 +56,27 @@ export default function LedgerPage() {
     loadDealers();
   }, []);
 
-  const filteredDealers = dealers.filter(d => 
+  const [hideZeroBalance, setHideZeroBalance] = useState(false);
+  const [sortOrder, setSortOrder] = useState("name_asc");
+
+  let filteredDealers = dealers.filter(d => 
     d.name.toLowerCase().includes(search.toLowerCase()) || 
     d.email.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (hideZeroBalance) {
+    filteredDealers = filteredDealers.filter(d => Math.abs(d.balanceUSD) > 0.01);
+  }
+
+  filteredDealers.sort((a, b) => {
+    if (sortOrder === "balance_desc") {
+      return b.balanceUSD - a.balanceUSD;
+    } else if (sortOrder === "balance_asc") {
+      return a.balanceUSD - b.balanceUSD;
+    } else {
+      return a.name.localeCompare(b.name, 'tr-TR');
+    }
+  });
 
   const totalBalanceUSD = dealers.reduce((acc, d) => acc + d.balanceUSD, 0);
   const totalReceivablesUSD = dealers.filter(d => d.balanceUSD > 0).reduce((acc, d) => acc + d.balanceUSD, 0); // Bizim alacaklarımız (Dealers' debt)
@@ -117,16 +134,39 @@ export default function LedgerPage() {
 
       {/* Main Table Area */}
       <div className="bg-white rounded-[2rem] border border-stone-100 overflow-hidden shadow-sm">
-        <div className="p-6 border-b border-stone-100 flex items-center justify-between bg-stone-50/50">
+        <div className="p-6 border-b border-stone-100 flex flex-col md:flex-row md:items-center justify-between bg-stone-50/50 gap-4">
           <div className="relative">
             <input 
               type="text" 
               placeholder="Cari adı veya e-posta ara..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-80 bg-white border border-stone-200 rounded-xl px-4 py-3 pl-11 text-sm font-bold focus:border-stone-900 outline-none transition"
+              className="w-full md:w-80 bg-white border border-stone-200 rounded-xl px-4 py-3 pl-11 text-sm font-bold focus:border-stone-900 outline-none transition"
             />
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-stone-600 bg-white px-4 py-3 rounded-xl border border-stone-200 shadow-sm hover:bg-stone-50 transition select-none">
+              <input 
+                type="checkbox" 
+                checked={hideZeroBalance} 
+                onChange={e => setHideZeroBalance(e.target.checked)} 
+                className="w-4 h-4 rounded border-stone-300 text-stone-900 focus:ring-stone-900 cursor-pointer" 
+              />
+              Sıfır Bakiyelileri Gizle
+            </label>
+            
+            <select 
+              value={sortOrder} 
+              onChange={e => setSortOrder(e.target.value)}
+              className="bg-white border border-stone-200 rounded-xl px-4 py-3 text-xs font-bold text-stone-600 focus:border-stone-900 outline-none transition cursor-pointer shadow-sm appearance-none pr-10"
+              style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: `right 0.5rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1.5em 1.5em` }}
+            >
+              <option value="name_asc">Alfabetik (A-Z)</option>
+              <option value="balance_desc">Borca Göre (Çoktan Aza)</option>
+              <option value="balance_asc">Borca Göre (Azdan Çoğa)</option>
+            </select>
           </div>
         </div>
 
