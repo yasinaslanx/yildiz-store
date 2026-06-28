@@ -8,6 +8,7 @@ import { useEffect } from "react";
 const adminMenu = [
   { href: "/admin", label: "Kontrol Paneli", icon: "📊" },
   { href: "/admin/pos", label: "Hızlı Satış (POS)", icon: "🛒" },
+  { href: "/admin/pos/invoices", label: "Faturalar", icon: "🧾" },
   { href: "/admin/orders", label: "Siparişler", icon: "📦" },
   { href: "/admin/ledger", label: "Cari Hesaplar", icon: "📓" },
   { href: "/admin/products", label: "Ürün Yönetimi", icon: "📱" },
@@ -63,7 +64,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
               // İzin kontrolleri
               const p = user?.permissions || [];
-              if (item.href === "/admin/orders" || item.href === "/admin/quotes" || item.href === "/admin/pos") return p.includes("ORDERS");
+              if (item.href === "/admin/orders" || item.href === "/admin/quotes" || item.href === "/admin/pos" || item.href === "/admin/pos/invoices") return p.includes("ORDERS");
               if (item.href === "/admin/products" || item.href === "/admin/categories" || item.href === "/admin/stock-alerts" || item.href === "/admin/customer-offers" || item.href === "/admin/product-requests") return p.includes("PRODUCTS");
               if (item.href === "/admin/dealers" || item.href === "/admin/users" || item.href === "/admin/ledger") return p.includes("USERS");
               if (item.href === "/admin/support") return p.includes("SUPPORT");
@@ -72,7 +73,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
               return false;
             }).map((item) => {
-              const isActive = pathname === item.href;
+              const isActive =
+                item.href === "/admin"
+                  ? pathname === "/admin"
+                  : item.href === "/admin/pos"
+                  ? pathname === "/admin/pos"
+                  : pathname.startsWith(item.href);
               return (
                 <Link
                   key={item.href}

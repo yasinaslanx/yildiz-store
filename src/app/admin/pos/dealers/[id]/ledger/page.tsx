@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Printer } from "lucide-react";
 
 type Transaction = {
   id: string;
@@ -103,9 +103,19 @@ export default function DealerLedgerPage() {
              {dealer ? "Cari Hesap Ekstresi ve İşlem Geçmişi" : "Bayi Bakiyesi ve İşlem Geçmişi"}
            </p>
         </div>
-        <div className="text-right">
-           <p className="text-xs font-black uppercase tracking-widest text-stone-400">Güncel Borç (Bakiye)</p>
-           <p className={`text-4xl font-black ${balance > 0 ? 'text-red-600' : 'text-green-600'}`}>${balance.toFixed(2)}</p>
+        <div className="flex items-end gap-6">
+          <a
+            href={`/admin/pos/dealers/${params.id}/ledger/print`}
+            target="_blank"
+            className="flex items-center gap-2 bg-white text-stone-900 border-2 border-stone-900 px-5 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-stone-100 transition shadow-sm"
+          >
+            <Printer className="w-4 h-4" />
+            Ekstreyi Yazdır
+          </a>
+          <div className="text-right">
+            <p className="text-xs font-black uppercase tracking-widest text-stone-400">Güncel Borç (Bakiye)</p>
+            <p className={`text-4xl font-black ${balance > 0 ? 'text-red-600' : 'text-green-600'}`}>${balance.toFixed(2)}</p>
+          </div>
         </div>
       </div>
 
@@ -132,7 +142,7 @@ export default function DealerLedgerPage() {
          </div>
          <button 
            disabled={submitting}
-           className="bg-stone-900 text-white px-8 py-3 rounded-xl font-black uppercase tracking-widest hover:bg-stone-800 transition disabled:opacity-50"
+           className="cursor-pointer bg-white text-stone-900 border-2 border-stone-900 px-8 py-3 rounded-xl font-black uppercase tracking-widest transition-all duration-200 hover:bg-stone-100 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
          >
            {submitting ? "Ekleniyor..." : "Tahsilat Ekle"}
          </button>

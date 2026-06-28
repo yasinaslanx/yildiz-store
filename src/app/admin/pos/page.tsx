@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, ShoppingCart, User, Plus, Minus, Trash2, Printer, MapPin, Truck, Box, ChevronDown } from "lucide-react";
+import { Search, ShoppingCart, User, Plus, Minus, Trash2, Printer, MapPin, Truck, Box, ChevronDown, FileText } from "lucide-react";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
 
@@ -348,6 +348,13 @@ export default function POSPage() {
           <div>
             <h1 className="text-2xl font-black uppercase tracking-tighter text-stone-900 italic">Toptan Satış (POS)</h1>
             <p className="text-xs font-bold text-stone-500 uppercase tracking-widest mt-1">Hızlı Sipariş Ekranı</p>
+            <a
+              href="/admin/pos/invoices"
+              className="inline-flex items-center gap-1.5 mt-2 text-[10px] font-black uppercase tracking-widest text-stone-400 hover:text-stone-900 transition"
+            >
+              <FileText className="w-3 h-3" />
+              Tüm Faturalar
+            </a>
           </div>
 
           <div className="flex flex-col md:flex-row gap-4 items-center">

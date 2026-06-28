@@ -85,8 +85,22 @@ export function Navbar() {
           const res = await fetch(`/api/products?q=${encodeURIComponent(searchQuery.trim())}&limit=5`);
           const data = await res.json();
           if (data.success) {
-            setSearchResults(data.data);
-          }
+              const q = searchQuery.trim().toLocaleLowerCase("tr-TR");
+              const scored = (data.data || []).map((p: any) => {
+                const name = (p.name || "").toLocaleLowerCase("tr-TR");
+                const brand = (p.brand || "").toLocaleLowerCase("tr-TR");
+                const sku = (p.variants?.[0]?.sku || "").toLocaleLowerCase("tr-TR");
+                let score = 3;
+                if (name.startsWith(q) || sku.startsWith(q)) score = 0;
+                else if (brand.startsWith(q)) score = 1;
+                else if (name.includes(q) || sku.includes(q)) score = 2;
+                return { ...p, _score: score };
+              }).sort((a: any, b: any) => {
+                if (a._score !== b._score) return a._score - b._score;
+                return (a.name || "").localeCompare(b.name || "", "tr-TR");
+              });
+              setSearchResults(scored);
+            }
         } catch (error) {
           console.error(error);
         } finally {
