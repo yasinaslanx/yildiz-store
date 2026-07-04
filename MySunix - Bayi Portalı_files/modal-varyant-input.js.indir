@@ -1,0 +1,262 @@
+/**
+ * Form - Varyant Modal Miktar Input, Klavye Nav, Scroll
+ */
+(function() {
+    'use strict';
+
+    var F = window.Form;
+
+    F.ModalVaryantInput = {};
+
+    /**
+     * Stoksuz kart için detay modalını aç (üç nokta butonu ile aynı aksiyon)
+     */
+    function openDetail(dataId) {
+        var urunData = F.ModalVaryant.ST.urunData;
+        if (!urunData || !F.Modal.acDetay || !dataId) return;
+        var varyantInfo = F.ModalVaryantInput.getVaryantInfo(dataId, urunData);
+        if (varyantInfo) varyantInfo.varyantId = dataId;
+        F.Modal.acDetay(urunData, varyantInfo);
+    }
+
+    /**
+     * Input'un kartı stoksuz mu kontrol et
+     */
+    function isOos(inp) {
+        if (F.State.isIade) return false;
+        var card = inp.closest('.frm-vm-vc');
+        return card && card.classList.contains('oos');
+    }
+
+    /**
+     * Grid içindeki input'lara event bind et
+     */
+    F.ModalVaryantInput.bindInputs = function(gridEl) {
+        var inputs = gridEl.querySelectorAll('.frm-vm-vc-qty');
+
+        inputs.forEach(function(inp) {
+            var card = inp.closest('.frm-vm-vc');
+            var cardOos = F.State.isIade ? false : (card && card.classList.contains('oos'));
+
+            // Stoksuz kartlar: input pasif. KAZARA detay/düz ürün açılmasını ÖNLE — numpadle
+            // miktar girerken stoksuz karta el çarpınca detay açılıyordu. Kart/input tıklaması
+            // artık detay AÇMAZ; detaya yalnız "..." (detay) butonuyla bilinçli ulaşılır.
+            if (cardOos) {
+                inp.readOnly = true;
+                inp.tabIndex = -1;
+                inp.style.cursor = 'default';
+
+                // Mevcut değer varsa kart highlight (düzenleme modunda olabilir)
+                var id = inp.getAttribute('data-id');
+                var val = F.ModalVaryant.ST.q[id] || 0;
+                if (val > 0) {
+                    inp.value = val;
+                    if (card) card.classList.add('sel');
+                    var clrBtn = card ? card.querySelector('.frm-vm-vc-clear') : null;
+                    if (clrBtn) clrBtn.style.display = '';
+                }
+                return;
+            }
+
+            // --- Stoklu kartlar: normal input davranışı ---
+
+            // Sadece rakam
+            inp.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, '');
+                var id = this.getAttribute('data-id');
+                var val = parseInt(this.value) || 0;
+                F.ModalVaryant.ST.q[id] = val;
+
+                // Kart highlight
+                var c = this.closest('.frm-vm-vc');
+                if (c) c.classList.toggle('sel', val > 0);
+
+                // X butonu göster/gizle
+                var clearBtn = c ? c.querySelector('.frm-vm-vc-clear') : null;
+                if (clearBtn) clearBtn.style.display = val > 0 ? '' : 'none';
+
+                // Toplam güncelle
+                F.ModalVaryant.toplamGuncelle();
+            });
+
+            // Focus seçim
+            inp.addEventListener('focus', function() {
+                this.select();
+            });
+
+            // Klavye navigasyonu
+            inp.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    F.ModalVaryantInput.navigate(this, e.key);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    F.ModalVaryantInput.navigate(this, 'ArrowRight');
+                } else if (e.key === 'Tab') {
+                    e.preventDefault();
+                    F.ModalVaryantInput.tabNavigate(this, e.shiftKey);
+                }
+            });
+
+            // Mevcut değer varsa kart highlight
+            var id = inp.getAttribute('data-id');
+            var val = F.ModalVaryant.ST.q[id] || 0;
+            if (val > 0) {
+                inp.value = val;
+                if (card) card.classList.add('sel');
+                var clrBtn = card ? card.querySelector('.frm-vm-vc-clear') : null;
+                if (clrBtn) clrBtn.style.display = '';
+            }
+        });
+
+        // Detay butonları → Evrensel ürün detay modalını aç (detay overlay)
+        gridEl.querySelectorAll('.frm-vm-vc-detail-btn').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                openDetail(this.getAttribute('data-id'));
+            });
+        });
+
+        // X (temizle) butonları → SweetAlert onay ile varyant miktarını sıfırla
+        gridEl.querySelectorAll('.frm-vm-vc-clear').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var dataId = this.getAttribute('data-id');
+                var miktar = F.ModalVaryant.ST.q[dataId] || 0;
+                var urunData = F.ModalVaryant.ST.urunData;
+                var info = urunData ? F.ModalVaryantInput.getVaryantInfo(dataId, urunData) : null;
+                var adi = info ? info.adi : 'Varyant';
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Varyant Kaldır',
+                    text: adi + ' (' + miktar + ' adet) kaldırılacak. Devam edilsin mi?',
+                    showCancelButton: true,
+                    confirmButtonText: 'Evet, Kaldır',
+                    cancelButtonText: 'İptal',
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280'
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        F.ModalVaryant.ST.q[dataId] = 0;
+                        delete F.ModalVaryant.ST.p[dataId];
+                        delete F.ModalVaryant.ST.d[dataId];
+                        delete F.ModalVaryant.ST.n[dataId];
+                        var inp = gridEl.querySelector('.frm-vm-vc-qty[data-id="' + dataId + '"]');
+                        if (inp) {
+                            inp.value = '';
+                            var card = inp.closest('.frm-vm-vc');
+                            if (card) card.classList.remove('sel');
+                        }
+                        var clrBtn = gridEl.querySelector('.frm-vm-vc-clear[data-id="' + dataId + '"]');
+                        if (clrBtn) clrBtn.style.display = 'none';
+                        F.ModalVaryant.toplamGuncelle();
+                    }
+                });
+            });
+        });
+
+        F.ModalVaryant.toplamGuncelle();
+    };
+
+    /**
+     * Grid içindeki gerçek sütun sayısını DOM pozisyonlarından hesapla
+     */
+    function getGridCols(gridEl) {
+        var cards = gridEl.querySelectorAll('.frm-vm-vc');
+        if (cards.length < 2) return 1;
+        var firstTop = cards[0].getBoundingClientRect().top;
+        for (var i = 1; i < cards.length; i++) {
+            if (Math.abs(cards[i].getBoundingClientRect().top - firstTop) > 2) return i;
+        }
+        return cards.length;
+    }
+
+    /**
+     * Klavye navigasyonu (stoksuz kartları atlar)
+     */
+    F.ModalVaryantInput.navigate = function(current, direction) {
+        var gridEl = current.closest('.frm-vm-card-grid');
+        if (!gridEl) return;
+
+        var gridInputs = Array.from(gridEl.querySelectorAll('.frm-vm-vc-qty'));
+        var idx = gridInputs.indexOf(current);
+        if (idx === -1) return;
+
+        var cols = getGridCols(gridEl);
+        var step;
+        switch (direction) {
+            case 'ArrowRight': step = 1; break;
+            case 'ArrowLeft': step = -1; break;
+            case 'ArrowDown': step = cols; break;
+            case 'ArrowUp': step = -cols; break;
+            default: return;
+        }
+
+        var newIdx = idx + step;
+        while (newIdx >= 0 && newIdx < gridInputs.length) {
+            if (!isOos(gridInputs[newIdx])) {
+                gridInputs[newIdx].focus();
+                gridInputs[newIdx].select();
+                return;
+            }
+            newIdx += step;
+        }
+    };
+
+    /**
+     * Tab navigasyonu: tüm görünür ve stoklu varyant input'ları arasında sırayla geç
+     */
+    F.ModalVaryantInput.tabNavigate = function(current, isShift) {
+        var allInputs = Array.from(document.querySelectorAll('.frm-vm-vc-qty'));
+        // Sadece görünür ve stoklu olanları al
+        var available = allInputs.filter(function(inp) {
+            return inp.offsetParent !== null && !isOos(inp);
+        });
+        var idx = available.indexOf(current);
+        if (idx === -1) return;
+
+        var newIdx = isShift ? idx - 1 : idx + 1;
+        if (newIdx >= 0 && newIdx < available.length) {
+            available[newIdx].focus();
+            available[newIdx].select();
+        }
+    };
+
+    /**
+     * data-id'den varyant bilgisi çıkar (stok dahil)
+     */
+    F.ModalVaryantInput.getVaryantInfo = function(dataId, urunData) {
+        var parts = dataId.split('_');
+        var tip = parts[0];
+        var id = parts[1];
+
+        if (tip === 'r') {
+            var renkler = urunData.renkler || [];
+            for (var i = 0; i < renkler.length; i++) {
+                if (renkler[i].id == id) {
+                    var r = renkler[i];
+                    return { tip: 'renk', adi: r.renk_adi, renkAdi: r.renk_adi, renkKodu: r.renk_kodu || '', stok: parseInt(r.stok) || 0 };
+                }
+            }
+        } else if (tip === 'm') {
+            var modeller = urunData.modeller || [];
+            for (var j = 0; j < modeller.length; j++) {
+                if (modeller[j].id == id) {
+                    var m = modeller[j];
+                    return { tip: 'model', adi: m.model_adi, modelAdi: m.model_adi, markaAdi: m.marka_adi, markaRenk: m.marka_renk || '#103595', stok: parseInt(m.stok) || 0 };
+                }
+            }
+        } else if (tip === 'mr') {
+            var mrList = urunData.model_renkler || [];
+            for (var k = 0; k < mrList.length; k++) {
+                if (mrList[k].id == id) {
+                    var mr = mrList[k];
+                    return { tip: 'model_renk', adi: mr.model_adi + ' — ' + mr.renk_adi, modelAdi: mr.model_adi, renkAdi: mr.renk_adi, renkKodu: mr.renk_kodu || '', markaAdi: mr.marka_adi, markaRenk: mr.marka_renk || '#103595', stok: parseInt(mr.stok) || 0 };
+                }
+            }
+        }
+        return null;
+    };
+
+})();

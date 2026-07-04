@@ -1,0 +1,171 @@
+/**
+ * Form - Varyant Modal State & Marka Logolar
+ */
+(function() {
+    'use strict';
+
+    var F = window.Form;
+
+    F.ModalVaryant = F.ModalVaryant || {};
+
+    // Varyant modal state
+    F.ModalVaryant.ST = {
+        q: {},           // {varyantId: miktar} miktarlar
+        p: {},           // {varyantId: fiyat} per-varyant fiyatlar
+        d: {},           // {varyantId: depoId} per-varyant depo seçimleri
+        n: {},           // {varyantId: not} per-varyant notlar
+        mtl: {},         // {varyantId: manuelTlFiyat} per-varyant manuel TL fiyatlar
+        vt: 'renk',      // aktif tab: renk|model_renk|model
+        s: '',           // arama string
+        br: 'all',       // marka filtresi: all|markaId
+        ns: true,        // stoksuz göster
+        collapsed: {},   // {markaId: true/false} collapse durumu
+        urunData: null,  // mevcut ürün verisi
+        satirId: null,   // düzenleme için satır ID
+        varsayilanFiyatListesi: null, // fiyat listesinden gelen fiyat
+        fiyatKurali: null             // fiyat kuralı detayı
+    };
+
+    /**
+     * State'i sıfırla
+     */
+    F.ModalVaryant.resetState = function() {
+        F.ModalVaryant.ST.q = {};
+        F.ModalVaryant.ST.p = {};
+        F.ModalVaryant.ST.d = {};
+        F.ModalVaryant.ST.n = {};
+        F.ModalVaryant.ST.mtl = {};
+        F.ModalVaryant.ST.s = '';
+        F.ModalVaryant.ST.br = 'all';
+        F.ModalVaryant.ST.ns = true;
+        F.ModalVaryant.ST.collapsed = {};
+        F.ModalVaryant.ST.urunData = null;
+        F.ModalVaryant.ST.satirId = null;
+        F.ModalVaryant.ST.varsayilanFiyatListesi = null;
+        F.ModalVaryant.ST.fiyatKurali = null;
+    };
+
+    /**
+     * Toplam seçili miktar
+     */
+    F.ModalVaryant.toplamMiktar = function() {
+        var top = 0;
+        for (var k in F.ModalVaryant.ST.q) {
+            top += (F.ModalVaryant.ST.q[k] || 0);
+        }
+        return top;
+    };
+
+    /**
+     * Toplam seçili varyant sayısı
+     */
+    F.ModalVaryant.seciliSayisi = function() {
+        var count = 0;
+        for (var k in F.ModalVaryant.ST.q) {
+            if (F.ModalVaryant.ST.q[k] > 0) count++;
+        }
+        return count;
+    };
+
+    /**
+     * Model bazlı fiyat bul
+     * key: 'm_{id}' veya 'mr_{id}' formatında varyant key
+     * Dönüş: model fiyat (satis_fiyati > 0 ise) veya null
+     */
+    F.ModalVaryant.modelFiyatBul = function(key) {
+        var data = F.ModalVaryant.ST.urunData;
+        if (!data) return null;
+
+        var parts = key.split('_');
+        var tip = parts[0];
+        var id = parts[1];
+
+        if (tip === 'm') {
+            var modeller = data.modeller || [];
+            for (var i = 0; i < modeller.length; i++) {
+                if (modeller[i].id == id) {
+                    var sf = parseFloat(modeller[i].satis_fiyati);
+                    return (!isNaN(sf) && sf >= 0) ? sf : null;
+                }
+            }
+        } else if (tip === 'mr') {
+            var mrList = data.model_renkler || [];
+            for (var j = 0; j < mrList.length; j++) {
+                if (mrList[j].id == id) {
+                    var mf = parseFloat(mrList[j].model_fiyat);
+                    return (!isNaN(mf) && mf >= 0) ? mf : null;
+                }
+            }
+        }
+        return null;
+    };
+
+    /**
+     * Toplam tutar
+     */
+    F.ModalVaryant.toplamTutar = function() {
+        var data = F.ModalVaryant.ST.urunData;
+        if (!data) return 0;
+
+        var toplam = 0;
+        // Fiyat listesi fiyatı varsa onu varsayılan olarak kullan
+        var varsayilanFiyat = (F.ModalVaryant.ST.varsayilanFiyatListesi !== null)
+            ? F.ModalVaryant.ST.varsayilanFiyatListesi
+            : (data.fiyat || 0);
+
+        var kural = F.ModalVaryant.ST.fiyatKurali;
+        for (var k in F.ModalVaryant.ST.q) {
+            var miktar = F.ModalVaryant.ST.q[k] || 0;
+            if (miktar > 0) {
+                var fiyat;
+                if (F.ModalVaryant.ST.p[k] !== undefined) {
+                    // Per-varyant custom fiyat (baz fiyat) → kural uygula
+                    fiyat = F.ModalVaryant.ST.p[k];
+                    if (kural) {
+                        fiyat = F.Helpers.fiyatKuraliUygula(fiyat, kural);
+                    }
+                } else {
+                    // Model bazlı fiyat kontrol et
+                    var modelFiyat = F.ModalVaryant.modelFiyatBul(k);
+                    if (modelFiyat !== null) {
+                        fiyat = modelFiyat;
+                        if (kural) {
+                            fiyat = F.Helpers.fiyatKuraliUygula(fiyat, kural);
+                        }
+                    } else {
+                        // Varsayılan fiyat (zaten kural uygulanmış)
+                        fiyat = varsayilanFiyat;
+                    }
+                }
+                toplam += miktar * fiyat;
+            }
+        }
+        return toplam; // Raw USD, yuvarlama display katmanında yapılır
+    };
+
+    /**
+     * Brüt toplam tutar (kural uygulanmamış — indirimsiz)
+     * Per-varyant p[k] kuralsız baz fiyat olarak tutulur; yoksa data.fiyat (orijinal) kullanılır.
+     */
+    F.ModalVaryant.brutToplamTutar = function() {
+        var data = F.ModalVaryant.ST.urunData;
+        if (!data) return 0;
+
+        var toplam = 0;
+        for (var k in F.ModalVaryant.ST.q) {
+            var miktar = F.ModalVaryant.ST.q[k] || 0;
+            if (miktar > 0) {
+                var fiyat;
+                if (F.ModalVaryant.ST.p[k] !== undefined) {
+                    fiyat = F.ModalVaryant.ST.p[k];
+                } else {
+                    var modelFiyat = F.ModalVaryant.modelFiyatBul(k);
+                    fiyat = (modelFiyat !== null) ? modelFiyat : (data.fiyat || 0);
+                }
+                toplam += miktar * fiyat;
+            }
+        }
+        return toplam;
+    };
+
+})();

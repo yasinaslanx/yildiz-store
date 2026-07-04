@@ -1,0 +1,118 @@
+/**
+ * Bayi Portal — Sunix Radar: Girişte katılım pop-up'ı
+ * Her sayfada yüklenir. Bayinin henüz oy vermediği yayında radar ürünü varsa,
+ * oturumda bir kez SweetAlert2 pop-up ile bilgilendirip radar ekranına davet eder.
+ * Radar katılımı düşük olduğu için nazik yönlendirme amaçlıdır — kullanıcı kapatabilir.
+ *
+ * Çakışma kuralı: Önce Stoğa Giren pop-up'ı (stoga-giren-badge.js), sonra Radar.
+ * Radar, başka bir SweetAlert açıksa kapanmasını bekler (stoga-giren-badge.js'e dokunmadan).
+ */
+(function() {
+    // Zaten radar sayfasındaysak pop-up gösterme (kullanıcı amaç dahilinde orada)
+    try {
+        if (new URLSearchParams(location.search).get('sayfa') === 'sunix-radar') return;
+    } catch (e) {}
+
+    function esc(s) {
+        if (s == null) return '';
+        return String(s).replace(/[&<>"']/g, function(c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+    function resim(u) {
+        if (!u) return '';
+        if (typeof resimUrl === 'function') return resimUrl(u);
+        if (/^https?:\/\//i.test(u)) return u;
+        var p = String(u).replace(/^\/+/, '');
+        if (p.indexOf('uploads/') === 0 || p.indexOf('upload/') === 0) return p; // same-origin (bayi/.htaccess)
+        return 'https://sunixhub.com/' + p;
+    }
+    function fiyatChipler(o) {
+        var nak = o.nakliye_tipi || 'her_ikisi';
+        var html = '';
+        if ((nak === 'ucak' || nak === 'her_ikisi') && o.kdv_dahil_ucak)
+            html += '<span class="gp-chip gp-chip--ucak"><span class="gp-chip-et">Uçak</span> $' + parseFloat(o.kdv_dahil_ucak).toFixed(2) + '</span>';
+        if ((nak === 'konteyner' || nak === 'her_ikisi') && o.kdv_dahil_konteyner)
+            html += '<span class="gp-chip gp-chip--kont"><span class="gp-chip-et">Kont.</span> $' + parseFloat(o.kdv_dahil_konteyner).toFixed(2) + '</span>';
+        return html;
+    }
+
+    function popupAc(d) {
+        if (typeof Swal === 'undefined') return;
+        // Oturumda bir kez (oylanmamış ürün kaldıkça yeni oturumda tekrar açılır)
+        try { if (sessionStorage.getItem('radar_popup_gosterildi') === '1') return; } catch (e) {}
+        try { sessionStorage.setItem('radar_popup_gosterildi', '1'); } catch (e) {}
+
+        var oniz = d.onizleme || [];
+        var liste = oniz.map(function(o) {
+            var img = resim(o.ilk_resim);
+            var imgHtml = img
+                ? '<img src="' + esc(img) + '" alt="" onerror="this.style.display=\'none\';var ic=this.parentNode.querySelector(\'i\');if(ic)ic.style.display=\'\'">'
+                : '';
+            var iconHtml = '<i class="icon-crosshair"' + (img ? ' style="display:none"' : '') + '></i>';
+            var chips = fiyatChipler(o);
+            return '<div class="gp-item">'
+                + '<div class="gp-item-img">' + iconHtml + imgHtml + '</div>'
+                + '<div class="gp-item-body">'
+                + '<div class="gp-item-ad">' + esc(o.baslik) + '</div>'
+                + (chips ? '<div class="gp-chips">' + chips + '</div>' : '')
+                + '</div></div>';
+        }).join('');
+
+        var kalan = d.sayi - oniz.length;
+        var fazla = kalan > 0
+            ? '<div class="gp-fazla">+ ' + kalan + ' ürün daha</div>'
+            : '';
+
+        Swal.fire({
+            html: '<div class="gp-head gp-head--radar">'
+                    + '<div class="gp-head-ic"><i class="icon-crosshair"></i></div>'
+                    + '<div class="gp-head-tx">'
+                        + '<div class="gp-head-title">' + d.sayi + ' Yeni Radar Ürünü</div>'
+                        + '<div class="gp-head-sub">Yeni ürünler değerlendirmenizi bekliyor — beğenip tahmini talebinizi paylaşın, hangilerini getireceğimize birlikte karar verelim.</div>'
+                    + '</div>'
+                + '</div>'
+                + '<div class="gp-liste">' + liste + fazla + '</div>',
+            showCancelButton: true,
+            confirmButtonText: 'Radara Katıl',
+            cancelButtonText: 'Kapat',
+            reverseButtons: true,
+            buttonsStyling: false,
+            width: 480,
+            customClass: {
+                popup: 'gp-popup gp-popup--radar',
+                actions: 'gp-actions',
+                confirmButton: 'gp-btn gp-btn--primary',
+                cancelButton: 'gp-btn gp-btn--ghost'
+            }
+        }).then(function(res) {
+            if (res.isConfirmed) {
+                window.location.href = 'index.php?sayfa=sunix-radar';
+            }
+            // Kapat → yönlendirme yok (kullanıcı reddedebilir)
+        });
+    }
+
+    // Çakışma: başka bir SweetAlert (örn. Stoğa Giren pop-up'ı) açıksa kapanmasını bekle
+    function acDene(d, deneme) {
+        deneme = deneme || 0;
+        if (typeof Swal !== 'undefined' && Swal.isVisible()) {
+            if (deneme < 40) setTimeout(function() { acDene(d, deneme + 1); }, 500); // ~20sn guard
+            return;
+        }
+        popupAc(d);
+    }
+
+    function kontrol() {
+        fetch('ajax/sunix-radar.php?islem=giris_popup', { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (!d || !d.success || !(d.sayi > 0)) return;
+                acDene(d, 0);
+            })
+            .catch(function() {});
+    }
+
+    // Stoğa Giren pop-up'ının önce dönüp Swal'i açmasına pencere tanı (önce o, sonra radar)
+    setTimeout(kontrol, 600);
+})();

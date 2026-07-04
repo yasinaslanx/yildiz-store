@@ -1,0 +1,583 @@
+/**
+ * Form - Yazdır Aksiyonu + PDF İndirme (Bayi Portal Versiyonu)
+ * Yazdırma: Body'ye eklenen print container + tablo klonu.
+ * PDF: Yeni pencerede açılan bağımsız HTML sayfası (tarayıcı "PDF olarak kaydet").
+ */
+(function() {
+    'use strict';
+
+    var F = window.Form;
+    var printArea = null;
+
+    F.AksiyonYazdir = {};
+
+    /**
+     * Init
+     */
+    F.AksiyonYazdir.init = function() {
+        var btn = document.getElementById('frmAksYazdirBtn');
+        if (!btn) return;
+
+        printArea = document.createElement('div');
+        printArea.id = 'frmPrintArea';
+        document.body.appendChild(printArea);
+
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            F.AksiyonYazdir.pdfIndir(true);
+        });
+
+        window.addEventListener('afterprint', function() {
+            F.AksiyonYazdir.temizle();
+        });
+    };
+
+    /**
+     * SweetAlert2 dialog — Yazdır + PDF İndir seçenekleri
+     */
+    F.AksiyonYazdir.dialogAc = function() {
+        Swal.fire({
+            title: 'Sipariş Yazdır',
+            html: '<p style="margin:0 0 8px;color:#555">Yazdırma formatını seçin</p>' +
+                '<div style="margin-top:10px;padding-top:10px;border-top:1px solid #e5e7eb">' +
+                    '<button type="button" id="swalPdfDetayli" class="frm-pdf-btn"><i class="icon-download"></i> Detaylı PDF İndir</button>' +
+                    '<button type="button" id="swalPdfOzet" class="frm-pdf-btn frm-pdf-btn-ozet"><i class="icon-download"></i> Özet PDF İndir</button>' +
+                '</div>',
+            icon: 'question',
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: '<i class="icon-printer"></i> Detaylı Yazdır',
+            denyButtonText: '<i class="icon-file-text"></i> Özet Yazdır',
+            cancelButtonText: 'İptal',
+            confirmButtonColor: '#103595',
+            denyButtonColor: '#6b7280',
+            didOpen: function() {
+                var d = document.getElementById('swalPdfDetayli');
+                var o = document.getElementById('swalPdfOzet');
+                if (d) d.addEventListener('click', function() { Swal.close(); F.AksiyonYazdir.pdfIndir(true); });
+                if (o) o.addEventListener('click', function() { Swal.close(); F.AksiyonYazdir.pdfIndir(false); });
+            }
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                F.AksiyonYazdir.yazdir(true);
+            } else if (result.isDenied) {
+                F.AksiyonYazdir.yazdir(false);
+            }
+        });
+    };
+
+    /**
+     * Yazdırma işlemi (bakiye AJAX ile async)
+     */
+    F.AksiyonYazdir.yazdir = function(detayli) {
+        if (!printArea) return;
+
+        bakiyeGetir(function(bakiyeData) {
+            printArea.innerHTML = buildHeader() + buildTablo(detayli) + buildFooter(bakiyeData);
+            document.body.classList.add('frm-printing');
+            setTimeout(function() { window.print(); }, 80);
+        });
+    };
+
+    /**
+     * PDF indirme — Yeni pencerede bağımsız HTML açar, otomatik print dialog (PDF olarak kaydet)
+     */
+    F.AksiyonYazdir.pdfIndir = function(detayli) {
+        bakiyeGetir(function(bakiyeData) {
+            var content = buildHeader() + buildTablo(detayli) + buildFooter(bakiyeData);
+            var musteri = F.State.musteriAdi || val('nmaInput') || '';
+            var tarih = val('frmTarih') || '';
+            var baslik = musteri ? (musteri + ' - ' + tarih) : (txt('frmSiparisNo') || 'Sipariş');
+
+            var htmlDoc = '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+                '<title>' + esc(baslik) + '</title>' +
+                '<style>' + getPdfCSS() + '</style>' +
+                '</head><body>' +
+                '<div class="pdf-wrap">' + content + '</div>' +
+                '<div class="pdf-toolbar">' +
+                    '<button onclick="window.print()">Yazdır / PDF Olarak Kaydet</button>' +
+                    '<button onclick="window.close()" class="sec">Kapat</button>' +
+                '</div>' +
+                '<script>window.onafterprint=function(){};setTimeout(function(){window.print();},400);<\/script>' +
+                '</body></html>';
+
+            var w = window.open('', '_blank');
+            if (!w) {
+                Swal.fire('Uyarı', 'Popup engelleyici aktif. Lütfen bu site için popup izni verin.', 'warning');
+                return;
+            }
+            w.document.write(htmlDoc);
+            w.document.close();
+        });
+    };
+
+    /**
+     * Temizle (afterprint)
+     */
+    F.AksiyonYazdir.temizle = function() {
+        document.body.classList.remove('frm-printing');
+        if (printArea) printArea.innerHTML = '';
+    };
+
+    /* ============================
+     *  HTML BUILDER FONKSİYONLARI
+     * ============================ */
+
+    function buildHeader() {
+        var siparisNo = txt('frmSiparisNo');
+        var musteri   = F.State.musteriAdi || val('nmaInput');
+        var tarih     = val('frmTarih');
+        var saat      = val('frmSaat');
+        var sevk      = val('frmSevkTarih') || '-';
+        var vade      = val('frmVade') || '-';
+
+        return '<div class="frm-ph">' +
+            '<div class="frm-ph-top">' +
+                '<div class="frm-ph-no">' + esc(siparisNo) + '</div>' +
+            '</div>' +
+            '<div class="frm-ph-bilgi">' +
+                '<div class="frm-ph-bilgi-sol">' +
+                    '<div><span class="frm-ph-lbl">Müşteri:</span> ' + esc(musteri) + '</div>' +
+                '</div>' +
+                '<div class="frm-ph-bilgi-sag">' +
+                    '<div><span class="frm-ph-lbl">Sipariş Tarihi:</span> ' + esc(tarih + (saat ? ' ' + saat : '')) + '</div>' +
+                    '<div><span class="frm-ph-lbl">Sevk Tarihi:</span> ' + esc(sevk) + '</div>' +
+                    '<div><span class="frm-ph-lbl">Vade:</span> ' + esc(vade) + '</div>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+    }
+
+    function buildTablo(detayli) {
+        var tbody = document.getElementById('frmTbody');
+        if (!tbody) return '';
+
+        var fmt = F.Helpers.formatPara;
+        var br  = F.Helpers.bankersRound;
+        var conv = (F.Doviz && F.Doviz.aktif) ? F.Doviz.conv : function(v) { return v; };
+
+        var thead =
+            '<thead><tr>' +
+                '<th style="width:30px">#</th>' +
+                '<th>Ürün</th>' +
+                '<th class="r" style="width:60px">Miktar</th>' +
+                '<th class="r" style="width:70px">Fiyat</th>' +
+                '<th class="r" style="width:80px">Fiyat(KDV)</th>' +
+                '<th class="r" style="width:90px">Toplam</th>' +
+            '</tr></thead>';
+
+        var rows = tbody.querySelectorAll('tr');
+        var satirlar = '';
+        var siraNo = 0;
+        var stateIdx = -1;
+
+        for (var i = 0; i < rows.length; i++) {
+            var row = rows[i];
+
+            if (!detayli && row.classList.contains('frm-ff-satir')) continue;
+            if (row.classList.contains('frm-row-del')) continue;
+
+            var cells = row.querySelectorAll('td');
+            if (cells.length < 5) continue;
+
+            var isFF = row.classList.contains('frm-ff-satir');
+            if (!isFF) {
+                siraNo++;
+                stateIdx++;
+            }
+
+            var urunCell = cells[0];
+            var urunHtml = '';
+            if (urunCell) {
+                if (detayli) {
+                    urunHtml = temizUrunHtml(urunCell.innerHTML);
+                } else {
+                    var urunAdiEl = urunCell.querySelector('.frm-name');
+                    urunHtml = urunAdiEl ? esc(urunAdiEl.textContent.trim()) : esc(urunCell.textContent.trim());
+                }
+            }
+
+            var lastIdx = cells.length - 1;
+            var hasSil  = cells[lastIdx] && cells[lastIdx].querySelector('.frm-del');
+            var offset  = hasSil ? 1 : 0;
+            var miktar  = cellText(cells, lastIdx - offset - 3);
+
+            var fiyatStr, fiyatKdvStr, toplamStr;
+
+            if (!isFF) {
+                var s = (F.State.satirlar && F.State.satirlar[stateIdx]) ? F.State.satirlar[stateIdx] : null;
+                if (s) {
+                    var origFiyat = s.normalBirimFiyat || s.birimFiyat || 0;
+                    // FF varsa DOM'daki dominant grup miktarını kullan, yoksa state miktarı
+                    var miktarVal = parseFloat(miktar) || s.miktar || 0;
+                    var kdvO = s.kdvOrani || 0;
+                    var orijTutar = br(miktarVal * origFiyat, 2);
+                    var kdvTutar = br(orijTutar * kdvO / 100, 2);
+
+                    fiyatStr = esc(fmt(conv(origFiyat)));
+                    fiyatKdvStr = (kdvO > 0) ? esc(fmt(conv(br(origFiyat * (1 + kdvO / 100), 2)))) : '-';
+                    toplamStr = esc(fmt(conv(br(orijTutar + kdvTutar, 2))));
+                } else {
+                    fiyatStr = esc(cellText(cells, lastIdx - offset - 2));
+                    fiyatKdvStr = esc(cellText(cells, lastIdx - offset - 1));
+                    toplamStr = esc(cellText(cells, lastIdx - offset));
+                }
+            } else {
+                fiyatStr = ffFiyatCellHtml(cells, lastIdx - offset - 2);
+                fiyatKdvStr = esc(cellText(cells, lastIdx - offset - 1));
+                toplamStr = esc(cellText(cells, lastIdx - offset));
+            }
+
+            var trAttr = '';
+            if (isFF) {
+                var fcVal = row.style.getPropertyValue('--fc') || '';
+                trAttr = ' class="frm-pt-ff"' + (fcVal ? ' style="--fc:' + fcVal + '"' : '');
+            }
+            satirlar += '<tr' + trAttr + '>' +
+                '<td>' + (isFF ? '' : siraNo) + '</td>' +
+                '<td>' + urunHtml + '</td>' +
+                '<td class="r">' + esc(miktar) + '</td>' +
+                '<td class="r">' + fiyatStr + '</td>' +
+                '<td class="r">' + fiyatKdvStr + '</td>' +
+                '<td class="r">' + toplamStr + '</td>' +
+            '</tr>';
+        }
+
+        return '<table class="frm-pt">' + thead + '<tbody>' + satirlar + '</tbody></table>';
+    }
+
+    function buildFooter(bakiyeData) {
+        var fmt = F.Helpers.formatPara;
+        var br  = F.Helpers.bankersRound;
+        var conv = (F.Doviz && F.Doviz.aktif) ? F.Doviz.conv : function(v) { return v; };
+        var not = val('frmNot');
+
+        var satirlar = F.State.satirlar || [];
+        var araToplam = 0;
+        var kdvToplam = 0;
+
+        for (var i = 0; i < satirlar.length; i++) {
+            var s = satirlar[i];
+            var kdvO = s.kdvOrani || 0;
+
+            if (s.varyantlar && s.varyantlar.length > 0) {
+                for (var v = 0; v < s.varyantlar.length; v++) {
+                    var vy = s.varyantlar[v];
+                    var vOrigFiyat = vy.normalBirimFiyat || vy.birimFiyat || 0;
+                    var vMiktar = vy.miktar || 0;
+                    var vOrijTutar = br(vMiktar * vOrigFiyat, 2);
+                    araToplam += vOrijTutar;
+                    kdvToplam += br(vOrijTutar * kdvO / 100, 2);
+                }
+            } else {
+                var origFiyat = s.normalBirimFiyat || s.birimFiyat || 0;
+                var miktarVal = s.miktar || 0;
+                var orijTutar = br(miktarVal * origFiyat, 2);
+                araToplam += orijTutar;
+                kdvToplam += br(orijTutar * kdvO / 100, 2);
+            }
+        }
+
+        araToplam = br(araToplam, 2);
+        kdvToplam = br(kdvToplam, 2);
+        var genelToplam = br(araToplam + kdvToplam, 2);
+
+        var html = '<div class="frm-pf">' +
+            '<div class="frm-pf-kutu">' +
+                pfSatir('Ara Toplam (KDV Hariç)', fmt(conv(araToplam)), '') +
+                pfSatir('KDV Toplam', fmt(conv(kdvToplam)), '') +
+                pfSatir('GENEL TOPLAM', fmt(conv(genelToplam)), 'pf-grand') +
+            '</div>' +
+        '</div>';
+
+        if (bakiyeData) {
+            var sembol = bakiyeData.paraBirimi === 'TRY' ? '₺' :
+                         bakiyeData.paraBirimi === 'EUR' ? '€' : '$';
+            var bakiyeAbs = Math.abs(bakiyeData.bakiye);
+            var bakiyeStr = sembol + F.Helpers.formatParaSayi(bakiyeAbs);
+            var durum, durumCls;
+            if (bakiyeData.bakiye > 0.005) {
+                durum = 'Borçlu';
+                durumCls = 'frm-pb-borclu';
+            } else if (bakiyeData.bakiye < -0.005) {
+                durum = 'Alacaklı';
+                durumCls = 'frm-pb-alacakli';
+            } else {
+                durum = 'Bakiye Yok';
+                durumCls = '';
+            }
+
+            html += '<div class="frm-pb">' +
+                '<div class="frm-pb-baslik">Müşteri Bakiye Bilgisi</div>' +
+                '<div class="frm-pb-satir">' +
+                    '<span class="frm-pb-lbl">Güncel Bakiye:</span>' +
+                    '<span class="frm-pb-val ' + durumCls + '">' + bakiyeStr + '</span>' +
+                '</div>' +
+                '<div class="frm-pb-durum ' + durumCls + '">' + esc(durum) + '</div>' +
+            '</div>';
+        }
+
+        html += buildKargoBilgi();
+        html += buildKoliBilgi();
+
+        if (not) {
+            html += '<div class="frm-pf-not"><b>Sipariş Notu</b><span>' + esc(not) + '</span></div>';
+        }
+
+        var simdi = new Date();
+        var tarihStr = simdi.toLocaleDateString('tr-TR') + ' ' +
+            simdi.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+        html += '<div class="frm-pf-alt">Yazdırma: ' + tarihStr + '</div>';
+
+        return html;
+    }
+
+    /* ============================
+     *  PDF PENCERE CSS
+     * ============================ */
+
+    function getPdfCSS() {
+        return '@page{size:A4;margin:15mm}' +
+        '*{box-sizing:border-box}' +
+        'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#1a1a2e;font-size:11px;line-height:1.4;margin:0;padding:0;background:#f5f5f5}' +
+        '.pdf-wrap{max-width:210mm;margin:0 auto;padding:15mm;background:#fff;min-height:297mm}' +
+        '.pdf-toolbar{position:fixed;top:0;left:0;right:0;background:#103595;padding:8px 20px;display:flex;gap:10px;align-items:center;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}' +
+        '.pdf-toolbar button{padding:8px 18px;border:none;border-radius:5px;font-size:13px;font-weight:600;cursor:pointer;background:#fff;color:#103595}' +
+        '.pdf-toolbar button.sec{background:rgba(255,255,255,.15);color:#fff}' +
+        '.pdf-toolbar button:hover{opacity:.85}' +
+        '@media print{.pdf-toolbar{display:none!important}.pdf-wrap{margin:0;padding:0;max-width:none;min-height:auto;background:none}}' +
+
+        '.frm-ph{padding-bottom:10px;border-bottom:2px solid #103595;margin-bottom:12px}' +
+        '.frm-ph-top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px}' +
+        '.frm-ph-no{font-size:16px;font-weight:700;color:#103595}' +
+        '.frm-ph-bilgi{display:flex;justify-content:space-between;font-size:11px;color:#333}' +
+        '.frm-ph-bilgi-sol,.frm-ph-bilgi-sag{display:flex;flex-direction:column;gap:2px}' +
+        '.frm-ph-bilgi-sag{text-align:right}' +
+        '.frm-ph-lbl{font-weight:600;color:#555}' +
+
+        '.frm-pt{width:100%;border-collapse:collapse;margin-bottom:14px}' +
+        '.frm-pt th{background:#f0f4fa;color:#1a1a2e;font-size:10px;font-weight:600;padding:6px 8px;border-bottom:2px solid #103595;text-align:left;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        '.frm-pt td{padding:5px 8px;border-bottom:1px solid #e5e7eb;font-size:11px;vertical-align:top}' +
+        '.frm-pt tbody tr:last-child td{border-bottom:2px solid #103595}' +
+        '.frm-pt .r{text-align:right}' +
+        '.pf-fiyat-eski{display:none}' +
+        '.pf-fiyat-yeni{font-weight:700}' +
+
+        '.frm-name{font-size:11px;font-weight:600;overflow:visible!important;white-space:normal!important;max-width:none!important;display:inline!important;border-left:none;padding-left:0}' +
+        '.frm-name-row{display:flex;flex-wrap:wrap;gap:4px}' +
+        '.frm-prod{display:flex;align-items:flex-start;gap:6px}' +
+        '.frm-img,.frm-img-ph{display:none}' +
+        '.frm-sku{display:inline-flex;flex-wrap:wrap;gap:3px;margin-top:3px}' +
+        '.frm-vb{display:inline-flex;align-items:stretch;border-radius:3px;overflow:hidden;border:1px solid #c8ccd4;background:#fff;line-height:1.3;margin:1px 2px;font-size:9px;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        '.frm-vb-l{padding:1px 4px;font-weight:600;color:#000}' +
+        '.frm-vb-dot{display:none}' +
+        '.frm-vb-r{padding:1px 4px;background:#e5e5e5;color:#000;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        '.frm-vb-brand .frm-vb-r{background:var(--bc,#c0c3c9);color:#fff}' +
+
+        '.frm-pt-ff td{border-top:none!important;border-bottom:1px dashed #c8ccd4!important}' +
+
+        '.frm-ff-summary{display:none}' +
+        '.frm-ff-detail{display:block}' +
+        '.frm-ff-badges{display:inline-flex;flex-wrap:wrap;gap:3px;align-items:flex-start}' +
+        '.frm-ff-name{font-size:10px;font-weight:600;color:#333;padding-left:4px;border-left:2px solid var(--fc,#a0b0cc)}' +
+
+        '.frm-mr-group{display:inline-flex;flex-direction:column;border-radius:3px;overflow:hidden;border:1px solid #b8bcc4;margin:1px 2px;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        '.frm-mr-model{padding:2px 5px;background:#e5e5e5;color:#000;font-size:9px;font-weight:600;display:flex;align-items:center;gap:3px;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        '.frm-mr-model i{font-size:9px}' +
+        '.frm-mr-total{margin-left:auto;font-size:8px;font-weight:700;background:#fff;padding:0 4px;border-radius:2px}' +
+        '.frm-mr-badges{display:flex;flex-wrap:wrap;gap:2px;padding:3px 4px;background:#fff}' +
+        '.frm-mr-brand-grp{border-color:var(--bc)}' +
+        '.frm-mr-brand-grp .frm-mr-model{background:var(--bc);color:#fff}' +
+        '.frm-mr-brand-grp .frm-mr-model i{color:#fff}' +
+        '.frm-mr-brand-grp .frm-mr-total{color:var(--bc)}' +
+
+        '.frm-pkt-info{display:inline-flex;gap:3px;margin-top:3px;font-size:9px}' +
+        '.frm-pkt-badge,.frm-pkt-pcs{display:inline-flex;align-items:center;gap:2px;padding:1px 4px;border-radius:3px;background:#efefef;border:1px solid #d0d0d0;font-weight:600;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        '.frm-pkt-badge i{font-size:9px}' +
+        '.frm-tbl-fiyat-cell{text-align:center}' +
+        '.frm-tbl-fiyat-kural{display:inline}' +
+        '.frm-tbl-fiyat-eski{display:none}' +
+        '.frm-tbl-fiyat-badge{display:none}' +
+        '.frm-tbl-fiyat-yeni{font-weight:700}' +
+
+        '.frm-pf{display:flex;justify-content:flex-end}' +
+        '.frm-pf-kutu{width:280px;border:2px solid #103595;border-radius:4px;overflow:hidden}' +
+        '.frm-pf-satir{display:flex;justify-content:space-between;padding:6px 12px;font-size:11px;color:#333;border-bottom:1px solid #e5e7eb}' +
+        '.frm-pf-satir:last-child{border-bottom:none}' +
+        '.frm-pf-satir .pf-l{font-weight:500}' +
+        '.frm-pf-satir .pf-v{font-weight:600;text-align:right}' +
+        '.frm-pf-satir.pf-red .pf-l,.frm-pf-satir.pf-red .pf-v{color:#dc2626}' +
+        '.frm-pf-satir.pf-grand{background:#f0f4fa;border-top:2px solid #103595;border-bottom:none;font-size:13px;font-weight:700;color:#103595;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        '.frm-pf-satir.pf-grand .pf-l,.frm-pf-satir.pf-grand .pf-v{font-weight:700;color:#103595}' +
+
+        '.frm-pb{margin-top:14px;padding:8px 12px;border:1.5px solid #d1d5db;border-radius:4px;background:#fafbfc;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        '.frm-pb-baslik{font-size:11px;font-weight:700;color:#103595;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #e5e7eb}' +
+        '.frm-pb-satir{display:flex;justify-content:space-between;align-items:center;font-size:11px}' +
+        '.frm-pb-lbl{font-weight:500;color:#555}' +
+        '.frm-pb-val{font-weight:700;font-size:13px}' +
+        '.frm-pb-borclu{color:#dc2626;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        '.frm-pb-alacakli{color:#16a34a;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        '.frm-pb-durum{font-size:9px;font-weight:600;text-align:right;margin-top:2px}' +
+
+        '.frm-pf-not{margin-top:14px;padding:8px 12px;border:1px solid #ddd;border-radius:4px;background:#f9f9f9;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        '.frm-pf-not b{display:block;font-size:11px;color:#103595;margin-bottom:3px}' +
+        '.frm-pf-not span{font-size:10px;color:#333;white-space:pre-wrap}' +
+        '.frm-pk{margin-top:14px;padding:8px 12px;border:1.5px solid #d1d5db;border-radius:4px;background:#fafbfc}' +
+        '.frm-pk-baslik{font-size:11px;font-weight:700;color:#103595;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:4px}' +
+        '.frm-pk-baslik i{font-size:12px}' +
+        '.frm-pk-satir{display:flex;justify-content:space-between;align-items:center;font-size:10px;padding:2px 0}' +
+        '.frm-pk-lbl{font-weight:500;color:#555}' +
+        '.frm-pk-val{font-weight:600;color:#1a1a2e}' +
+
+        '.frm-pkl{margin-top:10px;padding:8px 12px;border:1.5px solid #d1d5db;border-radius:4px;background:#fafbfc}' +
+        '.frm-pkl-baslik{font-size:11px;font-weight:700;color:#103595;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:4px}' +
+        '.frm-pkl-baslik i{font-size:12px}' +
+        '.frm-pkl-satir{font-size:10px;padding:2px 0;color:#333}' +
+        '.frm-pkl-val{font-weight:500}' +
+        '.frm-pkl-toplam{margin-top:4px;padding-top:4px;border-top:1px solid #e5e7eb;font-size:10px;font-weight:700;color:#103595}' +
+
+        '.frm-pf-alt{margin-top:18px;padding-top:8px;border-top:1px solid #ddd;font-size:9px;color:#999;text-align:center}';
+    }
+
+    function buildKargoBilgi() {
+        var firma = F.State.kargoFirmasi;
+        var takipNo = F.State.kargoTakipNo;
+        var tarih = F.State.kargolamaTarihi;
+
+        if (!firma && !takipNo) return '';
+
+        var html = '<div class="frm-pk">' +
+            '<div class="frm-pk-baslik"><i class="icon-truck"></i> Kargo Bilgileri</div>';
+
+        if (firma) {
+            html += '<div class="frm-pk-satir"><span class="frm-pk-lbl">Kargo Firması:</span><span class="frm-pk-val">' + esc(firma) + '</span></div>';
+        }
+        if (takipNo) {
+            html += '<div class="frm-pk-satir"><span class="frm-pk-lbl">Takip No:</span><span class="frm-pk-val">' + esc(takipNo) + '</span></div>';
+        }
+        if (tarih) {
+            html += '<div class="frm-pk-satir"><span class="frm-pk-lbl">Kargolama Tarihi:</span><span class="frm-pk-val">' + esc(tarih) + '</span></div>';
+        }
+
+        html += '</div>';
+        return html;
+    }
+
+    function buildKoliBilgi() {
+        var koliSayisi = F.State.koliSayisi || 0;
+        var toplamDesi = F.State.toplamDesi || 0;
+        var kutular = F.State.koliKutular || [];
+
+        if (koliSayisi <= 0 || kutular.length === 0) return '';
+
+        var gruplar = {};
+        for (var i = 0; i < kutular.length; i++) {
+            var desi = parseFloat(kutular[i].desi).toFixed(2);
+            if (!gruplar[desi]) gruplar[desi] = 0;
+            gruplar[desi]++;
+        }
+
+        var html = '<div class="frm-pkl">' +
+            '<div class="frm-pkl-baslik"><i class="icon-box"></i> Koli Bilgileri</div>';
+
+        var keys = Object.keys(gruplar);
+        for (var j = 0; j < keys.length; j++) {
+            html += '<div class="frm-pkl-satir"><span class="frm-pkl-val">' + esc(keys[j]) + ' Desi × ' + gruplar[keys[j]] + ' Adet</span></div>';
+        }
+
+        html += '<div class="frm-pkl-toplam">Toplam: ' + koliSayisi + ' Koli — ' + toplamDesi + ' Desi</div>';
+        html += '</div>';
+        return html;
+    }
+
+    /* ============================
+     *  YARDIMCI FONKSİYONLAR
+     * ============================ */
+
+    function ffFiyatCellHtml(cells, idx) {
+        if (!cells[idx]) return '';
+        var eski = cells[idx].querySelector('.frm-tbl-fiyat-eski');
+        if (eski) return esc(eski.textContent.trim());
+        return esc(cells[idx].textContent.trim());
+    }
+
+    function pfSatir(label, value, cls) {
+        return '<div class="frm-pf-satir ' + cls + '">' +
+            '<span class="pf-l">' + esc(label) + '</span>' +
+            '<span class="pf-v">' + esc(value) + '</span>' +
+        '</div>';
+    }
+
+    function txt(id) {
+        var el = document.getElementById(id);
+        return el ? el.textContent.trim() : '';
+    }
+
+    function val(id) {
+        var el = document.getElementById(id);
+        return el ? (el.value || el.textContent || '').trim() : '';
+    }
+
+    function cellText(cells, idx) {
+        if (!cells[idx]) return '';
+        var yeni = cells[idx].querySelector('.frm-tbl-fiyat-yeni');
+        if (yeni) return yeni.textContent.trim();
+        return cells[idx].textContent.trim();
+    }
+
+    function esc(s) {
+        if (!s) return '';
+        var d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
+
+    function temizUrunHtml(html) {
+        var tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        var sil = tmp.querySelectorAll('button, .frm-row-del, .frm-row-actions, .frm-row-exp, .frm-tbl-depo-icerik, .frm-tbl-not-icerik');
+        for (var i = 0; i < sil.length; i++) {
+            sil[i].parentNode.removeChild(sil[i]);
+        }
+        return tmp.innerHTML;
+    }
+
+    /**
+     * Müşteri bakiye bilgisi — Bayi Portal uyarlaması
+     */
+    function bakiyeGetir(callback) {
+        // sunix-siparis sayfası: Sunix merkez bakiye endpoint'i yok, atla
+        if (F.Config.isBayi) {
+            callback(null);
+            return;
+        }
+
+        // form sayfası: bayi'nin kendi müşterisi — musteri-detay/ozet.php kullan
+        var musteriId = F.State.musteriId;
+        if (!musteriId) {
+            callback(null);
+            return;
+        }
+
+        $.ajax({
+            url: 'ajax/musteri-detay/ozet.php',
+            type: 'POST',
+            data: 'musteri_id=' + encodeURIComponent(musteriId),
+            dataType: 'json',
+            timeout: 5000,
+            success: function(res) {
+                if (res.success && res.istatistik) {
+                    var bakiye = parseFloat(res.istatistik.toplamBakiye) || 0;
+                    var paraBirimi = F.State.paraBirimi || F.Config.paraBirimi || 'USD';
+                    callback({ bakiye: bakiye, paraBirimi: paraBirimi });
+                } else {
+                    callback(null);
+                }
+            },
+            error: function() {
+                callback(null);
+            }
+        });
+    }
+
+})();

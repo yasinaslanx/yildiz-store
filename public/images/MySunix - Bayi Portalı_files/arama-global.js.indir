@@ -1,0 +1,403 @@
+/**
+ * MySunix Bayi Portal — Global Arama Motoru (bayi-scope)
+ *
+ * Ana ERP global aramanın davranış kalıbı (sidebar + sonuç listesi, klavye nav,
+ * 300ms debounce, min 2 karakter), bayi mimarisine uyarlanmış sıfırdan implementasyon.
+ *
+ * - Veri kategorileri (müşteri/ürün/satış/Sunix siparişi): ajax/global-arama.php
+ * - Sayfa navigasyonu: window.BayiAramaConfig.sayfalar (client-side, anlık)
+ * - Sonuca tıklama: aynı sekmede ilgili detay sayfasına (<a href>).
+ *
+ * Bağımlılık: window.BayiArama (arama-normalize.js) — bu dosyadan ÖNCE yüklenir.
+ */
+(function () {
+    'use strict';
+
+    var B = window.BayiArama || {};
+    var CFG = window.BayiAramaConfig || { ajaxUrl: 'ajax/global-arama.php', minKarakter: 2, sayfalar: [] };
+    var MIN = CFG.minKarakter || 2;
+
+    // Sidebar kategori sırası + etiket/icon
+    var KATEGORILER = [
+        { kod: 'sayfa',         ad: 'Sayfalar',          icon: 'icon-layout' },
+        { kod: 'musteri',       ad: 'Müşteriler',        icon: 'icon-user' },
+        { kod: 'urun',          ad: 'Ürünler',           icon: 'icon-package' },
+        { kod: 'satis',         ad: 'Satışlar',          icon: 'icon-file-text' },
+        { kod: 'sunix_siparis', ad: 'Sunix Siparişleri', icon: 'icon-shopping-cart' }
+    ];
+
+    var input, widget, dropdown, overlay;
+    var aramaTimeout = null;
+    var abortController = null;
+    var seciliIndex = -1;
+    var acik = false;
+    var klavyeAktif = false;
+
+    document.addEventListener('DOMContentLoaded', init);
+
+    function init() {
+        input = document.getElementById('bpAraInput');
+        widget = document.getElementById('bpHwSearch');
+        if (!input || !widget) return;
+
+        overlay = document.createElement('div');
+        overlay.className = 'bp-ara-overlay';
+        document.body.appendChild(overlay);
+
+        dropdown = document.createElement('div');
+        dropdown.className = 'bp-ara-dropdown';
+        document.body.appendChild(dropdown);
+
+        // Dropdown içine mousedown: input focus'unu koru (tıklama hâlâ çalışır)
+        dropdown.addEventListener('mousedown', function (e) { e.preventDefault(); });
+
+        bindEvents();
+    }
+
+    function bindEvents() {
+        overlay.addEventListener('click', kapat);
+
+        input.addEventListener('focus', function () {
+            widget.classList.add('is-focused');
+            var q = input.value.trim();
+            if (q.length >= MIN) aramaYap(q);
+        });
+
+        input.addEventListener('blur', function () {
+            setTimeout(function () {
+                var ae = document.activeElement;
+                if (!widget.contains(ae) && !dropdown.contains(ae)) {
+                    widget.classList.remove('is-focused');
+                    kapatDropdown();
+                }
+            }, 200);
+        });
+
+        input.addEventListener('input', function (e) {
+            var q = e.target.value.trim();
+            clearTimeout(aramaTimeout);
+            seciliIndex = -1;
+            if (q.length < MIN) { kapatDropdown(); return; }
+            aramaTimeout = setTimeout(function () { aramaYap(q); }, 300);
+        });
+
+        input.addEventListener('keydown', function (e) {
+            if (!acik) return;
+            var items = dropdown.querySelectorAll('.bp-ara-item');
+            if (!items.length) return;
+            if (e.key === 'ArrowDown') {
+                e.preventDefault(); klavyeAktif = true;
+                seciliIndex = Math.min(seciliIndex + 1, items.length - 1);
+                guncelleSecim(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault(); klavyeAktif = true;
+                seciliIndex = Math.max(seciliIndex - 1, 0);
+                guncelleSecim(items);
+            } else if (e.key === 'Enter') {
+                if (seciliIndex >= 0 && items[seciliIndex]) {
+                    e.preventDefault();
+                    items[seciliIndex].click();
+                }
+            }
+        });
+
+        // Esc — global (header.js "/" kısayolunu zaten yönetiyor)
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && acik) { e.preventDefault(); kapat(); }
+        });
+
+        // Dış tıklama
+        document.addEventListener('click', function (e) {
+            if (acik && !widget.contains(e.target) && !dropdown.contains(e.target) && e.target !== overlay) {
+                kapat();
+            }
+        });
+
+        window.addEventListener('resize', function () { if (acik) konumGuncelle(); });
+    }
+
+    function kapat() {
+        kapatDropdown();
+        input.blur();
+        widget.classList.remove('is-focused');
+    }
+
+    function kapatDropdown() {
+        if (abortController) { abortController.abort(); abortController = null; }
+        dropdown.classList.remove('is-acik');
+        overlay.classList.remove('is-acik');
+        document.body.classList.remove('bp-ara-acik');
+        dropdown.innerHTML = '';
+        seciliIndex = -1;
+        acik = false;
+    }
+
+    function acDropdown() {
+        konumGuncelle();
+        dropdown.classList.add('is-acik');
+        overlay.classList.add('is-acik');
+        document.body.classList.add('bp-ara-acik');
+        acik = true;
+    }
+
+    function konumGuncelle() {
+        var rect = widget.getBoundingClientRect();
+        if (window.innerWidth <= 768) {
+            dropdown.style.left = '8px';
+            dropdown.style.right = '8px';
+            dropdown.style.width = 'auto';
+            dropdown.style.top = (rect.bottom + 8) + 'px';
+            return;
+        }
+        dropdown.style.right = 'auto';
+        dropdown.style.width = '';
+        var w = dropdown.offsetWidth || 720;
+        var sol = rect.left + rect.width / 2 - w / 2;
+        var margin = 12;
+        if (sol < margin) sol = margin;
+        if (sol + w > window.innerWidth - margin) sol = window.innerWidth - w - margin;
+        dropdown.style.left = sol + 'px';
+        dropdown.style.top = (rect.bottom + 10) + 'px';
+    }
+
+    /** Sayfa navigasyonu — client-side eşleşme. */
+    function sayfaEslesmeleri(aranan) {
+        var liste = CFG.sayfalar || [];
+        var out = [];
+        for (var i = 0; i < liste.length; i++) {
+            var s = liste[i];
+            if (B.eslesiyorMu && B.eslesiyorMu(s.baslik, aranan)) {
+                out.push({
+                    tip: 'sayfa', tip_adi: 'Sayfa', icon: s.icon || 'icon-layout', renk: '#64748b',
+                    baslik: s.baslik, alt_baslik: '', detay: s.bolum || '', url: s.url
+                });
+            }
+        }
+        return out;
+    }
+
+    function aramaYap(aranan) {
+        if (abortController) abortController.abort();
+        abortController = new AbortController();
+
+        gosterLoading();
+        if (!acik) acDropdown();
+        konumGuncelle();
+
+        fetch(CFG.ajaxUrl + '?q=' + encodeURIComponent(aranan), { signal: abortController.signal })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                abortController = null;
+                if (data && data.success) {
+                    // Sayfa (client) sonuçlarını başa ekle
+                    var sayfalar = sayfaEslesmeleri(aranan);
+                    var tum = sayfalar.concat(data.sonuclar || []);
+                    gosterSonuclar(tum, aranan);
+                } else {
+                    gosterHata((data && data.message) || 'Arama yapılırken bir hata oluştu');
+                }
+            })
+            .catch(function (err) {
+                if (err && err.name === 'AbortError') return;
+                abortController = null;
+                gosterHata('Bağlantı hatası oluştu');
+            });
+    }
+
+    function gosterSonuclar(sonuclar, aranan) {
+        if (!sonuclar.length) {
+            dropdown.innerHTML =
+                '<div class="bp-ara-bos">' +
+                    '<div class="bp-ara-bos-icon"><i class="icon-search"></i></div>' +
+                    '<div class="bp-ara-bos-baslik">Sonuç bulunamadı</div>' +
+                    '<div class="bp-ara-bos-aciklama">"' + B.escHtml(aranan) + '" için eşleşen sonuç yok.</div>' +
+                '</div>';
+            return;
+        }
+
+        var gruplar = {};
+        sonuclar.forEach(function (s) {
+            (gruplar[s.tip] = gruplar[s.tip] || []).push(s);
+        });
+
+        var html = '<div class="bp-ara-header">' +
+            '<div class="bp-ara-header-sol">' +
+                '<div class="bp-ara-header-icon"><i class="icon-search"></i></div>' +
+                '<div class="bp-ara-header-text"><strong>"' + B.escHtml(aranan) + '"</strong> için sonuçlar</div>' +
+            '</div>' +
+            '<span class="bp-ara-toplam">' + sonuclar.length + ' sonuç</span>' +
+        '</div>';
+
+        html += '<div class="bp-ara-body">';
+
+        // Sidebar
+        html += '<div class="bp-ara-sidebar">';
+        html += sidebarBtn('tumu', 'icon-layers', 'Tümü', sonuclar.length, true);
+        KATEGORILER.forEach(function (k) {
+            if (gruplar[k.kod] && gruplar[k.kod].length) {
+                html += sidebarBtn(k.kod, k.icon, k.ad, gruplar[k.kod].length, false);
+            }
+        });
+        html += '</div>';
+
+        // Sonuçlar
+        html += '<div class="bp-ara-sonuclar">';
+        KATEGORILER.forEach(function (k) {
+            var grup = gruplar[k.kod];
+            if (!grup || !grup.length) return;
+            html += '<div class="bp-ara-grup" data-kategori="' + k.kod + '">';
+            html += '<div class="bp-ara-grup-baslik"><i class="' + k.icon + '"></i> ' + k.ad + '</div>';
+            grup.forEach(function (s) { html += olusturItem(s, aranan); });
+            html += '</div>';
+        });
+        html += '</div></div>';
+
+        // Footer
+        html += '<div class="bp-ara-footer">' +
+            '<div class="bp-ara-footer-sol">' +
+                '<span class="bp-ara-kbd"><kbd>↑</kbd><kbd>↓</kbd> Gezin</span>' +
+                '<span class="bp-ara-kbd"><kbd>Enter</kbd> Aç</span>' +
+                '<span class="bp-ara-kbd"><kbd>Esc</kbd> Kapat</span>' +
+            '</div>' +
+            '<div class="bp-ara-footer-sag">MySunix Arama</div>' +
+        '</div>';
+
+        dropdown.innerHTML = html;
+        seciliIndex = -1;
+        klavyeAktif = false;
+
+        var sd = dropdown.querySelector('.bp-ara-sonuclar');
+        if (sd) sd.scrollTop = 0;
+
+        bindSonucEtkilesimleri();
+    }
+
+    function sidebarBtn(kod, icon, label, count, aktif) {
+        return '<button type="button" class="bp-ara-cat' + (aktif ? ' is-aktif' : '') + '" data-kategori="' + kod + '">' +
+            '<span class="bp-ara-cat-icon"><i class="' + icon + '"></i></span>' +
+            '<span class="bp-ara-cat-label">' + label + '</span>' +
+            '<span class="bp-ara-cat-count">' + count + '</span>' +
+        '</button>';
+    }
+
+    function olusturItem(s, aranan) {
+        // Avatar / resim
+        var gorsel;
+        if (s.resim) {
+            gorsel = '<img src="' + B.escHtml(s.resim) + '" class="bp-ara-resim" alt="" ' +
+                'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">' +
+                '<div class="bp-ara-avatar" style="display:none;background:' + (s.renk || '#103595') + '"><i class="' + s.icon + '"></i></div>';
+        } else {
+            gorsel = '<div class="bp-ara-avatar" style="background:' + (s.renk || '#103595') + '"><i class="' + s.icon + '"></i></div>';
+        }
+
+        // Başlık + ürün kaynak rozeti
+        var baslik = B.vurgula(s.baslik, aranan);
+        var rozet = '';
+        if (s.tip === 'urun' && s.kaynak_etiket) {
+            rozet = '<span class="bp-ara-rozet bp-ara-rozet--' + (s.kaynak || 'sunix') + '">' + B.escHtml(s.kaynak_etiket) + '</span>';
+        }
+
+        // Alt satır
+        var alt = '';
+        if (s.alt_baslik && s.alt_baslik !== '-') {
+            alt += '<span class="bp-ara-detay">' + B.vurgula(s.alt_baslik, aranan) + '</span>';
+        }
+        if (s.detay && s.detay !== '-' && s.detay !== '') {
+            alt += '<span class="bp-ara-detay dot">' + B.escHtml(s.detay) + '</span>';
+        }
+        if ((s.tip === 'satis' || s.tip === 'sunix_siparis') && s.badge) {
+            alt += '<span class="bp-ara-detay dot">' + B.escHtml(s.badge) + '</span>';
+        }
+
+        // Sağ meta
+        var sag = '';
+        if (s.tip === 'urun') {
+            sag = '<div class="bp-ara-fiyat">' + B.escHtml(s.fiyat || '-') + '</div>' +
+                  '<div class="bp-ara-stok">' + B.escHtml(s.badge || '') + '</div>';
+        } else if (s.tip === 'musteri' && s.bakiye) {
+            var bStr = String(s.bakiye).trim();
+            var neg = bStr.indexOf('-') !== -1;
+            var num = parseFloat(bStr.replace(/[^0-9.\-]/g, '')) || 0;
+            var goster = bStr.replace('-', '');
+            if (Math.abs(num) < 0.01) {
+                sag = '<div class="bp-ara-bakiye" style="color:#999;">' + B.escHtml(goster) + '</div>';
+            } else {
+                var cls = neg ? 'alacak' : 'borc';
+                sag = '<div class="bp-ara-bakiye ' + cls + '">' + B.escHtml(goster) + '</div>' +
+                      '<div class="bp-ara-bakiye-etiket ' + cls + '">' + (neg ? 'Alacaklı' : 'Borçlu') + '</div>';
+            }
+        } else if ((s.tip === 'satis' || s.tip === 'sunix_siparis') && s.tutar) {
+            sag = '<div class="bp-ara-fiyat">' + B.escHtml(s.tutar) + '</div>';
+        } else if (s.tip === 'sayfa') {
+            sag = '<div class="bp-ara-git"><i class="icon-arrow-right"></i></div>';
+        }
+
+        return '<a href="' + B.escHtml(s.url) + '" class="bp-ara-item">' +
+            gorsel +
+            '<div class="bp-ara-icerik">' +
+                '<div class="bp-ara-ust"><span class="bp-ara-baslik">' + baslik + '</span>' + rozet + '</div>' +
+                (alt ? '<div class="bp-ara-alt">' + alt + '</div>' : '') +
+            '</div>' +
+            (sag ? '<div class="bp-ara-sag">' + sag + '</div>' : '') +
+        '</a>';
+    }
+
+    function bindSonucEtkilesimleri() {
+        dropdown.querySelectorAll('.bp-ara-item').forEach(function (item) {
+            item.addEventListener('mouseenter', function () {
+                if (klavyeAktif) return;
+                var all = dropdown.querySelectorAll('.bp-ara-item');
+                var self = this;
+                all.forEach(function (el, idx) {
+                    el.classList.remove('is-secili');
+                    if (el === self) seciliIndex = idx;
+                });
+                self.classList.add('is-secili');
+            });
+            item.addEventListener('mousemove', function () { klavyeAktif = false; });
+            // Tıklama: <a href> doğal akışta aynı sekmede gider (ek JS gerekmez)
+        });
+
+        dropdown.querySelectorAll('.bp-ara-cat').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var kat = this.getAttribute('data-kategori');
+                dropdown.querySelectorAll('.bp-ara-cat').forEach(function (b) { b.classList.remove('is-aktif'); });
+                this.classList.add('is-aktif');
+                filtreUygula(kat);
+            });
+        });
+    }
+
+    function filtreUygula(kategori) {
+        dropdown.querySelectorAll('.bp-ara-grup').forEach(function (grup) {
+            grup.style.display = (kategori === 'tumu' || grup.getAttribute('data-kategori') === kategori) ? '' : 'none';
+        });
+        var sd = dropdown.querySelector('.bp-ara-sonuclar');
+        if (sd) sd.scrollTop = 0;
+        seciliIndex = -1;
+    }
+
+    function guncelleSecim(items) {
+        items.forEach(function (item, idx) { item.classList.toggle('is-secili', idx === seciliIndex); });
+        if (seciliIndex >= 0 && items[seciliIndex]) {
+            items[seciliIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+    }
+
+    function gosterLoading() {
+        dropdown.innerHTML = '<div class="bp-ara-loading">' +
+            '<div class="bp-ara-spinner"></div>' +
+            '<div class="bp-ara-loading-text">Aranıyor...</div>' +
+        '</div>';
+    }
+
+    function gosterHata(mesaj) {
+        dropdown.innerHTML = '<div class="bp-ara-bos">' +
+            '<div class="bp-ara-bos-icon bp-ara-bos-icon--hata"><i class="icon-alert-circle"></i></div>' +
+            '<div class="bp-ara-bos-baslik">Bir hata oluştu</div>' +
+            '<div class="bp-ara-bos-aciklama">' + B.escHtml(mesaj) + '</div>' +
+        '</div>';
+    }
+
+})();

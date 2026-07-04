@@ -1,0 +1,58 @@
+/* ========================================================================
+   Bayi Portal — Dokunmatik (touch) Sertleştirme — TÜM SAYFALARDA
+   ------------------------------------------------------------------------
+   Tüm kurallar @media (hover: none) altında → YALNIZ gerçek dokunmatik
+   cihazlar (parmak; mouse'lu masaüstü/laptop ETKİLENMEZ). Amaç:
+     1) 300ms tap gecikmesi + çift-dokunuş zoom titremesi (touch-action)
+     2) Yapışkan :hover "kalkık kart" efektleri (tap sonrası havada kalma)
+     3) :hover ile AÇILAN popover/tooltip kilidi → tap-toggle'a çevir
+        (touch-popover.js .is-touch-pop ekler; bilgi erişilebilir kalır)
+   NOT: Daraltılmış sidebar :hover genişlemesi ayrıca collapsed.css'te
+        @media (hover: hover) ile zaten sınırlandı.
+   ======================================================================== */
+
+@media (hover: none) {
+
+  /* ---- 1) Tap gecikmesi + çift-dokunuş zoom — interaktif öğeler ---- */
+  .bp-app button,
+  .bp-app a,
+  .bp-app [role="button"],
+  .bp-app label,
+  .bp-app summary,
+  .bp-app input[type="checkbox"],
+  .bp-app input[type="radio"],
+  .bp-app .bp-sb-item a,
+  .bp-app .bp-sb-tab,
+  .bp-app .bp-hw,
+  .bp-app .bp-hamburger {
+    touch-action: manipulation;
+  }
+
+  /* ---- 2) Yapışkan :hover kalkık-kart transform'larını sıfırla ----
+     (dokunmatikte tap sonrası eleman "havada/vurgulu" kalmasın) */
+  .bp-app .bp-hw:hover,
+  .bp-app .bp-hw-user:hover,
+  .bp-app .bp-hw-hizli-satis:hover {
+    transform: none;
+  }
+
+  /* ---- 3) :hover ile açılan popover/tooltip'ler dokunmatikte AÇILMASIN
+     (yapışkan-hover → tap sonrası açık kalıp içeriği örtme/kilitleme).
+     .bp-app öneki = +1 specificity → form CSS'inin :hover{display:block}
+     kuralını kaynak sırasından bağımsız ezer. Erişim: tap-toggle (madde 4). */
+  .bp-app .frm-md-sw-stat:hover .frm-md-stok-panel,
+  .bp-app .frm-prim-info:hover .frm-prim-tooltip {
+    display: none;
+  }
+  /* FX kur tooltip (opacity ile açılır) */
+  .bp-app .bp-hw-fx:hover .bp-hw-fx-tooltip {
+    opacity: 0;
+  }
+
+  /* ---- 4) Tap-toggle: touch-popover.js tetikleyiciye .is-touch-pop ekler ---- */
+  .bp-app .frm-md-sw-stat.is-touch-pop .frm-md-stok-panel,
+  .bp-app .frm-prim-info.is-touch-pop .frm-prim-tooltip {
+    display: block;
+  }
+
+}

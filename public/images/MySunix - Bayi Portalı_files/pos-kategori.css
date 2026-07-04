@@ -1,0 +1,229 @@
+/* ===== POS Hızlı Tedarik — Kategori Sidebar ===== */
+
+.frm-pos-sb {
+    width: 240px;
+    min-width: 240px;
+    height: 100%;
+    background: #fff;
+    border-right: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+/* ===== Header + Toggle ===== */
+.frm-pos-cat-head {
+    padding: 14px 14px 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #f1f5f9;
+    flex-shrink: 0;
+}
+.frm-pos-cat-head > span { flex: 1; }
+
+/* Toggle buton grubu */
+.frm-pos-cat-mode {
+    display: inline-flex;
+    gap: 1px;
+    background: #f1f3f8;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 2px;
+}
+.frm-pos-cat-mode-btn {
+    width: 28px;
+    height: 24px;
+    border: 0;
+    background: transparent;
+    color: #94a3b8;
+    border-radius: 6px;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 0.82rem;
+    transition: background 0.12s, color 0.12s;
+}
+.frm-pos-cat-mode-btn:hover { color: var(--frm-main, #103595); }
+.frm-pos-cat-mode-btn.active {
+    background: #fff;
+    color: var(--frm-main, #103595);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
+}
+
+/* ===== Kategori Listesi Container ===== */
+.frm-pos-cat-items {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 6px 8px 14px;
+}
+.frm-pos-cat-items::-webkit-scrollbar { width: 4px; }
+.frm-pos-cat-items::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+/* ===== Kategori Item (base) ===== */
+.frm-pos-cat-item {
+    display: flex;
+    align-items: center;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    width: 100%;
+    background: transparent;
+    color: #334155;
+    outline: none;
+}
+
+/* ===== LIST MODU ===== */
+.frm-pos-sb.frm-pos-cat-list {
+    width: 210px;
+    min-width: 210px;
+}
+.frm-pos-sb.frm-pos-cat-list .frm-pos-cat-items {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 4px 8px 14px;
+}
+.frm-pos-sb.frm-pos-cat-list .frm-pos-cat-item {
+    flex-direction: row;
+    justify-content: flex-start;
+    text-align: left;
+    gap: 11px;
+    padding: 7px 10px 7px 8px;
+    border-radius: 8px;
+    font-size: 0.86rem;
+    font-weight: 500;
+}
+.frm-pos-sb.frm-pos-cat-list .frm-pos-cat-item i {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    font-size: 0.8rem;
+    background: #1e293b;
+    color: #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(30, 41, 59, 0.18);
+    transition: background 0.12s, box-shadow 0.12s;
+}
+.frm-pos-sb.frm-pos-cat-list .frm-pos-cat-item span {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+/* Liste hover */
+.frm-pos-sb.frm-pos-cat-list .frm-pos-cat-item:hover {
+    background: #f4f6fa;
+    color: #0f172a;
+    transform: translateX(2px);
+}
+.frm-pos-sb.frm-pos-cat-list .frm-pos-cat-item:hover i {
+    background: var(--frm-main, #103595);
+    box-shadow: 0 3px 8px rgba(16, 53, 149, 0.3);
+}
+
+/* Liste aktif */
+.frm-pos-sb.frm-pos-cat-list .frm-pos-cat-item.active {
+    background: var(--frm-main, #103595);
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(16, 53, 149, 0.28);
+}
+.frm-pos-sb.frm-pos-cat-list .frm-pos-cat-item.active i {
+    background: #fff;
+    color: var(--frm-main, #103595);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+.frm-pos-sb.frm-pos-cat-list .frm-pos-cat-item.active span {
+    color: #fff;
+}
+
+/* ===== GRID MODU ===== */
+.frm-pos-sb.frm-pos-cat-grid .frm-pos-cat-items {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+}
+.frm-pos-sb.frm-pos-cat-grid .frm-pos-cat-item {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+    padding: 12px 6px;
+    aspect-ratio: 1;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: #fff;
+    border: 1px solid #e8ecf1;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+.frm-pos-sb.frm-pos-cat-grid .frm-pos-cat-item i {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    font-size: 0.95rem;
+    background: #1e293b;
+    color: #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(30, 41, 59, 0.2);
+    transition: background 0.12s, box-shadow 0.12s;
+}
+.frm-pos-sb.frm-pos-cat-grid .frm-pos-cat-item span {
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-width: 100%;
+    color: #334155;
+}
+
+/* Grid hover */
+.frm-pos-sb.frm-pos-cat-grid .frm-pos-cat-item:hover {
+    background: #f4f6fa;
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+}
+.frm-pos-sb.frm-pos-cat-grid .frm-pos-cat-item:hover i {
+    background: var(--frm-main, #103595);
+    box-shadow: 0 4px 10px rgba(16, 53, 149, 0.35);
+}
+
+/* Grid aktif */
+.frm-pos-sb.frm-pos-cat-grid .frm-pos-cat-item.active {
+    background: var(--frm-main, #103595);
+    border-color: var(--frm-main, #103595);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(16, 53, 149, 0.28);
+}
+.frm-pos-sb.frm-pos-cat-grid .frm-pos-cat-item.active i {
+    background: #fff;
+    color: var(--frm-main, #103595);
+}
+.frm-pos-sb.frm-pos-cat-grid .frm-pos-cat-item.active span {
+    color: #fff;
+}
+
+/* ===== Footer ===== */
+.frm-pos-cat-footer {
+    padding: 8px 14px;
+    font-size: 0.75rem;
+    color: #94a3b8;
+    border-top: 1px solid #f1f5f9;
+    text-align: center;
+    flex-shrink: 0;
+}

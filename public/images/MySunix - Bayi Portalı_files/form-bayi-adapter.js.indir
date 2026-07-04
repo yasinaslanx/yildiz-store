@@ -1,0 +1,867 @@
+/**
+ * Bayi Form Adapter
+ * ERP Form modülleri yüklenmeden ÖNCE çalışır.
+ * Bayi-spesifik konfigürasyon ve otomatik müşteri ataması hazırlar.
+ *
+ * KAYDETME AKIŞI (Faz 5 Köprü 3 — Nisan 2026):
+ *   sunix-siparis.php → FormConfig.ajaxBase = 'ajax/form/' → bayi/ajax/form/siparis-kaydet.php
+ *     → BAYI_CONTEXT + bayi_siparis_meta (siparis_kaynagi = 'bayi_kendi')
+ *     → ana ERP ajax/form/siparis-kaydet.php (INSERT + transaction + stok + cari)
+ *
+ *   Alternatif URL: bayi/ajax/siparis/sunix-siparis-kaydet.php (aynı mantık, daha temiz path)
+ *   — şu an kullanılmıyor, gelecekte form config'e özel kaydet URL override'ı eklenirse aktive olur.
+ */
+(function() {
+    'use strict';
+
+    var cfg = window.FormConfig || {};
+    var SUNIX_BASE = 'https://sunixhub.com/';
+
+    // Bayi otomatik müşteri bilgisi (init.js tarafından kullanılır)
+    window._bayiAutoMusteri = {
+        id: cfg.bayiId || 0,
+        tipi: 'bayi',
+        adi: cfg.bayiFirmaAdi || '',
+        fiyatGrubuId: cfg.bayiFiyatGrubuId || null,
+        fiyatGrubuAdi: cfg.bayiFiyatGrubuAdi || '',
+        paraBirimi: cfg.paraBirimi || 'USD',
+        vadeGun: cfg.bayiVadeGun || 0,
+        indirimYuzdesi: cfg.bayiIndirimYuzdesi || 0,
+        kdvDahil: cfg.bayiKdvDahil || 'hayir',
+        kdvOrani: cfg.bayiKdvOrani || 0
+    };
+
+    // uploads/ ve upload/ bayi/.htaccess rewrite ile same-origin servis edilir —
+    // cross-origin sunixhub.com istekleri Chrome Local Network Access engeline takılabiliyor
+    function tamUrl(p) {
+        p = p.replace(/^\/+/, '');
+        if (p.indexOf('uploads/') === 0 || p.indexOf('upload/') === 0) return p;
+        return SUNIX_BASE + p;
+    }
+
+    // Resim URL dönüştürücü: ERP'den gelen relative URL'leri uygun URL'ye çevirir
+    window._bayiResimUrl = function(url) {
+        if (!url) return '';
+        if (url.startsWith('http://') || url.startsWith('https://')) return url;
+        return tamUrl(url);
+    };
+
+    // MutationObserver: DOM'a eklenen resimlerin src'sini düzeltir
+    function fixImageUrl(img) {
+        var src = img.getAttribute('src');
+        if (src && !src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('data:')) {
+            img.src = tamUrl(src);
+        }
+    }
+
+    // Bayi vade hesaplayıcı — bayide müşteri widget'ı yok, musteri.js'in
+    // "siparis-tarihi:degisti" listener'ı kayda geçmez; vadeyi burada güncelleriz.
+    function bayiVadeGuncelle() {
+        var vadeGun = parseInt(cfg.bayiVadeGun) || 0;
+        var tarihEl = document.getElementById('frmTarih');
+        var vadeEl  = document.getElementById('frmVade');
+        if (!vadeEl) return;
+
+        var bazTarih;
+        if (tarihEl && tarihEl._flatpickr && tarihEl._flatpickr.selectedDates.length > 0) {
+            bazTarih = new Date(tarihEl._flatpickr.selectedDates[0].getTime());
+        } else {
+            bazTarih = new Date();
+        }
+        bazTarih.setDate(bazTarih.getDate() + vadeGun);
+
+        // Flatpickr varsa setDate (triggerChange=false) kullan, yoksa value'ya yaz.
+        // Flatpickr'ın formatDate'i ile uyumlu olması için d.m.Y formatında üretiyoruz.
+        var d = ('0' + bazTarih.getDate()).slice(-2) + '.' + ('0' + (bazTarih.getMonth() + 1)).slice(-2) + '.' + bazTarih.getFullYear();
+        if (vadeEl._flatpickr) {
+            vadeEl._flatpickr.setDate(bazTarih, false);
+        }
+        // Ek güvence: flatpickr picker açılsa da kapansa da input.value dolsun
+        vadeEl.value = d;
+    }
+
+    // Flatpickr picker'ını kilitle (destroy ETME — instance'ı canlı tutarak
+    // sadece tıklamayı ve manuel girdiyi kapat; setDate hala çalışır, değer görünür)
+    function bayiVadePickerKilitle() {
+        var vadeEl = document.getElementById('frmVade');
+        if (!vadeEl) return;
+        if (vadeEl._flatpickr) {
+            vadeEl._flatpickr.set('clickOpens', false);
+            vadeEl._flatpickr.set('allowInput', false);
+            // Flatpickr altInput oluşturduysa onu da readonly yap
+            if (vadeEl._flatpickr.altInput) {
+                vadeEl._flatpickr.altInput.readOnly = true;
+                vadeEl._flatpickr.altInput.style.cursor = 'not-allowed';
+            }
+        }
+        vadeEl.readOnly = true;
+        vadeEl.style.cursor = 'not-allowed';
+    }
+
+    // --- Stok Aralığı Gösterimi (sunix-siparis tedarik sayfası) ---
+    if (cfg.stokMiktarGizle) {
+        document.body.classList.add('stok-gizli');
+
+        var stokAralikMap = {
+            0: {etiket: 'Yok',     renk: '#ef4444', cls: 'danger', tip: 'Stok yok (0 adet)'},
+            1: {etiket: 'Sınırlı', renk: '#f59e0b', cls: 'warn',   tip: 'Sınırlı stok (1–10 arası)'},
+            2: {etiket: 'Var',     renk: '#22c55e', cls: 'ok',     tip: 'Stokta var (11–99 arası)'},
+            3: {etiket: '100+',    renk: '#22c55e', cls: 'ok',     tip: '100–499 arası stok'},
+            4: {etiket: '500+',    renk: '#16a34a', cls: 'ok',     tip: '500–999 arası stok'},
+            5: {etiket: '1000+',   renk: '#15803d', cls: 'ok',     tip: '1000 ve üzeri stok'}
+        };
+
+        var stokAralikEtiketleri = ['Yok','Sınırlı','Var','100+','500+','1000+'];
+
+        // Stok aralığı tooltip (ERP frm-stk-tt stili ile uyumlu)
+        var stokTipEl = document.createElement('div');
+        stokTipEl.className = 'bayi-stok-tip';
+        document.body.appendChild(stokTipEl);
+
+        var tipCss = document.createElement('style');
+        tipCss.textContent = '.bayi-stok-tip{position:fixed;background:#1f2937;color:#fff;padding:8px 12px;border-radius:8px;font-size:11px;font-weight:500;line-height:1.6;white-space:nowrap;opacity:0;visibility:hidden;transition:opacity .15s,visibility .15s;z-index:99999;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.3);min-width:100px}'
+            + '.bayi-stok-tip::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:#1f2937}'
+            + '.bayi-stok-tip.visible{opacity:1;visibility:visible}';
+        document.head.appendChild(tipCss);
+
+        document.addEventListener('mouseenter', function(e) {
+            if (!e.target || !e.target.closest) return;
+            var t = e.target.closest('[data-stok-tip]');
+            if (!t) return;
+            var txt = t.getAttribute('data-stok-tip');
+            if (!txt) return;
+            stokTipEl.textContent = txt;
+            stokTipEl.classList.add('visible');
+            var r = t.getBoundingClientRect();
+            var w = stokTipEl.offsetWidth || 100;
+            var h = stokTipEl.offsetHeight || 30;
+            var l = r.left + r.width / 2 - w / 2;
+            var tp = r.top - h - 10;
+            if (l < 10) l = 10;
+            if (l + w > window.innerWidth - 10) l = window.innerWidth - w - 10;
+            if (tp < 10) tp = r.bottom + 8;
+            stokTipEl.style.left = l + 'px';
+            stokTipEl.style.top = tp + 'px';
+        }, true);
+        document.addEventListener('mouseleave', function(e) {
+            if (e.target && e.target.closest && e.target.closest('[data-stok-tip]')) {
+                stokTipEl.classList.remove('visible');
+            }
+        }, true);
+
+        function stokDegerDonustur(el) {
+            if (!el) return;
+            if (el.dataset.stokDonusturuldu) return;
+            var txt = (el.textContent || '').trim();
+            if (stokAralikEtiketleri.indexOf(txt) !== -1) { el.dataset.stokDonusturuldu = '1'; return; }
+            if (txt === '-' || txt === 'İade' || txt === 'İADE') return;
+            var val = parseInt(txt);
+            if (isNaN(val)) return;
+            if (val > 5) val = 5;
+            var a = stokAralikMap[val] || stokAralikMap[0];
+            el.textContent = a.etiket;
+            el.style.color = a.renk;
+            el.style.fontWeight = '600';
+            el.style.fontSize = '12px';
+            el.setAttribute('data-stok-tip', a.tip);
+            el.dataset.stokDonusturuldu = '1';
+        }
+
+        function stokElementleriIsle(root) {
+            if (!root || root.nodeType !== 1) return;
+
+            // Arama dropdown: Sol liste badge'leri — stok aralığı gösterimi
+            root.querySelectorAll('.frm-sd-badge-ok, .frm-sd-badge-warn, .frm-sd-badge-danger').forEach(function(badge) {
+                if (badge.dataset.stokDonusturuldu) return;
+                if (badge.classList.contains('frm-sd-badge-fiyat') || badge.classList.contains('frm-sd-badge-yolda') || badge.classList.contains('frm-sd-badge-kod') || badge.classList.contains('frm-sd-badge-ontalep') || badge.classList.contains('frm-sd-badge-ontalep-done')) return;
+                var bTag = badge.querySelector('b');
+                var kod = bTag ? (parseInt(bTag.textContent) || 0) : NaN;
+                if (isNaN(kod) || kod > 5) kod = badge.classList.contains('frm-sd-badge-danger') ? 0 : 2;
+                var a = stokAralikMap[kod] || stokAralikMap[0];
+                badge.classList.remove('frm-sd-badge-ok', 'frm-sd-badge-warn', 'frm-sd-badge-danger');
+                badge.classList.add('frm-sd-badge-' + a.cls);
+                badge.innerHTML = 'Stok: <b>' + a.etiket + '</b>';
+                badge.setAttribute('data-stok-tip', a.tip);
+                badge.dataset.stokDonusturuldu = '1';
+            });
+
+            // Arama dropdown: Yolda badge'i gizle
+            root.querySelectorAll('.frm-sd-badge-yolda').forEach(function(el) {
+                el.style.display = 'none';
+            });
+
+            // Arama detay: Büyük stok sayısı
+            root.querySelectorAll('.frm-sd-num').forEach(function(el) {
+                stokDegerDonustur(el);
+                el.style.fontSize = '18px';
+            });
+
+            // Arama detay: Yolda satırını gizle
+            root.querySelectorAll('.frm-sd-stok-row.blue').forEach(function(el) {
+                el.style.display = 'none';
+            });
+
+            // Arama detay: Depo badge'lerini gizle
+            root.querySelectorAll('.frm-sd-depo-badges').forEach(function(el) {
+                el.style.display = 'none';
+            });
+
+            // Arama detay: Depo ayırıcı çizgiyi gizle
+            root.querySelectorAll('.frm-sd-stok-div').forEach(function(el) {
+                el.style.display = 'none';
+            });
+
+            // Arama detay: Stok details alanını gizle
+            root.querySelectorAll('.frm-sd-stok-details').forEach(function(el) {
+                el.style.display = 'none';
+            });
+
+            // Varyant modal: STOK değeri
+            root.querySelectorAll('.frm-vm-vc-stk-val').forEach(function(el) {
+                stokDegerDonustur(el);
+            });
+
+            // Varyant modal MR grid: Model başlığındaki stok toplamı badge'i gizle
+            root.querySelectorAll('.frm-vm-model-qty-badge').forEach(function(el) {
+                if (el.dataset.stokDonusturuldu) return;
+                el.style.display = 'none';
+                el.dataset.stokDonusturuldu = '1';
+            });
+
+            // Kılıf modal: Stok değeri + OOS sınıfı
+            root.querySelectorAll('.frm-km-qg-stk-v').forEach(function(el) {
+                var txt = (el.textContent || '').trim();
+                if (stokAralikEtiketleri.indexOf(txt) === -1) {
+                    var val = parseInt(txt) || 0;
+                    if (val === 0) {
+                        var qg = el.closest('.frm-km-qg');
+                        if (qg && !qg.classList.contains('frm-km-qg-t')) qg.classList.add('oos');
+                    }
+                }
+                stokDegerDonustur(el);
+            });
+
+            // Düz ürün modal: Depo detay panelini gizle, yolda panelini koru
+            root.querySelectorAll('.frm-md-stok-panel').forEach(function(el) {
+                var head = el.querySelector('.frm-md-stok-panel-head');
+                if (head && head.textContent.indexOf('Yolda') !== -1) return;
+                el.style.display = 'none';
+            });
+            // Yolda detay paneli korunur (data-stok-donusturuldu ile işaretli)
+
+            // Depo önizleme select'i gizle
+            root.querySelectorAll('.frm-depo-oz-wrap').forEach(function(el) {
+                el.style.display = 'none';
+            });
+
+            // Düz ürün modal: Fiyat readonly + geçmiş fiyatlar gizle
+            root.querySelectorAll('#frmMdFiyat').forEach(function(inp) {
+                if (inp.dataset.bayiKilitli) return;
+                inp.readOnly = true;
+                inp.style.opacity = '0.7';
+                inp.style.cursor = 'not-allowed';
+                inp.style.pointerEvents = 'none';
+                inp.dataset.bayiKilitli = '1';
+            });
+            // Geçmiş fiyatlar panelini gizle
+            root.querySelectorAll('.frm-md-ph-tabs').forEach(function(tabs) {
+                var cp = tabs.closest('.frm-md-cp');
+                if (cp) cp.style.display = 'none';
+            });
+            // "Fiyat & Depo" başlığını "Birim Fiyat" olarak güncelle
+            root.querySelectorAll('.frm-md-cp-t').forEach(function(t) {
+                if (t.textContent.indexOf('Fiyat & Depo') !== -1) {
+                    t.innerHTML = '<i class="icon-dollar-sign"></i> Birim Fiyat';
+                }
+            });
+
+            // Kılıf modal: Toplam sütun stok gizle (aralık kodlarının toplamı anlamsız)
+            root.querySelectorAll('.frm-km-qg-t .frm-km-qg-stk').forEach(function(el) {
+                el.style.display = 'none';
+            });
+
+            // Düz ürün modal: Stok stat değeri (yolda stat hariç — zaten JS'te dönüştürülüyor)
+            root.querySelectorAll('.frm-md-sw-stat:not(.frm-md-yolda-stat) .frm-md-sw-stat-val').forEach(function(el) {
+                stokDegerDonustur(el);
+            });
+
+            // Düz ürün modal: Depo select gizle + 2 sütun layout'u tek sütuna düşür
+            root.querySelectorAll('#frmMdDepo').forEach(function(sel) {
+                var fld = sel.closest('.frm-md-fld');
+                if (fld) fld.style.display = 'none';
+                var cols = sel.closest('.frm-md-cols-2');
+                if (cols) cols.style.gridTemplateColumns = '1fr';
+            });
+
+            // Arama detay: Stoksuz + ön talep kapalı → ekle butonunu devre dışı bırak
+            root.querySelectorAll('.frm-sd-d-add-btn:not(.frm-sd-d-add-btn-ot)').forEach(function(btn) {
+                if (btn.dataset.stokEngel) return;
+                var detail = btn.closest('.frm-sd-detail');
+                if (!detail) return;
+                var onTalepBadge = detail.querySelector('.frm-ot-detail-badge');
+                if (onTalepBadge) return;
+                var badges = detail.querySelectorAll('[data-stok-donusturuldu]');
+                var stokYok = false;
+                badges.forEach(function(b) { if (b.textContent.indexOf('Yok') !== -1) stokYok = true; });
+                if (stokYok) {
+                    btn.dataset.stokEngel = '1';
+                    btn.disabled = true;
+                    btn.style.opacity = '0.4';
+                    btn.style.pointerEvents = 'none';
+                    btn.style.cursor = 'not-allowed';
+                    btn.innerHTML = '<i class="icon-slash"></i> Stokta Yok';
+                }
+            });
+        }
+
+        // MutationObserver: DOM değişikliklerini izle ve stok elementlerini dönüştür
+        var stokObserver = new MutationObserver(function(mutations) {
+            for (var i = 0; i < mutations.length; i++) {
+                var nodes = mutations[i].addedNodes;
+                for (var j = 0; j < nodes.length; j++) {
+                    var node = nodes[j];
+                    if (node.nodeType !== 1) continue;
+                    stokElementleriIsle(node);
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            stokObserver.observe(document.body, { childList: true, subtree: true });
+
+            // Form modülleri yüklendikten sonra override'ları kur
+            var formHazirInterval = setInterval(function() {
+                if (!window.Form || !window.Form.Helpers || !window.Form.Events) return;
+                clearInterval(formHazirInterval);
+
+                // Depo tooltip'i devre dışı bırak
+                window.Form.Helpers.depoTooltipHtml = function() { return ''; };
+
+                // Depo önizleme: 'tumu' olarak zorla (aralık kodları depo bazlı değil, toplam bazlı)
+                window.Form.State.depoOnizleme = 'tumu';
+
+                // Modal açıldığında stok dönüştürmeyi tetikle + stoksuz toggle gizle
+                // Periyodik kontrol: AJAX callback sonrası DOM güncellemelerini de yakalar
+                window.Form.Events.on('modal:ac', function() {
+                    // Ön talep modunda header'ı sarı yap
+                    if (window.Form.State.onTalepAktif) {
+                        setTimeout(function() {
+                            var mc = document.querySelector('#frmOverlayContent .frm-md-mc');
+                            if (mc) mc.style.setProperty('--frm-ac', '#f59e0b');
+                            var btn = document.getElementById('frmMdUygula');
+                            if (btn) btn.style.background = 'linear-gradient(135deg,#f59e0b,#d97706)';
+                        }, 50);
+                    }
+                    var kontrol = 0;
+                    var interval = setInterval(function() {
+                        kontrol++;
+                        var overlay = document.getElementById('frmOverlay');
+                        if (overlay) {
+                            stokElementleriIsle(overlay);
+                            onTalepOosIsaretle(overlay);
+                        }
+
+                        var stksuzToggle = document.getElementById('frmVmStksuz');
+                        if (stksuzToggle && stksuzToggle.parentElement) {
+                            stksuzToggle.parentElement.style.display = 'none';
+                        }
+
+                        if (kontrol >= 10) clearInterval(interval);
+                    }, 200);
+                });
+
+                // renderGrid override: Stoksuz filtreyi devre dışı bırak + render sonrası dönüştür + ön talep class ekle
+                if (window.Form.ModalVaryant) {
+                    var _origRenderGrid = window.Form.ModalVaryant.renderGrid;
+                    window.Form.ModalVaryant.renderGrid = function() {
+                        if (window.Form.ModalVaryant.ST) {
+                            window.Form.ModalVaryant.ST.ns = true;
+                        }
+                        _origRenderGrid.apply(this, arguments);
+                        var grid = document.getElementById('frmVmGrid');
+                        if (grid) {
+                            stokElementleriIsle(grid);
+                            onTalepOosIsaretle(grid);
+                            oosOnTalepKartEngelle(grid);
+                        }
+                    };
+
+                    var stksuzToggle = document.getElementById('frmVmStksuz');
+                    if (stksuzToggle && stksuzToggle.parentElement) {
+                        stksuzToggle.parentElement.style.display = 'none';
+                    }
+                }
+
+                // --- Ön Talep: OOS kartlara oos-ontalep class'ı ekle ---
+                function onTalepOosIsaretle(root) {
+                    var F = window.Form;
+                    var urunData = (F && F.ModalVaryant && F.ModalVaryant.ST) ? F.ModalVaryant.ST.urunData : null;
+                    if (!urunData) urunData = (F && F.ModalKilif && F.ModalKilif.ST) ? F.ModalKilif.ST.urunData : null;
+                    if (!urunData || urunData.on_siparis_aktif !== 'evet') return;
+                    root.querySelectorAll('.frm-vm-vc.oos, .frm-km-qg.oos').forEach(function(card) {
+                        if (!card.classList.contains('oos-ontalep')) {
+                            card.classList.add('oos-ontalep');
+                        }
+                    });
+                }
+
+                // --- Ön Talep: OOS+onTalep kartlarındaki card-level listener'ları etkisizleştir ---
+                function oosOnTalepKartEngelle(root) {
+                    root.querySelectorAll('.frm-vm-vc.oos.oos-ontalep, .frm-km-qg.oos.oos-ontalep').forEach(function(card) {
+                        if (card.dataset.otEngel) return;
+                        card.dataset.otEngel = '1';
+                        var clone = card.cloneNode(true);
+                        clone.dataset.otEngel = '1';
+                        card.parentNode.replaceChild(clone, card);
+                    });
+                }
+
+                // --- Stoksuz + Ön Talep KAPALI: tüm tıklamaları engelle ---
+                document.addEventListener('click', function(e) {
+                    if (!cfg.stokMiktarGizle) return;
+                    var card = e.target.closest('.frm-vm-vc.oos, .frm-km-qg.oos');
+                    if (!card) return;
+                    if (card.classList.contains('oos-ontalep')) return;
+                    e.stopPropagation();
+                    e.preventDefault();
+                }, true);
+
+                // --- Ön Talep: OOS varyant kart tıklama → Overlay modal ---
+                document.addEventListener('click', function(e) {
+                    if (!cfg.stokMiktarGizle) return;
+                    var card = e.target.closest('.frm-vm-vc.oos.oos-ontalep');
+                    if (!card) return;
+                    if (e.target.closest('input, button')) return;
+
+                    e.stopImmediatePropagation();
+                    e.stopPropagation();
+                    e.preventDefault();
+
+                    var F = window.Form;
+                    if (!F || !F.ModalVaryant || !F.ModalVaryant.ST) return;
+
+                    var urunData = F.ModalVaryant.ST.urunData;
+                    if (!urunData) return;
+
+                    var qtyInput = card.querySelector('.frm-vm-vc-qty');
+                    var dataId = qtyInput ? qtyInput.getAttribute('data-id') : '';
+                    var kartAdi = '';
+                    var nameEl = card.querySelector('.frm-vm-vc-swatch-name');
+                    if (nameEl) kartAdi = nameEl.textContent.trim();
+
+                    var tip = 'model', varyantId = null, modelId = null;
+                    var modelAdi = '', renkAdi = '', renkId = null, gorunumAdi = '';
+
+                    if (dataId.indexOf('mr_') === 0) {
+                        tip = 'model_renk';
+                        varyantId = parseInt(dataId.substring(3)) || null;
+                        var mrList = urunData.model_renkler || [];
+                        for (var i = 0; i < mrList.length; i++) {
+                            if (parseInt(mrList[i].id) === varyantId) {
+                                modelId = parseInt(mrList[i].telefon_model_id) || null;
+                                modelAdi = mrList[i].model_adi || '';
+                                renkAdi = mrList[i].renk_adi || kartAdi;
+                                break;
+                            }
+                        }
+                        gorunumAdi = (modelAdi ? modelAdi + ' — ' : '') + renkAdi;
+                    } else if (dataId.indexOf('m_') === 0) {
+                        tip = 'model';
+                        var utmId = parseInt(dataId.substring(2)) || null;
+                        varyantId = utmId;
+                        var mList = urunData.modeller || [];
+                        for (var j = 0; j < mList.length; j++) {
+                            if (parseInt(mList[j].id) === utmId) {
+                                modelId = parseInt(mList[j].telefon_model_id) || null;
+                                modelAdi = mList[j].model_adi || kartAdi;
+                                break;
+                            }
+                        }
+                        if (!modelId) modelId = utmId;
+                        gorunumAdi = modelAdi || kartAdi;
+                    } else if (dataId.indexOf('r_') === 0) {
+                        tip = 'renk';
+                        varyantId = parseInt(dataId.substring(2)) || null;
+                        renkId = varyantId;
+                        renkAdi = kartAdi;
+                        gorunumAdi = renkAdi;
+                    }
+
+                    onTalepOverlayAc(urunData, gorunumAdi, tip, varyantId, modelId, modelAdi, renkAdi, renkId);
+                }, true);
+
+                // --- Ön Talep: OOS kılıf hücre tıklama → Overlay modal ---
+                document.addEventListener('click', function(e) {
+                    if (!cfg.stokMiktarGizle) return;
+                    var cell = e.target.closest('.frm-km-qg.oos.oos-ontalep');
+                    if (!cell) return;
+                    if (e.target.closest('input, button')) return;
+
+                    e.stopImmediatePropagation();
+                    e.stopPropagation();
+                    e.preventDefault();
+
+                    var F = window.Form;
+                    if (!F || !F.ModalKilif || !F.ModalKilif.ST) return;
+                    var urunData = F.ModalKilif.ST.urunData;
+                    if (!urunData) return;
+
+                    var inp = cell.querySelector('.frm-km-qi');
+                    if (!inp) return;
+                    var mId = parseInt(inp.getAttribute('data-model')) || null;
+                    var rId = parseInt(inp.getAttribute('data-renk')) || null;
+
+                    var modelAdi = '', renkAdi = '';
+                    var modeller = urunData.modeller || [];
+                    for (var k = 0; k < modeller.length; k++) {
+                        if (parseInt(modeller[k].id) === mId || parseInt(modeller[k].telefon_model_id) === mId) {
+                            modelAdi = modeller[k].model_adi || '';
+                            if (modeller[k].renkler) {
+                                for (var l = 0; l < modeller[k].renkler.length; l++) {
+                                    if (parseInt(modeller[k].renkler[l].id) === rId) {
+                                        renkAdi = modeller[k].renkler[l].renk_adi || '';
+                                        break;
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    var gorunumAdi = (modelAdi ? modelAdi + ' — ' : '') + renkAdi;
+                    onTalepOverlayAc(urunData, gorunumAdi, 'model_renk', rId, mId, modelAdi, renkAdi, rId);
+                }, true);
+
+                // --- Düz ürün modal: Stok 0 + ön talep → buton değiştir ---
+                var F = window.Form;
+                var _origModalAc = F.Modal.ac;
+                F.Modal.ac = function(tip, urunData, satirId) {
+                    window._bayiLastModalData = {tip: tip, urunData: urunData};
+                    _origModalAc.apply(this, arguments);
+
+                    if (tip === 'duz' && urunData) {
+                        var stokKod = (urunData.stok_aralik && urunData.stok_aralik.kod !== undefined) ? urunData.stok_aralik.kod : (urunData.toplam_stok || 0);
+                        if (stokKod === 0 && urunData.on_siparis_aktif === 'evet') {
+                            var _otKontrol = 0;
+                            var _otInterval = setInterval(function() {
+                                _otKontrol++;
+                                var mc = document.querySelector('#frmOverlayContent .frm-md-mc');
+                                if (mc) mc.style.setProperty('--frm-ac', '#f59e0b');
+                                var btn = document.getElementById('frmMdUygula');
+                                if (btn && !btn.dataset.onTalepMod) {
+                                    btn.style.background = 'linear-gradient(135deg,#f59e0b,#d97706)';
+                                    btn.innerHTML = '<i class="icon-zap"></i> Ön Talep Kaydet';
+                                    btn.dataset.onTalepMod = '1';
+                                }
+                                var fiyatInp = document.getElementById('frmMdFiyat');
+                                if (fiyatInp && !fiyatInp.readOnly) { fiyatInp.readOnly = true; fiyatInp.style.opacity = '0.7'; fiyatInp.style.cursor = 'not-allowed'; fiyatInp.style.pointerEvents = 'none'; }
+                                var depoSel = document.getElementById('frmMdDepo');
+                                if (depoSel) { var fld = depoSel.closest('.frm-md-fld'); if (fld) fld.style.display = 'none'; }
+                                if (_otKontrol >= 8) clearInterval(_otInterval);
+                            }, 100);
+                        } else if (stokKod === 0 && urunData.on_siparis_aktif !== 'evet') {
+                            var _syKontrol = 0;
+                            var _syInterval = setInterval(function() {
+                                _syKontrol++;
+                                var mc = document.querySelector('#frmOverlayContent .frm-md-mc');
+                                if (mc) mc.style.setProperty('--frm-ac', '#ef4444');
+                                var btn = document.getElementById('frmMdUygula');
+                                if (btn && !btn.disabled) {
+                                    btn.disabled = true;
+                                    btn.style.background = '#9ca3af';
+                                    btn.style.cursor = 'not-allowed';
+                                    btn.style.pointerEvents = 'none';
+                                    btn.innerHTML = '<i class="icon-slash"></i> Stokta Yok';
+                                }
+                                if (_syKontrol >= 8) clearInterval(_syInterval);
+                            }, 100);
+                        }
+                    }
+                };
+
+                // Düz ürün "Ön Talep Kaydet" butonu tıklama
+                document.addEventListener('click', function(e) {
+                    var btn = e.target.closest('#frmMdUygula[data-on-talep-mod="1"]');
+                    if (!btn) return;
+                    e.stopImmediatePropagation();
+                    e.stopPropagation();
+                    e.preventDefault();
+
+                    var md = window._bayiLastModalData;
+                    if (!md || md.tip !== 'duz' || !md.urunData) return;
+                    var F = window.Form;
+
+                    var qtyInp = document.getElementById('frmMdQty');
+                    var miktar = qtyInp ? (parseInt(qtyInp.value) || 0) : 1;
+                    if (miktar < 1) { if (qtyInp) qtyInp.style.borderColor = '#ef4444'; return; }
+
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="icon-loader"></i> Kaydediliyor...';
+
+                    var urunData = md.urunData;
+                    var payload = {
+                        on_siparis_id: F.State.onTalepSessionId || null,
+                        musteri_id: F.State.musteriId,
+                        musteri_tipi: F.State.musteriTipi || 'bayi',
+                        musteri_adi: F.State.musteriAdi || '',
+                        urun_id: urunData.id,
+                        urun_adi: urunData.urun_adi,
+                        urun_kodu: urunData.urun_kodu || '',
+                        tip: 'duz',
+                        not: '',
+                        varyantlar: [{tip: 'duz', id: null, miktar: miktar, not: ''}],
+                        item_ids: []
+                    };
+
+                    $.ajax({
+                        url: F.Config.ajaxBase + 'on-siparis-hizli-kaydet.php',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(payload),
+                        dataType: 'json',
+                        success: function(res) {
+                            if (res.success) {
+                                F.State.onTalepSessionId = res.on_siparis_id;
+                                F.State.onTalepSessionNo = res.on_siparis_no;
+                                F.Modal.kapat();
+                                Swal.fire({
+                                    toast: true, position: 'top-end', icon: 'success',
+                                    title: 'Ön talep kaydedildi',
+                                    text: urunData.urun_adi + ' — ' + miktar + ' adet',
+                                    showConfirmButton: false, timer: 3000, timerProgressBar: true
+                                });
+                            } else {
+                                btn.disabled = false;
+                                btn.innerHTML = '<i class="icon-zap"></i> Ön Talep Kaydet';
+                                Swal.fire({icon: 'error', title: 'Hata', text: res.message || 'Kayıt başarısız'});
+                            }
+                        },
+                        error: function() {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="icon-zap"></i> Ön Talep Kaydet';
+                            Swal.fire({icon: 'error', title: 'Bağlantı Hatası', text: 'Sunucuya ulaşılamadı'});
+                        }
+                    });
+                }, true);
+
+                // --- Ön Talep Overlay Modal ---
+                function onTalepOverlayAc(urunData, gorunumAdi, tip, varyantId, modelId, modelAdi, renkAdi, renkId) {
+                    var F = window.Form;
+                    var esc = F.Helpers.escHtml;
+                    var overlay = document.getElementById('frmOverlayDetail');
+                    var content = document.getElementById('frmOverlayDetailContent');
+                    if (!overlay || !content) return;
+
+                    var altBaslik = gorunumAdi ? (esc(gorunumAdi) + ' &bull; Ön Talep') : 'Ön Talep';
+
+                    var html = '<div class="frm-md-mc" style="--frm-ac:#f59e0b;pointer-events:auto;position:relative;z-index:5">';
+                    // Header
+                    html += '<div class="frm-md-sw">';
+                    html += '<div class="frm-md-sw-top"><div>';
+                    html += '<div class="frm-md-sw-name">' + esc(urunData.urun_adi) + '</div>';
+                    html += '<div class="frm-md-sw-cat">' + altBaslik + '</div>';
+                    html += '</div></div>';
+                    html += '<div class="frm-md-sw-divider"></div>';
+                    html += '</div>';
+                    // Body
+                    html += '<div class="frm-md-bd">';
+                    html += '<div class="frm-md-cp open"><div class="frm-md-cp-h"><div class="frm-md-cp-t"><i class="icon-box"></i> Miktar</div></div>';
+                    html += '<div class="frm-md-cp-b" style="max-height:200px;overflow:visible"><div class="frm-md-cp-in">';
+                    html += '<div class="frm-md-qc" style="pointer-events:auto;position:relative;z-index:10">';
+                    html += '<button type="button" class="frm-md-qc-btn" id="otMdQtyMinus" style="pointer-events:auto"></button>';
+                    html += '<input class="frm-md-qc-inp" type="number" min="1" step="1" autocomplete="off" value="1" id="otMdQty" style="pointer-events:auto;-moz-appearance:textfield">';
+                    html += '<button type="button" class="frm-md-qc-btn frm-md-qc-plus" id="otMdQtyPlus" style="pointer-events:auto"></button>';
+                    html += '</div></div></div></div>';
+                    html += '</div>';
+                    // Footer
+                    html += '<div class="frm-md-ft" style="pointer-events:auto">';
+                    html += '<button type="button" class="frm-md-btn" id="otMdKaydet" style="background:linear-gradient(135deg,#f59e0b,#d97706);border:none;pointer-events:auto">';
+                    html += '<i class="icon-zap"></i> Ön Talep Kaydet</button>';
+                    html += '</div></div>';
+
+                    content.innerHTML = html;
+                    overlay.classList.add('frm-overlay-show');
+
+                    // Event binding
+                    var qtyInp = document.getElementById('otMdQty');
+                    var minusBtn = document.getElementById('otMdQtyMinus');
+                    var plusBtn = document.getElementById('otMdQtyPlus');
+                    var kaydetBtn = document.getElementById('otMdKaydet');
+
+                    if (qtyInp) { setTimeout(function() { qtyInp.focus(); qtyInp.select(); }, 100); }
+                    if (minusBtn) minusBtn.addEventListener('click', function() {
+                        var v = parseInt(qtyInp.value) || 1;
+                        if (v > 1) qtyInp.value = v - 1;
+                    });
+                    if (plusBtn) plusBtn.addEventListener('click', function() {
+                        var v = parseInt(qtyInp.value) || 0;
+                        qtyInp.value = v + 1;
+                    });
+
+                    function kapatOtOverlay() {
+                        overlay.classList.remove('frm-overlay-show');
+                        content.innerHTML = '';
+                    }
+
+                    // Kapatma: overlay bg + close buton + ESC
+                    var bgEl = document.getElementById('frmOverlayDetailBg');
+                    var closeEl = document.getElementById('frmOverlayDetailClose');
+                    if (bgEl) bgEl.addEventListener('click', kapatOtOverlay);
+                    if (closeEl) closeEl.addEventListener('click', kapatOtOverlay);
+                    document.addEventListener('keydown', function onEsc(ev) {
+                        if (ev.key === 'Escape') { kapatOtOverlay(); document.removeEventListener('keydown', onEsc); }
+                    });
+
+                    // Kaydet
+                    if (kaydetBtn) kaydetBtn.addEventListener('click', function() {
+                        var miktar = parseInt(qtyInp.value) || 0;
+                        if (miktar < 1) { qtyInp.style.borderColor = '#ef4444'; return; }
+
+                        kaydetBtn.disabled = true;
+                        kaydetBtn.innerHTML = '<i class="icon-loader"></i> Kaydediliyor...';
+
+                        var payload = {
+                            on_siparis_id: F.State.onTalepSessionId || null,
+                            musteri_id: F.State.musteriId,
+                            musteri_tipi: F.State.musteriTipi || 'bayi',
+                            musteri_adi: F.State.musteriAdi || '',
+                            urun_id: urunData.id,
+                            urun_adi: urunData.urun_adi,
+                            urun_kodu: urunData.urun_kodu || '',
+                            tip: tip,
+                            not: '',
+                            varyantlar: [{
+                                tip: tip,
+                                id: varyantId,
+                                miktar: miktar,
+                                modelId: modelId,
+                                telefonModelId: modelId,
+                                modelAdi: modelAdi || '',
+                                renkAdi: renkAdi || '',
+                                renkKodu: '',
+                                marka: '',
+                                renkId: renkId,
+                                not: ''
+                            }],
+                            item_ids: []
+                        };
+
+                        $.ajax({
+                            url: F.Config.ajaxBase + 'on-siparis-hizli-kaydet.php',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify(payload),
+                            dataType: 'json',
+                            success: function(res) {
+                                if (res.success) {
+                                    F.State.onTalepSessionId = res.on_siparis_id;
+                                    F.State.onTalepSessionNo = res.on_siparis_no;
+                                    kapatOtOverlay();
+                                    Swal.fire({
+                                        toast: true, position: 'top-end', icon: 'success',
+                                        title: 'Ön talep kaydedildi',
+                                        text: (gorunumAdi || urunData.urun_adi) + ' — ' + miktar + ' adet',
+                                        showConfirmButton: false, timer: 3000, timerProgressBar: true
+                                    });
+                                } else {
+                                    kaydetBtn.disabled = false;
+                                    kaydetBtn.innerHTML = '<i class="icon-zap"></i> Ön Talep Kaydet';
+                                    Swal.fire({ icon: 'error', title: 'Hata', text: res.message || 'Kayıt başarısız' });
+                                }
+                            },
+                            error: function() {
+                                kaydetBtn.disabled = false;
+                                kaydetBtn.innerHTML = '<i class="icon-zap"></i> Ön Talep Kaydet';
+                                Swal.fire({ icon: 'error', title: 'Bağlantı Hatası', text: 'Sunucuya ulaşılamadı' });
+                            }
+                        });
+                    });
+                }
+            }, 100);
+        });
+    }
+
+    // Form init'ten sonra vade'yi hesapla ve event'e bağlan
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form modülleri yüklendikten sonra event bus'a bağlan
+        setTimeout(function() {
+            bayiVadePickerKilitle();
+
+            if (window.Form && window.Form.Events) {
+                window.Form.Events.on('siparis-tarihi:degisti', bayiVadeGuncelle);
+            }
+            // İlk hesaplamayı tetikle (init.js zaten emit ediyor ama güvence için)
+            bayiVadeGuncelle();
+
+            // Mevcut sipariş yükleme akışında yukle.js vade'yi data'dan setDate eder;
+            // ondan sonra da picker kilitli kalsın diye bir kez daha kilitle.
+            setTimeout(bayiVadePickerKilitle, 500);
+        }, 150);
+
+        // Mevcut resimleri düzelt (form alanı + dropdown + modaller)
+        document.querySelectorAll('.frm img, .frm-sd-dropdown img, #frmOverlay img').forEach(fixImageUrl);
+
+        // Yeni eklenen resimleri otomatik düzelt (class filtresi kaldırıldı — tüm img'ler)
+        var observer = new MutationObserver(function(mutations) {
+            for (var i = 0; i < mutations.length; i++) {
+                var nodes = mutations[i].addedNodes;
+                for (var j = 0; j < nodes.length; j++) {
+                    var node = nodes[j];
+                    if (node.nodeType !== 1) continue;
+                    // Kendisi img mi?
+                    if (node.tagName === 'IMG') {
+                        fixImageUrl(node);
+                    }
+                    // İçindeki img'leri bul
+                    if (node.querySelectorAll) {
+                        var imgs = node.querySelectorAll('img');
+                        for (var k = 0; k < imgs.length; k++) {
+                            fixImageUrl(imgs[k]);
+                        }
+                    }
+                }
+            }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+    });
+
+    // --- İndirim Bilgisi Gizleme (personel yetkisi) ---
+    if (cfg.indirimGizle) {
+        document.body.classList.add('indirim-gizli');
+
+        var indCss = document.createElement('style');
+        indCss.textContent =
+            'body.indirim-gizli .frm-tbl-fiyat-badge{display:none!important}' +
+            'body.indirim-gizli .frm-tbl-fiyat-eski{text-decoration:none!important;font-size:inherit!important;color:inherit!important;opacity:1!important}' +
+            'body.indirim-gizli .frm-tbl-fiyat-yeni{display:none!important}';
+        document.head.appendChild(indCss);
+
+        function indGizleSatir(id) {
+            var el = document.getElementById(id);
+            if (el && el.parentElement && el.parentElement.style.display !== 'none') {
+                el.parentElement.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            indGizleSatir('frmIndirimGoster');
+            indGizleSatir('frmAraToplam');
+
+            // POS özet paneli sonra inject edilir — MutationObserver ile izle
+            var posGizlendi = false;
+            var obs = new MutationObserver(function() {
+                if (posGizlendi) return;
+                var el1 = document.getElementById('frmPosOzIndirim');
+                var el2 = document.getElementById('frmPosOzBrut');
+                if (el1 || el2) {
+                    indGizleSatir('frmPosOzIndirim');
+                    indGizleSatir('frmPosOzBrut');
+                    posGizlendi = true;
+                    obs.disconnect();
+                }
+            });
+            obs.observe(document.body, { childList: true, subtree: true });
+        });
+    }
+
+})();

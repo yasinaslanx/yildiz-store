@@ -1,0 +1,75 @@
+window.BayiEgitim = window.BayiEgitim || {};
+
+BayiEgitim.BotSVG = (function () {
+    var uid = 'eg' + Math.random().toString(36).substr(2, 5);
+
+    function svgMarkup(size) {
+        var s = size || 48;
+        var hg = uid + 'HG', fg = uid + 'FG', sh = uid + 'SH';
+        return '<svg class="egitim-bot" width="' + s + '" height="' + s + '" viewBox="-12 0 124 110" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+            '<defs>' +
+                '<linearGradient id="' + hg + '" x1="0%" y1="0%" x2="100%" y2="100%">' +
+                    '<stop offset="0%" style="stop-color:#ffffff"/>' +
+                    '<stop offset="100%" style="stop-color:#e8eeff"/>' +
+                '</linearGradient>' +
+                '<linearGradient id="' + fg + '" x1="0%" y1="0%" x2="0%" y2="100%">' +
+                    '<stop offset="0%" style="stop-color:#f0f7ff"/>' +
+                    '<stop offset="100%" style="stop-color:#dbeafe"/>' +
+                '</linearGradient>' +
+                '<filter id="' + sh + '" x="-50%" y="-50%" width="200%" height="200%">' +
+                    '<feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#0d2247" flood-opacity="0.25"/>' +
+                '</filter>' +
+            '</defs>' +
+            '<circle cx="50" cy="6" r="5" fill="#fbbf24" filter="url(#' + sh + ')"/>' +
+            '<rect x="47" y="9" width="6" height="10" rx="3" fill="#94a3b8"/>' +
+            '<rect x="15" y="18" width="70" height="52" rx="12" fill="url(#' + hg + ')" stroke="#a0aec0" stroke-width="2" filter="url(#' + sh + ')"/>' +
+            '<rect x="22" y="25" width="56" height="38" rx="8" fill="url(#' + fg + ')" stroke="#c7d2fe" stroke-width="1"/>' +
+            '<g>' +
+                '<circle class="eg-eye-left" cx="40" cy="41" r="7" fill="#0d2247"/>' +
+                '<circle cx="60" cy="41" r="7" fill="#0d2247"/>' +
+                '<circle class="eg-shine-left" cx="42" cy="39" r="2.5" fill="#fff"/>' +
+                '<circle cx="62" cy="39" r="2.5" fill="#fff"/>' +
+            '</g>' +
+            '<path class="eg-smile" d="M40 52 Q50 60 60 52" stroke="#0d2247" stroke-width="3" stroke-linecap="round" fill="none"/>' +
+            '<circle cx="25" cy="46" r="4" fill="#fca5a5" opacity="0.6"/>' +
+            '<circle cx="75" cy="46" r="4" fill="#fca5a5" opacity="0.6"/>' +
+            '<g class="eg-hand">' +
+                '<rect x="14" y="84" width="12" height="10" rx="3" fill="#71797E" stroke="#52595D" stroke-width="1"/>' +
+                '<circle cx="12" cy="89" r="5" fill="#A9A9A9" stroke="#71797E" stroke-width="1"/>' +
+                '<rect x="2" y="84" width="12" height="10" rx="3" fill="#71797E" stroke="#52595D" stroke-width="1"/>' +
+                '<circle cx="2" cy="89" r="4" fill="#A9A9A9" stroke="#71797E" stroke-width="1"/>' +
+                '<ellipse cx="0" cy="87" rx="6" ry="8" fill="#C0C0C0" stroke="#888" stroke-width="1"/>' +
+                '<rect x="-4" y="74" width="2.5" height="9" rx="1.2" fill="#E8E8E8" stroke="#AAA" stroke-width="0.5" transform="rotate(-8 -2.75 78)"/>' +
+                '<rect x="-1" y="72" width="2.5" height="11" rx="1.2" fill="#E8E8E8" stroke="#AAA" stroke-width="0.5"/>' +
+                '<rect x="2" y="74" width="2.5" height="9" rx="1.2" fill="#E8E8E8" stroke="#AAA" stroke-width="0.5" transform="rotate(8 3.25 78)"/>' +
+            '</g>' +
+            '<g>' +
+                '<rect x="74" y="84" width="12" height="10" rx="3" fill="#71797E" stroke="#52595D" stroke-width="1"/>' +
+                '<circle cx="88" cy="89" r="5" fill="#A9A9A9" stroke="#71797E" stroke-width="1"/>' +
+                '<rect x="86" y="84" width="12" height="10" rx="3" fill="#71797E" stroke="#52595D" stroke-width="1"/>' +
+                '<circle cx="98" cy="89" r="4" fill="#A9A9A9" stroke="#71797E" stroke-width="1"/>' +
+                '<ellipse cx="100" cy="87" rx="6" ry="8" fill="#C0C0C0" stroke="#888" stroke-width="1"/>' +
+                '<rect x="95" y="74" width="2.5" height="9" rx="1.2" fill="#E8E8E8" stroke="#AAA" stroke-width="0.5" transform="rotate(-8 96.25 78)"/>' +
+                '<rect x="98" y="72" width="2.5" height="11" rx="1.2" fill="#E8E8E8" stroke="#AAA" stroke-width="0.5"/>' +
+                '<rect x="101" y="74" width="2.5" height="9" rx="1.2" fill="#E8E8E8" stroke="#AAA" stroke-width="0.5" transform="rotate(8 102.25 78)"/>' +
+            '</g>' +
+            '<rect x="25" y="72" width="50" height="32" rx="8" fill="url(#' + hg + ')" stroke="#a0aec0" stroke-width="2" filter="url(#' + sh + ')"/>' +
+            '<image href="images/bot-logo.png" x="30" y="76" width="40" height="24" preserveAspectRatio="xMidYMid meet"/>' +
+        '</svg>';
+    }
+
+    function tooltipHTML(baslik, metin) {
+        return '<div class="egitim-adim-icerik">' +
+            '<div class="egitim-bot-wrap">' + svgMarkup(52) + '</div>' +
+            '<div class="egitim-metin">' +
+                '<strong>' + baslik + '</strong>' +
+                '<p>' + metin + '</p>' +
+            '</div>' +
+        '</div>';
+    }
+
+    return {
+        getSVG: svgMarkup,
+        tooltipHTML: tooltipHTML
+    };
+})();

@@ -1,0 +1,840 @@
+/**
+ * Form - Sipariş/İade Validasyon + Kaydetme AJAX
+ * TL brüt toplam hassasiyet düzeltmesi
+ */
+(function() {
+    'use strict';
+
+    var F = window.Form;
+
+    F.Kaydet = {};
+
+    /**
+     * Buton disable/enable
+     */
+    F.Kaydet.btnDisable = function(disabled) {
+        var btn = document.getElementById('frmKaydetBtn');
+        var btnTaslak = document.getElementById('frmTaslakBtn');
+        var btnTeklif = document.getElementById('frmTeklifBtn');
+        if (btn) { btn.disabled = disabled; btn.style.opacity = disabled ? '0.6' : '1'; }
+        if (btnTaslak) { btnTaslak.disabled = disabled; btnTaslak.style.opacity = disabled ? '0.6' : '1'; }
+        if (btnTeklif) { btnTeklif.disabled = disabled; btnTeklif.style.opacity = disabled ? '0.6' : '1'; }
+    };
+
+    /**
+     * Init
+     */
+    F.Kaydet.init = function() {
+        // Kaydet butonu
+        var btnKaydet = document.getElementById('frmKaydetBtn');
+        if (btnKaydet) {
+            btnKaydet.addEventListener('click', function() {
+                F.Kaydet.onayAc();
+            });
+        }
+
+        // Taslak butonu
+        var btnTaslak = document.getElementById('frmTaslakBtn');
+        if (btnTaslak) {
+            btnTaslak.addEventListener('click', function() {
+                F.Kaydet.kaydet(true);
+            });
+        }
+
+        // Teklif butonu (bayi portalı — sadece siparis-yeni modunda görünür)
+        var btnTeklif = document.getElementById('frmTeklifBtn');
+        if (btnTeklif) {
+            btnTeklif.addEventListener('click', function() {
+                F.Kaydet.kaydet(false, true);
+            });
+        }
+
+        // Taslağı sil butonu
+        var btnTaslakSil = document.getElementById('frmTaslakSilBtn');
+        if (btnTaslakSil) {
+            btnTaslakSil.addEventListener('click', function() {
+                F.Kaydet.taslakSil();
+            });
+        }
+    };
+
+    /**
+     * Validasyon
+     */
+    F.Kaydet.dogrula = function() {
+        var hatalar = [];
+
+        // Müşteri/Tedarikçi kontrolü (sevkiyat, bayi, kampanya ve çin sipariş modunda atla)
+        // Tedarik alışında counterparty = tedarikçi (URL'den ön-yüklenir) → mesaj farklı.
+        if (!F.Config.isSevkiyat && !F.Config.isBayi && !F.Config.isKampanya && !F.Config.isCinSiparis && !F.State.musteriId) {
+            hatalar.push(F.Config.isTedarikAlis ? 'Tedarikçi seçilmedi.' : 'Müşteri seçimi yapılmamış.');
+        }
+
+        // Satır kontrolü
+        if (F.State.satirlar.length === 0) {
+            hatalar.push('En az 1 ürün eklenmeli.');
+        }
+
+        // Satır detay kontrolü
+        for (var i = 0; i < F.State.satirlar.length; i++) {
+            var s = F.State.satirlar[i];
+            if (!s.miktar || s.miktar <= 0) {
+                hatalar.push((i + 1) + '. satırda miktar 0 olamaz.');
+            }
+            // Ön sipariş, sevkiyat, kampanya ve çin sipariş modunda fiyat kontrolü atla
+            if (!F.Config.isOnSiparis && !F.Config.isSevkiyat && !F.Config.isKampanya && !F.Config.isCinSiparis) {
+                if (!s.birimFiyat && s.birimFiyat !== 0) {
+                    hatalar.push((i + 1) + '. satırda fiyat girilmemiş.');
+                }
+            }
+            // Model/renk tipi ürünlerde varyant ID kontrolü (orphan stok önleme)
+            if (s.tip && s.tip !== 'duz' && s.varyantlar && s.varyantlar.length > 0) {
+                for (var vi = 0; vi < s.varyantlar.length; vi++) {
+                    var v = s.varyantlar[vi];
+                    if (!v.id && !v.modelId && !v.renkId && !v.telefonModelRenkId && !v.tmrId) {
+                        hatalar.push((i + 1) + '. satırda (' + (s.urunAdi || 'Ürün') + ') varyant seçimi eksik. Lütfen model veya renk seçiniz.');
+                        break;
+                    }
+                }
+            }
+        }
+
+        // TL modda kur kontrolü (ön sipariş, sevkiyat, kampanya ve çin sipariş modunda atla)
+        if (!F.Config.isOnSiparis && !F.Config.isSevkiyat && !F.Config.isKampanya && !F.Config.isCinSiparis && F.Doviz && F.Doviz.aktif && (!F.Doviz.kur || F.Doviz.kur <= 0)) {
+            hatalar.push('Döviz kuru girilmemiş. Lütfen kur değerini girin.');
+        }
+
+        return hatalar;
+    };
+
+    /**
+     * Onay modalı aç
+     */
+    F.Kaydet.onayAc = function() {
+        var hatalar = F.Kaydet.dogrula();
+        if (hatalar.length > 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Eksik Bilgi',
+                html: '<ul style="text-align:left;margin:0;padding-left:20px">' +
+                      hatalar.map(function(h) { return '<li>' + h + '</li>'; }).join('') +
+                      '</ul>',
+                confirmButtonColor: '#103595'
+            });
+            return;
+        }
+
+        var isIade = F.Config.isIade;
+        var isOnSiparis = F.Config.isOnSiparis;
+        var mod = F.Config.mod;
+        var fmt = F.Helpers.formatPara;
+
+        var isSevkiyat = F.Config.isSevkiyat;
+        var baslik = isSevkiyat ? 'Sevkiyat Ürünleri Onayı' : (isOnSiparis ? 'Ön Talep Onayı' : (isIade ? 'İade Onayı' : 'Sipariş Onayı'));
+        if (mod === 'siparis-duzenle' || mod === 'iade-duzenle') {
+            baslik = isIade ? 'İade Güncelleme Onayı' : 'Sipariş Güncelleme Onayı';
+        } else if (mod === 'on-siparis-duzenle') {
+            baslik = 'Ön Talep Güncelleme Onayı';
+        } else if (mod === 'sevkiyat-duzenle') {
+            baslik = 'Sevkiyat Güncelleme Onayı';
+        }
+
+        var html = '';
+
+        // Teslim/kargo aşaması satış düzenleme uyarısı — hayalet stok önleme.
+        // Bu aşamada mal fiziksel çıkmıştır; backend stoğa dokunmaz (musteri-siparis/siparis-kaydet.php), kullanıcı burada uyarılır.
+        if (mod === 'siparis-duzenle' && (F.State.durum === 'kargolandi' || F.State.durum === 'teslim_edildi')) {
+            var frmDurumEtiket = F.State.durum === 'teslim_edildi' ? 'Teslim Edildi' : 'Kargoya Verildi';
+            html += '<div class="frm-onay-uyari">' +
+                    '<span class="frm-onay-uyari-ic">⚠️</span>' +
+                    '<div class="frm-onay-uyari-tx"><b>Bu satış "' + frmDurumEtiket + '" aşamasında.</b><br>' +
+                    'Miktarı azaltırsanız çıkan ürünler fiziksel olarak depodan ayrılmıştır; <b>stoğa geri EKLENMEZ</b>. ' +
+                    'Gerçek mal iadesi için <b>İade modülünü</b> kullanın.</div></div>';
+        }
+
+        html += '<div class="frm-onay-wrap">';
+        html += '<div class="frm-onay-row"><span class="frm-onay-label">Ürün Sayısı</span><span class="frm-onay-val">' + F.State.satirlar.length + '</span></div>';
+        html += '<div class="frm-onay-row"><span class="frm-onay-label">Toplam Miktar</span><span class="frm-onay-val">' + F.Helpers.formatSayi(F.State.toplamMiktar()) + '</span></div>';
+
+        if (!isOnSiparis && !isSevkiyat) {
+            var conv = (F.Doviz && F.Doviz.aktif) ? F.Doviz.conv : function(v) { return v; };
+            var tl = F.State._tlToplam;
+            var brutToplam = F.Helpers.bankersRound(F.State.araToplam + (F.State.fiyatListesiIndirimi || 0), 2);
+            var _ig = F.Config.indirimGizle;
+
+            if (!_ig) {
+                html += '<div class="frm-onay-row"><span class="frm-onay-label">Brüt Toplam</span><span class="frm-onay-val">' + fmt(tl ? F.Helpers.bankersRound(tl.ara + tl.flInd, 2) : conv(brutToplam)) + '</span></div>';
+                if (F.State.indirimTutari > 0) {
+                    html += '<div class="frm-onay-row"><span class="frm-onay-label">İndirim</span><span class="frm-onay-val frm-onay-discount">-' + fmt(tl ? tl.indirim : conv(F.State.indirimTutari)) + '</span></div>';
+                }
+                html += '<div class="frm-onay-row"><span class="frm-onay-label">Net Toplam</span><span class="frm-onay-val">' + fmt(tl ? tl.net : conv(F.State.netToplam)) + '</span></div>';
+            }
+            html += '<div class="frm-onay-row"><span class="frm-onay-label">KDV</span><span class="frm-onay-val">' + fmt(tl ? tl.kdv : conv(F.State.kdvToplam)) + '</span></div>';
+            var genelDisplay = _ig ? fmt(tl ? F.Helpers.bankersRound(tl.ara + tl.flInd, 2) : conv(brutToplam)) : fmt(tl ? tl.genel : conv(F.State.genelToplam));
+            html += '<div class="frm-onay-row frm-onay-total"><span class="frm-onay-label">Genel Toplam</span><span class="frm-onay-val">' + genelDisplay + '</span></div>';
+            if (F.Doviz && F.Doviz.aktif) {
+                html += '<div class="frm-onay-row" style="opacity:0.6"><span class="frm-onay-label">USD Eşdeğer</span><span class="frm-onay-val">$' + F.Helpers.formatParaSayi(F.State.genelToplam) + '</span></div>';
+                html += '<div class="frm-onay-row" style="opacity:0.6"><span class="frm-onay-label">Döviz Kuru</span><span class="frm-onay-val">1$ = ' + F.Doviz.kur.toFixed(4) + '₺</span></div>';
+            }
+        }
+        html += '</div>';
+
+        var confirmText = isSevkiyat ? 'Ürünleri Kaydet' : (isOnSiparis ? 'Ön Talebi Kaydet' : (isIade ? 'İadeyi Kaydet' : 'Siparişi Kaydet'));
+        Swal.fire({
+            title: baslik,
+            html: html,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: confirmText,
+            cancelButtonText: 'İptal',
+            confirmButtonColor: isOnSiparis ? '#d97706' : '#14532d',
+            cancelButtonColor: '#6b7280',
+            customClass: { popup: 'frm-onay-popup' }
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                F.Kaydet.kaydet(false);
+            }
+        });
+    };
+
+    /**
+     * Kaydet AJAX
+     */
+    F.Kaydet.kaydet = function(taslak, teklif) {
+        taslak = taslak === true || taslak === 1;
+        teklif = teklif === true || teklif === 1;
+        // Teklif önceliği — aynı anda gelirse teklif geçer
+        if (teklif) taslak = false;
+
+        var isIade = F.Config.isIade;
+        var mod = F.Config.mod;
+        var id = F.Config.id;
+
+        // Taslak için gevşek validasyon
+        if (taslak) {
+            if (!F.State.musteriId && F.State.satirlar.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sepet Kaydedilemez',
+                    text: 'Sepete kaydetmek için en az bir müşteri seçin veya bir ürün ekleyin.',
+                    confirmButtonColor: '#103595'
+                });
+                return;
+            }
+        }
+
+        // Teklif için tam validasyon (müşteri + ürün zorunlu)
+        if (teklif) {
+            var teklifHatalar = F.Kaydet.dogrula();
+            if (teklifHatalar.length > 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Teklif Kaydedilemez',
+                    html: '<ul style="text-align:left;margin:0;padding-left:20px">' +
+                          teklifHatalar.map(function(h) { return '<li>' + h + '</li>'; }).join('') +
+                          '</ul>',
+                    confirmButtonColor: '#103595'
+                });
+                return;
+            }
+        }
+
+        var isOnSiparis = F.Config.isOnSiparis;
+        var isSevkiyat = F.Config.isSevkiyat;
+        var isKampanya = F.Config.isKampanya;
+
+        // Kampanya modunda sadeleştirilmiş veri (ürün + miktar)
+        if (isKampanya) {
+            var kampanyaVeri = {
+                kampanya_id: F.Config.kampanyaId,
+                mod: mod,
+                satirlar: []
+            };
+
+            for (var ki = 0; ki < F.State.satirlar.length; ki++) {
+                var ks = F.State.satirlar[ki];
+                var kSatir = {
+                    urun_id: ks.urunId,
+                    urun_adi: ks.urunAdi,
+                    urun_kodu: ks.urunKodu || '',
+                    miktar: ks.miktar,
+                    gecici_id: ks.geciciId || ks.satirId,
+                    ana_kalem_gecici_id: ks.anaKalemGeciciId || null,
+                    sira_no: ki + 1
+                };
+                // Varyant bilgileri
+                if (ks.varyantlar && ks.varyantlar.length > 0) {
+                    kSatir.varyantlar = ks.varyantlar.map(function(v, vi) {
+                        return {
+                            urun_id: ks.urunId,
+                            urun_adi: ks.urunAdi,
+                            urun_kodu: v.urunKodu || '',
+                            model_id: v.modelId || null,
+                            renk_id: v.renkId || null,
+                            telefon_model_renk_id: v.tmrId || null,
+                            model_adi: v.modelAdi || null,
+                            renk_adi: v.renkAdi || null,
+                            miktar: v.miktar,
+                            sira_no: vi + 1
+                        };
+                    });
+                }
+                kampanyaVeri.satirlar.push(kSatir);
+            }
+
+            var kampanyaEndpoint = F.Config.isKampanyaUrun
+                ? 'ajax/kampanya/urun-kaydet.php'
+                : 'ajax/kampanya/hediye-kaydet.php';
+
+            F.Kaydet.btnDisable(true);
+
+            $.ajax({
+                url: kampanyaEndpoint,
+                type: 'POST',
+                data: JSON.stringify(kampanyaVeri),
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function(res) {
+                    F.Kaydet.btnDisable(false);
+                    if (res.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Başarılı',
+                            text: res.message || 'Ürünler kaydedildi.',
+                            confirmButtonColor: '#103595'
+                        }).then(function() {
+                            window.location.href = 'index.php?sayfa=kampanya';
+                        });
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Hata', text: res.message || 'Kayıt başarısız.', confirmButtonColor: '#103595' });
+                    }
+                },
+                error: function() {
+                    F.Kaydet.btnDisable(false);
+                    Swal.fire({ icon: 'error', title: 'Hata', text: 'Sunucu hatası oluştu.', confirmButtonColor: '#103595' });
+                }
+            });
+            return;
+        }
+
+        // Çin sipariş modunda
+        if (F.Config.isCinSiparis) {
+            var csVeri = {
+                mod: F.State.mod,
+                id: F.State.id || null,
+                taslak: taslak ? 1 : 0,
+                siparis_tarihi: (F.CinSiparisAlanlari && F.CinSiparisAlanlari.tarihAl)
+                    ? F.CinSiparisAlanlari.tarihAl()
+                    : ((document.getElementById('frmCsTarih') || {}).value || ''),
+                not_tr: (document.getElementById('frmCsNotTr') || {}).value || '',
+                not_en: (document.getElementById('frmCsNotEn') || {}).value || '',
+                satirlar: []
+            };
+            for (var ci = 0; ci < F.State.satirlar.length; ci++) {
+                var cs = F.State.satirlar[ci];
+                var csSatir = {
+                    urun_id: cs.urunId,
+                    urun_adi: cs.urunAdi || '',
+                    kategori_id: cs.kategoriId || 0,
+                    miktar: cs.miktar,
+                    sevkiyat_tipi: cs.sevkiyatTipi || 'konteyner',
+                    not_tr: cs.not || '',
+                    not_en: '',
+                    varyantlar: []
+                };
+                if (cs.varyantlar && cs.varyantlar.length > 0) {
+                    for (var cvi = 0; cvi < cs.varyantlar.length; cvi++) {
+                        var cv = cs.varyantlar[cvi];
+                        var vPayload = {
+                            model_id: null,
+                            renk_id: null,
+                            model_adi: cv.modelAdi || cv.adi || '',
+                            renk_adi: cv.renkAdi || cv.adi || '',
+                            renk_kodu: cv.renkKodu || '',
+                            renk_resim: cv.renkResim || '',
+                            miktar: cv.miktar || 0,
+                            not_tr: cv.not_tr || '',
+                            not_en: cv.not_en || ''
+                        };
+                        if (cs.tip === 'model') {
+                            vPayload.model_id = cv.modelId || cv.id || null;
+                        } else if (cs.tip === 'renk') {
+                            vPayload.renk_id = cv.renkId || cv.id || null;
+                        } else if (cs.tip === 'model_renk') {
+                            vPayload.renk_id = cv.renkId || cv.id || null;
+                            vPayload.model_id = cv.modelId || cv.telefonModelId || null;
+                        } else {
+                            vPayload.model_id = cv.modelId || null;
+                            vPayload.renk_id = cv.renkId || null;
+                        }
+                        csSatir.varyantlar.push(vPayload);
+                    }
+                }
+                csVeri.satirlar.push(csSatir);
+            }
+
+            F.Kaydet.btnDisable(true);
+
+            $.ajax({
+                url: F.Config.ajaxBase + 'cin-siparis-kaydet.php',
+                type: 'POST',
+                data: JSON.stringify(csVeri),
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function(res) {
+                    F.Kaydet.btnDisable(false);
+                    if (res.success) {
+                        if (F.Dirty && F.Dirty.temizle) F.Dirty.temizle();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Başarılı',
+                            text: res.message || 'Çin siparişi kaydedildi.',
+                            confirmButtonText: 'Tamam'
+                        }).then(function() {
+                            window.location.href = 'index.php?sayfa=tedarik-pano#yeni';
+                        });
+                    } else {
+                        Swal.fire('Hata', res.message || 'Kaydetme başarısız.', 'error');
+                    }
+                },
+                error: function() {
+                    F.Kaydet.btnDisable(false);
+                    Swal.fire('Hata', 'Sunucu hatası oluştu.', 'error');
+                }
+            });
+            return;
+        }
+
+        // Sevkiyat modunda sadeleştirilmiş veri (sadece ürün + miktar)
+        if (isSevkiyat) {
+            var veri = {
+                mod: mod,
+                id: F.Config.sevkiyatId || F.Config.id,
+                satirlar: []
+            };
+
+            for (var i = 0; i < F.State.satirlar.length; i++) {
+                var s = F.State.satirlar[i];
+                veri.satirlar.push({
+                    urun_id: s.urunId,
+                    urun_adi: s.urunAdi || '',
+                    urun_kodu: s.urunKodu || '',
+                    tip: s.tip,
+                    miktar: s.miktar,
+                    varyantlar: (s.varyantlar || []).map(function(v) {
+                        return {
+                            tip: v.tip,
+                            id: v.id,
+                            miktar: v.miktar,
+                            modelId: v.modelId,
+                            renkId: v.renkId,
+                            telefonModelId: v.telefonModelId,
+                            telefonModelRenkId: v.telefonModelRenkId
+                        };
+                    })
+                });
+            }
+
+            var endpoint = 'sevkiyat-kaydet.php';
+        } else
+        // Ön sipariş modunda sadeleştirilmiş veri
+        if (isOnSiparis) {
+            var veri = {
+                mod: mod,
+                id: id,
+                musteri_id: F.State.musteriId,
+                musteri_tipi: F.State.musteriTipi,
+                musteri_adi: F.State.musteriAdi || '',
+                not: document.getElementById('frmNot') ? document.getElementById('frmNot').value : '',
+                satirlar: []
+            };
+
+            for (var i = 0; i < F.State.satirlar.length; i++) {
+                var s = F.State.satirlar[i];
+                veri.satirlar.push({
+                    urun_id: s.urunId,
+                    urun_adi: s.urunAdi || '',
+                    urun_kodu: s.urunKodu || '',
+                    tip: s.tip,
+                    miktar: s.miktar,
+                    depo_id: s.depoId || F.State.seciliDepoId,
+                    not: s.not || '',
+                    varyantlar: (s.varyantlar || []).map(function(v) {
+                        return Object.assign({}, v, {
+                            depoId: v.depoId || s.depoId || F.State.seciliDepoId
+                        });
+                    })
+                });
+            }
+
+            var endpoint = 'on-siparis-kaydet.php';
+        } else {
+            var sonuc = F.Kaydet.payloadHazirla(taslak, teklif);
+            var veri = sonuc.veri;
+            var endpoint = sonuc.endpoint;
+        }
+
+        // Otomatik kayıt durdur (yarış koşulu önleme)
+        if (F.OtomatikKayit && F.OtomatikKayit.durdur) F.OtomatikKayit.durdur();
+
+        // Çift tıklama koruması — buton disable + loading
+        F.Kaydet.btnDisable(true);
+        Swal.fire({
+            title: 'Kaydediliyor...',
+            allowOutsideClick: false,
+            didOpen: function() { Swal.showLoading(); }
+        });
+
+        $.ajax({
+            url: F.Config.ajaxBase + (endpoint.charAt(0) === '/' ? '' : '') + endpoint,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(veri),
+            dataType: 'json',
+            complete: function() {
+                // Başarılı redirect olursa zaten sayfa değişir; başarısızsa buton açılır
+                F.Kaydet.btnDisable(false);
+            },
+            success: function(res) {
+                if (res.success) {
+                    // Dirty state temizle (sayfa ayrılma uyarısını engelle)
+                    if (F.Dirty && F.Dirty.temizle) F.Dirty.temizle();
+
+                    // Satış sonrası fiş diyaloğu (otomatik fiş açıksa Detaylı/Özet/Atla) → sonra normal akış
+                    var _postSave = function () {
+                    // Bayi Mağazam yeni satış → satıştan hemen sonra peşin tahsilat modalı
+                    // (ara başarı dialogu yok; onay ile birlikte tahsilat ekranı açılır)
+                    if (!taslak && !teklif && mod === 'siparis-yeni' &&
+                        F.SatisTahsilat && F.SatisTahsilat.uygunMu && F.SatisTahsilat.uygunMu()) {
+                        var stId = res.siparis_id || res.id;
+                        if (stId) { F.SatisTahsilat.ac(stId); return; }
+                    }
+
+                    var basarikTitle = teklif
+                        ? 'Teklif Kaydedildi'
+                        : (taslak ? 'Sepete Kaydedildi' : 'Başarıyla Kaydedildi');
+                    Swal.fire({
+                        icon: 'success',
+                        title: basarikTitle,
+                        text: res.message || '',
+                        confirmButtonColor: '#14532d'
+                    }).then(function() {
+                        // "Yeni satışa devam" yetkisi (Mağazam yeni satış) → backend'in görüntüleme redirect'ini
+                        // yok say, satış tamamlanınca yeni boş satış ekranı aç (hızlı/normal görünüm &pos=1 ile korunur).
+                        // res.redirect kontrolünden ÖNCE olmalı (backend her zaman siparis-goruntule redirect'i döndürür).
+                        if (!taslak && !teklif && mod === 'siparis-yeni' && window.satisSonrasiDevamYetkisi === true) {
+                            var devamUrl = 'index.php?sayfa=form&mod=siparis-yeni';
+                            if (F.Pos && F.Pos._satisPosModundaydi) devamUrl += '&pos=1';
+                            window.location.href = devamUrl;
+                            return;
+                        }
+                        // Bayi portalında iade ise iade-pano, taslak/teklif ise satislar, değilse tedarik-pano
+                        if (F.Config.isBayi) {
+                            var isSunixSiparis = (F.Config.ajaxBase || '').indexOf('sunix-siparis') !== -1;
+                            var hedef;
+                            if (F.Config.isIade) {
+                                hedef = 'iade-pano';
+                            } else if (taslak) {
+                                hedef = isSunixSiparis ? 'tedarik-pano#taslak' : 'satislar';
+                            } else if (teklif) {
+                                hedef = 'satislar';
+                            } else {
+                                hedef = isSunixSiparis ? 'tedarik-pano' : 'satislar';
+                            }
+                            window.location.href = 'index.php?sayfa=' + hedef;
+                            return;
+                        }
+                        if (res.redirect) {
+                            window.location.href = res.redirect;
+                        } else if (isOnSiparis) {
+                            var onsId = res.on_siparis_id || res.id;
+                            if (mod === 'on-siparis-duzenle') {
+                                window.location.href = 'index.php?sayfa=form&mod=on-siparis-goruntule&id=' + id;
+                            } else if (onsId) {
+                                window.location.href = 'index.php?sayfa=form&mod=on-siparis-goruntule&id=' + onsId;
+                            } else {
+                                window.location.href = 'index.php?sayfa=on-siparis-bilgisi';
+                            }
+                        } else if (taslak) {
+                            // Taslak kaydedildikten sonra sipariş listesine yönlendir
+                            window.location.href = 'index.php?sayfa=siparis-listesi';
+                        } else if (!taslak) {
+                            if (mod === 'siparis-duzenle') {
+                                // Düzenleme sonrası görüntüleme moduna geç
+                                window.location.href = 'index.php?sayfa=form&mod=siparis-goruntule&id=' + id;
+                            } else if (mod === 'iade-duzenle') {
+                                window.location.href = 'index.php?sayfa=iade-detay&id=' + id;
+                            } else if (mod === 'siparis-yeni') {
+                                // Yeni sipariş → görüntüleme moduna yönlendir
+                                var yeniId = res.siparis_id || res.id;
+                                if (yeniId) {
+                                    window.location.href = 'index.php?sayfa=form&mod=siparis-goruntule&id=' + yeniId;
+                                } else {
+                                    F.State.sifirla();
+                                    location.reload();
+                                }
+                            } else if (mod === 'iade') {
+                                window.location.href = 'index.php?sayfa=iade-pano';
+                            }
+                        }
+                    });
+                    }; // _postSave bitti
+                    if (F.FisYazdir && F.FisYazdir.sorVeDevam) F.FisYazdir.sorVeDevam(res, _postSave);
+                    else _postSave();
+                } else if (res.stok_yetersiz) {
+                    var uyariListesi = (res.yetersiz_detay || []).map(function(d) {
+                        return { adi: d.urun || '?', mevcut: d.mevcut, istenen: d.istenen };
+                    });
+                    F.StokKontrol.cokluUyariGoster(uyariListesi, null).then(function(onaylandi) {
+                        if (onaylandi) {
+                            veri.stok_onay_verilmis = true;
+                            F.Kaydet.btnDisable(true);
+                            Swal.fire({ title: 'Kaydediliyor...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+                            $.ajax({
+                                url: F.Config.ajaxBase + endpoint,
+                                type: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify(veri),
+                                dataType: 'json',
+                                complete: function() { F.Kaydet.btnDisable(false); },
+                                success: function(res2) {
+                                    if (res2.success) {
+                                        if (F.Dirty && F.Dirty.temizle) F.Dirty.temizle();
+                                        // Bayi Mağazam yeni satış → stok onayı sonrası da peşin tahsilat modalı
+                                        if (!taslak && !teklif && mod === 'siparis-yeni' &&
+                                            F.SatisTahsilat && F.SatisTahsilat.uygunMu && F.SatisTahsilat.uygunMu()) {
+                                            var stId2 = res2.siparis_id || res2.id;
+                                            if (stId2) { F.SatisTahsilat.ac(stId2); return; }
+                                        }
+                                        Swal.fire({ icon: 'success', title: 'Kaydedildi', text: res2.message || '', confirmButtonColor: '#14532d' }).then(function() {
+                                            var yId = res2.siparis_id || res2.id;
+                                            if (mod === 'siparis-yeni' && !taslak && !teklif && window.satisSonrasiDevamYetkisi === true) {
+                                                // "Yeni satışa devam" yetkisi (stok onayı sonrası da tutarlı) → yeni boş satış, &pos=1 korunur
+                                                var devamUrl2 = 'index.php?sayfa=form&mod=siparis-yeni';
+                                                if (F.Pos && F.Pos._satisPosModundaydi) devamUrl2 += '&pos=1';
+                                                window.location.href = devamUrl2;
+                                            } else if (mod === 'siparis-duzenle' && id) {
+                                                window.location.href = 'index.php?sayfa=form&mod=siparis-goruntule&id=' + id;
+                                            } else if (yId) {
+                                                window.location.href = 'index.php?sayfa=form&mod=siparis-goruntule&id=' + yId;
+                                            } else {
+                                                location.reload();
+                                            }
+                                        });
+                                    } else {
+                                        Swal.fire({ icon: 'error', title: 'Hata', text: res2.message || 'Kayıt hatası', confirmButtonColor: '#103595' });
+                                    }
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    console.error('[Form.Kaydet] Sunucu hatası:', res);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Hata',
+                        text: res.message || 'Kayıt sırasında bir hata oluştu.',
+                        confirmButtonColor: '#103595'
+                    });
+                }
+            },
+            error: function(xhr, status, err) {
+                console.error('[Form.Kaydet] AJAX Hata:', err, xhr.responseText);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Hata',
+                    text: 'Sunucu bağlantı hatası: ' + err,
+                    confirmButtonColor: '#103595'
+                });
+            }
+        });
+    };
+
+    /**
+     * Taslak sil
+     */
+    F.Kaydet.payloadHazirla = function(taslak, teklif) {
+        var mod = F.Config.mod;
+        var id = F.Config.id;
+        var isIade = F.Config.isIade;
+
+        var tlMode = F.Doviz && F.Doviz.aktif;
+        var conv = tlMode ? F.Doviz.conv : function(v) { return v; };
+        var br2 = function(val) { return F.Helpers.bankersRound(val || 0, 2); };
+
+        var veri = {
+            mod: mod,
+            id: id,
+            taslak: taslak ? 1 : 0,
+            teklif: teklif ? 1 : 0,
+            musteri_id: F.State.musteriId,
+            musteri_tipi: F.State.musteriTipi,
+            musteri_adi: F.State.musteriAdi || '',
+            para_birimi: F.State.paraBirimi || 'USD',
+            doviz_kuru: tlMode ? F.Doviz.kur : null,
+            siparis_tarihi: document.getElementById('frmTarih') ? document.getElementById('frmTarih').value : '',
+            siparis_saati: document.getElementById('frmSaat') ? document.getElementById('frmSaat').value : '',
+            teslimat_tarihi: document.getElementById('frmSevkTarih') ? document.getElementById('frmSevkTarih').value : '',
+            vade_tarihi: document.getElementById('frmVade') ? document.getElementById('frmVade').value : '',
+            not: document.getElementById('frmNot') ? document.getElementById('frmNot').value : '',
+            indirim_yuzdesi: F.State.indirimYuzde || 0,
+            indirim_tutari: (tlMode && F.State._tlToplam) ? br2(F.State._tlToplam.ekIndirim) : br2(conv(F.State.indirimTutari || 0)),
+            hizli_indirim_yuzdesi: F.State.hizliIndirimYuzde || 0,
+            ara_toplam: (tlMode && F.State._tlToplam) ? br2(F.State._tlToplam.ara) : br2(conv(F.State.araToplam)),
+            kdv_toplam: (tlMode && F.State._tlToplam) ? br2(F.State._tlToplam.kdv) : br2(conv(F.State.kdvToplam)),
+            genel_toplam: (tlMode && F.State._tlToplam) ? br2(F.State._tlToplam.genel) : br2(conv(F.State.genelToplam)),
+            sd_kart_toplam: (tlMode && F.State._tlToplam) ? br2(F.State._tlToplam.sdKart) : br2(conv(F.State.sdKartToplam || 0)),
+            prim_tutari: (tlMode && F.State._tlToplam) ? br2(F.State._tlToplam.prim) : br2(conv(F.State.primTutari || 0)),
+            fiyat_grubu_id: F.State.fiyatGrubuId || null,
+            fiyat_grubu_adi: F.State.fiyatGrubuAdi || null,
+            satirlar: []
+        };
+
+        var kdvInp = document.getElementById('frmKdvOrani');
+        if (kdvInp) {
+            veri.kdv_orani = parseFloat(kdvInp.value) || 0;
+        }
+
+        if (isIade) {
+            veri.iade_kategorisi = F.State.iadeKategorisi || 'normal';
+            // Kargo alanları yalnızca Sunix Merkez'e iade formunda vardır (sunix-siparis.php).
+            // Mağazam iadesinde (form.php) bu elementler yok → null gönder (gereksiz koli_sayisi=1 yazma).
+            veri.kargo_takip_no = document.getElementById('frmKargoTakipNo') ? document.getElementById('frmKargoTakipNo').value : null;
+            veri.kargo_firmasi = document.getElementById('frmKargoFirmasi') ? document.getElementById('frmKargoFirmasi').value : null;
+            veri.koli_sayisi = document.getElementById('frmKoliSayisi') ? parseInt(document.getElementById('frmKoliSayisi').value) || 1 : null;
+        }
+
+        // Tedarik alışı: counterparty = TEDARİKÇİ. Endpoint tedarici_id alanını okur.
+        if (F.Config.isTedarikAlis) {
+            veri.tedarikci_id = F.State.musteriId || F.Config.tedarikciId || null;
+        }
+
+        for (var i = 0; i < F.State.satirlar.length; i++) {
+            var s = F.State.satirlar[i];
+            var sBirimFiyat = (s.manuelTlFiyat != null && tlMode) ? br2(s.manuelTlFiyat) : br2(conv(s.birimFiyat || 0));
+            var sNormalFiyat = (s.manuelTlFiyat != null && tlMode) ? sBirimFiyat : br2(conv((s.normalBirimFiyat != null) ? s.normalBirimFiyat : (s.birimFiyat || 0)));
+            var sTutar = (s.manuelTlFiyat != null && tlMode) ? br2(s.miktar * s.manuelTlFiyat) : br2(conv(s.tutar));
+            var sKdvTutar = (s.manuelTlFiyat != null && tlMode)
+                ? br2(F.Helpers.bankersRound(sTutar * s.kdvOrani / 100, 2))
+                : br2(conv(s.kdvTutar));
+            var sToplam = br2(sTutar + sKdvTutar);
+
+            veri.satirlar.push({
+                urun_id: s.urunId,
+                urun_kaynak: s.urunKaynak || 'sunix',
+                urun_adi: s.urunAdi || '',
+                urun_kodu: s.urunKodu || '',
+                tip: s.tip,
+                miktar: s.miktar,
+                birim_fiyat: sBirimFiyat,
+                normal_birim_fiyat: sNormalFiyat,
+                manuel_tl_fiyat: (s.manuelTlFiyat != null) ? 1 : 0,
+                fiyat_kurali: s.fiyatKurali || null,
+                tutar: sTutar,
+                kdv_orani: s.kdvOrani,
+                kdv_tutar: sKdvTutar,
+                toplam: sToplam,
+                not: s.not || '',
+                sd_kart: s.sdKart || 0,
+                depo_id: s.depoId || F.State.seciliDepoId,
+                varyantlar: (s.varyantlar || []).map(function(v) {
+                    var vMiktar = v.miktar || 0;
+                    var vManuelTl = (v.manuelTlFiyat != null) ? v.manuelTlFiyat : null;
+                    var vBirimFiyatBase = (v.birimFiyat != null) ? v.birimFiyat : (s.birimFiyat || 0);
+                    var vNormalFiyatBase = (v.normalBirimFiyat != null) ? v.normalBirimFiyat : ((v.birimFiyat != null) ? v.birimFiyat : (s.birimFiyat || 0));
+                    var vFiyat = (vManuelTl != null && tlMode) ? br2(vManuelTl) : br2(conv(vBirimFiyatBase));
+                    var vNormalFiyat = (vManuelTl != null && tlMode) ? vFiyat : br2(conv(vNormalFiyatBase));
+                    var vTutar;
+                    if (vManuelTl != null && tlMode) {
+                        vTutar = br2(vMiktar * vManuelTl);
+                    } else if (s.fiyatKurali && vNormalFiyat != null) {
+                        var vOrijTutar = F.Helpers.bankersRound(vMiktar * vNormalFiyat, 2);
+                        vTutar = F.Hesaplama.kuralTutarHesapla(vOrijTutar, s.fiyatKurali, vMiktar);
+                    } else {
+                        vTutar = br2(vMiktar * vFiyat);
+                    }
+                    return Object.assign({}, v, {
+                        birimFiyat: vFiyat,
+                        normalBirimFiyat: vNormalFiyat,
+                        manuel_tl_fiyat: (vManuelTl != null) ? 1 : 0,
+                        tutar: br2(vTutar),
+                        depoId: v.depoId || s.depoId || F.State.seciliDepoId
+                    });
+                })
+            });
+        }
+
+        var endpoint = F.Config.isTedarikAlis ? 'tedarik-alis-kaydet.php' : (isIade ? 'iade-kaydet.php' : 'siparis-kaydet.php');
+
+        if (!isIade && !F.Config.isTedarikAlis && F.Kampanya && F.Kampanya.getAktifKampanya()) {
+            var ak = F.Kampanya.getAktifKampanya();
+            veri.kampanya = {
+                kampanya_id: ak.id,
+                hediyeler: F.Kampanya.getHediyeler()
+            };
+        }
+
+        return { veri: veri, endpoint: endpoint };
+    };
+
+    F.Kaydet.taslakSil = function() {
+        var id = F.Config.id;
+        if (!id) return;
+
+        Swal.fire({
+            icon: 'warning',
+            title: 'Sepeti Sil',
+            text: 'Bu sepet kalıcı olarak silinecek. Devam etmek istiyor musunuz?',
+            showCancelButton: true,
+            confirmButtonText: 'Evet, Sil',
+            cancelButtonText: 'İptal',
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Siliniyor...',
+                    allowOutsideClick: false,
+                    didOpen: function() { Swal.showLoading(); }
+                });
+
+                $.ajax({
+                    url: F.Config.ajaxBase + '/siparis-sil-form.php',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ id: id }),
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res.success) {
+                            if (F.Dirty && F.Dirty.temizle) F.Dirty.temizle();
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Sepet Silindi',
+                                text: res.message || 'Sepet başarıyla silindi.',
+                                confirmButtonColor: '#103595'
+                            }).then(function() {
+                                window.location.href = 'index.php?sayfa=siparis-listesi';
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Hata',
+                                text: res.message || 'Silme işlemi başarısız.',
+                                confirmButtonColor: '#103595'
+                            });
+                        }
+                    },
+                    error: function(xhr, status, err) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Hata',
+                            text: 'Sunucu bağlantı hatası: ' + err,
+                            confirmButtonColor: '#103595'
+                        });
+                    }
+                });
+            }
+        });
+    };
+
+})();

@@ -1,0 +1,454 @@
+/**
+ * Form - Satır Toplam, FF-Satır Toplam, Genel Toplam, KDV
+ * TL hassasiyet düzeltmesi: 2 ile ara hesaplamalarda 6 ondalık
+ */
+(function() {
+    'use strict';
+
+    var F = window.Form;
+
+    F.Hesaplama = {};
+
+    // Tüm parasal hesaplamalar 2 ondalık (cent/kuruş) — muhasebe standardı
+    F.Hesaplama.bp = function() { return 2; };
+
+    /**
+     * Init
+     */
+    F.Hesaplama.init = function() {
+        F.Events.on('satir:eklendi', function() { F.Hesaplama.genelToplamHesapla(); });
+        F.Events.on('satir:guncellendi', function() { F.Hesaplama.genelToplamHesapla(); });
+        F.Events.on('satir:silindi', function() { F.Hesaplama.genelToplamHesapla(); });
+        F.Events.on('hesaplama:guncelle', function() { F.Hesaplama.genelToplamHesapla(); });
+        F.Events.on('musteri:secildi', function() { F.Hesaplama.domGuncelle(); });
+        F.Events.on('musteri:temizlendi', function() { F.Hesaplama.domGuncelle(); });
+        F.Events.on('doviz:kurDegisti', function() { F.Hesaplama.genelToplamHesapla(); });
+
+        // KDV oranı input değişiminde tüm satırları yeniden hesapla
+        var kdvInp = document.getElementById('frmKdvOrani');
+        if (kdvInp) {
+            kdvInp.addEventListener('input', function() {
+                var yeniOran = parseFloat(this.value) || 0;
+                for (var i = 0; i < F.State.satirlar.length; i++) {
+                    F.State.satirlar[i].kdvOrani = yeniOran;
+                }
+                F.Tablo.tumSatirlariYenidenCiz();
+                F.Events.emit('hesaplama:guncelle');
+            });
+        }
+    };
+
+    /**
+     * Kural fark tutarını toplam üzerinden hesapla
+     * İndirim/zam tutarı önce 2 ondalığa (kuruşa) yuvarlanır, sonra uygulanır
+     * (Diğer ERP sistemleriyle uyumlu: "round discount first, then subtract")
+     */
+    F.Hesaplama.kuralTutarHesapla = function(orijTutar, kural, miktar) {
+        var farkTutar;
+        if (kural.deger_tipi === 'yuzde') {
+            farkTutar = F.Helpers.bankersRound(orijTutar * kural.deger / 100, 2);
+        } else {
+            farkTutar = F.Helpers.bankersRound(kural.deger * miktar, 2);
+        }
+        return (kural.islem_tipi === 'zam')
+            ? F.Helpers.bankersRound(orijTutar + farkTutar, 2)
+            : Math.max(0, F.Helpers.bankersRound(orijTutar - farkTutar, 2));
+    };
+
+    /**
+     * Tek satır toplam hesapla
+     */
+    F.Hesaplama.satirHesapla = function(satir) {
+        if (!satir) return;
+
+        var miktar = satir.miktar || 0;
+        var birimFiyat = satir.birimFiyat || 0;
+        var kdvOrani = satir.kdvOrani || 0;
+        var kural = satir.fiyatKurali;
+
+        // Fiyat kuralı henüz yüklenmedi ama indirim uygulanmış (normalBirimFiyat ≠ birimFiyat):
+        // Mevcut tutar'ı koru — fiyat.js AJAX dönünce kuralTutarHesapla ile yeniden hesaplar.
+        // Bu sayede "miktar×birimFiyat" vs "kuralTutarHesapla" yuvarlama farkı oluşmaz.
+        var indirimBekliyor = !kural && satir.normalBirimFiyat && satir.birimFiyat
+            && Math.abs(satir.normalBirimFiyat - satir.birimFiyat) > 0.001
+            && satir.tutar > 0;
+
+        // Varyantlı ürünlerde alt hesaplama
+        if (indirimBekliyor) {
+            // tutar değiştirme — DB'den gelen veya önceki hesaplanan değeri koru
+        } else if (satir.varyantlar && satir.varyantlar.length > 0) {
+            var topTutar = 0;
+            var topMiktar = 0;
+
+            // FF grupları oluştur
+            var fiyatGruplari = {};
+            for (var i = 0; i < satir.varyantlar.length; i++) {
+                var v = satir.varyantlar[i];
+                var fiyat = (v.birimFiyat != null) ? v.birimFiyat : birimFiyat;
+                var key = fiyat.toFixed(4);
+
+                if (!fiyatGruplari[key]) {
+                    fiyatGruplari[key] = { birimFiyat: fiyat, normalBirimFiyat: (v.normalBirimFiyat != null) ? v.normalBirimFiyat : null, miktar: 0, varyantlar: [] };
+                }
+                fiyatGruplari[key].miktar += (v.miktar || 0);
+                fiyatGruplari[key].varyantlar.push(v);
+                topMiktar += (v.miktar || 0);
+            }
+
+            // Her grubun tutarını hesapla
+            for (var k in fiyatGruplari) {
+                var grup = fiyatGruplari[k];
+                if (kural && grup.normalBirimFiyat != null) {
+                    // Her varyantın indirimini ayrı hesapla, sonra topla
+                    // (grup toplamı üzerinden hesaplamak Banker's Rounding farkı yaratır)
+                    var grupTutar = 0;
+                    for (var gi = 0; gi < grup.varyantlar.length; gi++) {
+                        var gv = grup.varyantlar[gi];
+                        var gvMiktar = gv.miktar || 0;
+                        var gvOrijFiyat = (gv.normalBirimFiyat != null) ? gv.normalBirimFiyat : grup.normalBirimFiyat;
+                        var gvOrijTutar = F.Helpers.bankersRound(gvMiktar * gvOrijFiyat, 2);
+                        grupTutar += F.Hesaplama.kuralTutarHesapla(gvOrijTutar, kural, gvMiktar);
+                    }
+                    grup.tutar = F.Helpers.bankersRound(grupTutar, 2);
+                } else {
+                    grup.tutar = F.Helpers.bankersRound(grup.miktar * grup.birimFiyat, 2);
+                }
+                topTutar += grup.tutar;
+            }
+
+            satir.miktar = topMiktar;
+            satir.tutar = F.Helpers.bankersRound(topTutar, 2);
+            satir.ffGruplar = fiyatGruplari;
+        } else {
+            if (kural && satir.normalBirimFiyat) {
+                // İndirim/zam toplam tutar üzerinden uygulanır
+                var orijTutar = F.Helpers.bankersRound(miktar * satir.normalBirimFiyat, 2);
+                satir.tutar = F.Hesaplama.kuralTutarHesapla(orijTutar, kural, miktar);
+            } else {
+                satir.tutar = F.Helpers.bankersRound(miktar * birimFiyat, 2);
+            }
+        }
+
+        // KDV hesapla
+        satir.kdvTutar = F.Helpers.bankersRound(satir.tutar * kdvOrani / 100, 2);
+        satir.toplam = F.Helpers.bankersRound(satir.tutar + satir.kdvTutar, 2);
+
+        return satir;
+    };
+
+    /**
+     * Genel toplam hesapla ve göster
+     */
+    F.Hesaplama.genelToplamHesapla = function() {
+        // Ön sipariş, sevkiyat ve kampanya modunda fiyat hesaplamaları atla, sadece miktar topla
+        if (F.Config.isOnSiparis || F.Config.isSevkiyat || F.Config.isKampanya || F.Config.isCinSiparis) {
+            F.Hesaplama.domGuncelle();
+            return;
+        }
+
+        var satirlar = F.State.satirlar;
+        var araToplam = 0;
+        var kdvToplam = 0;
+        var fiyatListesiIndirimi = 0;
+        var sdKartToplam = 0;
+
+        for (var i = 0; i < satirlar.length; i++) {
+            var s = satirlar[i];
+            F.Hesaplama.satirHesapla(s);
+
+            // Satır toplamını 2 ondalığa yuvarla, sonra topla (muhasebe standardı)
+            // satirHesapla 6 ondalık hassasiyetle hesaplar (satır içi doğruluk için),
+            // ama genel toplama eklerken 2 ondalığa yuvarlanır (cent bazlı birikim)
+            var satirTutar = F.Helpers.bankersRound(s.tutar || 0, 2);
+            var satirKdv = F.Helpers.bankersRound(s.kdvTutar || 0, 2);
+            araToplam += satirTutar;
+            kdvToplam += satirKdv;
+
+            // SD Kart toplam (KDV hariç net tutar)
+            var isSdKart = s.sdKart || (s.fiyatKurali && s.fiyatKurali.sd_kart);
+            if (isSdKart) {
+                sdKartToplam += satirTutar;
+            }
+
+            // Fiyat listesi indirimi hesapla (toplam bazlı — tutarla tutarlı)
+            // fiyatKurali null kalsa da (yüklenen sipariş/iade) normalBirimFiyat ≠ birimFiyat
+            // farkı varsa indirimli sipariş demektir — toplama dahil et.
+            var hasFiyatFarki = false;
+            if (s.varyantlar && s.varyantlar.length > 0) {
+                for (var vc = 0; vc < s.varyantlar.length; vc++) {
+                    var vrc = s.varyantlar[vc];
+                    if (vrc.normalBirimFiyat != null && vrc.birimFiyat != null
+                        && Math.abs(vrc.normalBirimFiyat - vrc.birimFiyat) > 0.001) {
+                        hasFiyatFarki = true;
+                        break;
+                    }
+                }
+            } else {
+                hasFiyatFarki = (s.normalBirimFiyat != null && s.birimFiyat != null
+                    && Math.abs(s.normalBirimFiyat - s.birimFiyat) > 0.001);
+            }
+
+            if (s.fiyatKurali || hasFiyatFarki) {
+                var orijSatirTutar = 0;
+                if (s.varyantlar && s.varyantlar.length > 0) {
+                    for (var vi = 0; vi < s.varyantlar.length; vi++) {
+                        var vr = s.varyantlar[vi];
+                        var vOrijFiyat = (vr.normalBirimFiyat != null) ? vr.normalBirimFiyat : ((vr.birimFiyat != null) ? vr.birimFiyat : 0);
+                        orijSatirTutar += F.Helpers.bankersRound(vOrijFiyat * (vr.miktar || 0), 2);
+                    }
+                } else {
+                    var sOrijFiyat = (s.normalBirimFiyat != null) ? s.normalBirimFiyat : ((s.birimFiyat != null) ? s.birimFiyat : 0);
+                    orijSatirTutar = F.Helpers.bankersRound(sOrijFiyat * (s.miktar || 0), 2);
+                }
+                // orijSatirTutar ve s.tutar artık ikisi de 2 ondalık
+                var indFark = F.Helpers.bankersRound(orijSatirTutar - (s.tutar || 0), 2);
+                if (indFark > 0) {
+                    fiyatListesiIndirimi += indFark;
+                }
+            }
+        }
+
+        araToplam = F.Helpers.bankersRound(araToplam, 2);
+        kdvToplam = F.Helpers.bankersRound(kdvToplam, 2);
+        fiyatListesiIndirimi = F.Helpers.bankersRound(fiyatListesiIndirimi, 2);
+
+        // Sipariş seviyesi ek indirim
+        var ekIndirimTutari = 0;
+        var indirimYuzde = F.State.indirimYuzde || 0;
+        var sabitIndirim = F.State.sabitIndirimTutari || 0;
+
+        if (indirimYuzde > 0) {
+            ekIndirimTutari = F.Helpers.bankersRound(araToplam * indirimYuzde / 100, 2);
+        } else if (sabitIndirim > 0) {
+            ekIndirimTutari = F.Helpers.bankersRound(sabitIndirim, 2);
+        }
+
+        // Toplam indirim = fiyat listesi + ek indirim
+        var toplamIndirim = F.Helpers.bankersRound(fiyatListesiIndirimi + ekIndirimTutari, 2);
+
+        var genelToplam = F.Helpers.bankersRound(araToplam - ekIndirimTutari + kdvToplam, 2);
+
+        // Prim cirosu hesaplama: Net Toplam - SD Kart (KDV dahil değil, sadece görsel)
+        sdKartToplam = F.Helpers.bankersRound(sdKartToplam, 2);
+        var netToplam2 = F.Helpers.bankersRound(araToplam - ekIndirimTutari, 2);
+        var primTutari = F.Helpers.bankersRound(netToplam2 - sdKartToplam, 2);
+        if (primTutari < 0) primTutari = 0;
+
+        // State güncelle
+        F.State.fiyatListesiIndirimi = fiyatListesiIndirimi;
+        F.State.araToplam = araToplam;
+        F.State.indirimTutari = toplamIndirim;
+        F.State.kdvToplam = kdvToplam;
+        F.State.genelToplam = genelToplam;
+        F.State.sdKartToplam = sdKartToplam;
+        F.State.primTutari = primTutari;
+
+        // TL modu: satır bazlı TL toplamları hesapla (manuel TL hassasiyeti için)
+        F.State._tlToplam = null;
+        if (F.Doviz && F.Doviz.aktif) {
+            var tlAra = 0;
+            var tlKdv = 0;
+            var tlFlInd = 0;
+            var tlSdKart = 0;
+
+            for (var ti = 0; ti < satirlar.length; ti++) {
+                var ts = satirlar[ti];
+                var satirTlTutar = 0;
+
+                if (ts.varyantlar && ts.varyantlar.length > 0) {
+                    // Varyantlı satır: her varyant için ayrı TL hesapla
+                    for (var tvi = 0; tvi < ts.varyantlar.length; tvi++) {
+                        var tv = ts.varyantlar[tvi];
+                        var tvMiktar = tv.miktar || 0;
+                        if (tv.manuelTlFiyat != null) {
+                            satirTlTutar += F.Helpers.bankersRound(tvMiktar * tv.manuelTlFiyat, 2);
+                        } else {
+                            var tvBirimFiyat = (tv.birimFiyat != null) ? tv.birimFiyat : ((ts.birimFiyat != null) ? ts.birimFiyat : 0);
+                            var tvUsdTutar;
+                            if (ts.fiyatKurali && tv.normalBirimFiyat != null) {
+                                var tvOrijTutar = F.Helpers.bankersRound(tvMiktar * tv.normalBirimFiyat, 2);
+                                tvUsdTutar = F.Hesaplama.kuralTutarHesapla(tvOrijTutar, ts.fiyatKurali, tvMiktar);
+                            } else {
+                                tvUsdTutar = F.Helpers.bankersRound(tvMiktar * tvBirimFiyat, 2);
+                            }
+                            satirTlTutar += F.Doviz.conv(tvUsdTutar);
+                        }
+                    }
+                    satirTlTutar = F.Helpers.bankersRound(satirTlTutar, 2);
+                } else if (ts.manuelTlFiyat != null) {
+                    // Düz ürün, manuel TL
+                    satirTlTutar = F.Helpers.bankersRound((ts.miktar || 0) * ts.manuelTlFiyat, 2);
+                } else {
+                    // Düz ürün, otomatik
+                    satirTlTutar = F.Doviz.conv(F.Helpers.bankersRound(ts.tutar || 0, 2));
+                }
+
+                var satirTlKdv = F.Helpers.bankersRound(satirTlTutar * (ts.kdvOrani || 0) / 100, 2);
+                tlAra += satirTlTutar;
+                tlKdv += satirTlKdv;
+
+                // SD Kart TL
+                var isSdK = ts.sdKart || (ts.fiyatKurali && ts.fiyatKurali.sd_kart);
+                if (isSdK) tlSdKart += satirTlTutar;
+
+                // Fiyat listesi indirimi TL (manuel satırlarda fiyatKurali=null → fark koşulundan algılanır)
+                var tlHasFiyatFarki = false;
+                if (ts.varyantlar && ts.varyantlar.length > 0) {
+                    for (var tvc = 0; tvc < ts.varyantlar.length; tvc++) {
+                        var tvrc = ts.varyantlar[tvc];
+                        if (tvrc.normalBirimFiyat != null && tvrc.birimFiyat != null
+                            && Math.abs(tvrc.normalBirimFiyat - tvrc.birimFiyat) > 0.001) {
+                            tlHasFiyatFarki = true;
+                            break;
+                        }
+                    }
+                } else {
+                    tlHasFiyatFarki = (ts.normalBirimFiyat != null && ts.birimFiyat != null
+                        && Math.abs(ts.normalBirimFiyat - ts.birimFiyat) > 0.001);
+                }
+
+                if (ts.fiyatKurali || tlHasFiyatFarki) {
+                    var tlOrijSatirTutar = 0;
+                    if (ts.varyantlar && ts.varyantlar.length > 0) {
+                        for (var tvii = 0; tvii < ts.varyantlar.length; tvii++) {
+                            var tvr = ts.varyantlar[tvii];
+                            var tvOrijF = (tvr.normalBirimFiyat != null) ? tvr.normalBirimFiyat : ((tvr.birimFiyat != null) ? tvr.birimFiyat : 0);
+                            tlOrijSatirTutar += F.Doviz.conv(F.Helpers.bankersRound(tvOrijF * (tvr.miktar || 0), 2));
+                        }
+                    } else {
+                        var tsOrijF = (ts.normalBirimFiyat != null) ? ts.normalBirimFiyat : ((ts.birimFiyat != null) ? ts.birimFiyat : 0);
+                        tlOrijSatirTutar = F.Doviz.conv(F.Helpers.bankersRound(tsOrijF * (ts.miktar || 0), 2));
+                    }
+                    var tlIndFark = F.Helpers.bankersRound(tlOrijSatirTutar - satirTlTutar, 2);
+                    if (tlIndFark > 0) tlFlInd += tlIndFark;
+                }
+            }
+
+            tlAra = F.Helpers.bankersRound(tlAra, 2);
+            tlKdv = F.Helpers.bankersRound(tlKdv, 2);
+            tlFlInd = F.Helpers.bankersRound(tlFlInd, 2);
+            tlSdKart = F.Helpers.bankersRound(tlSdKart, 2);
+
+            // Ek indirim TL
+            var tlEkIndirim = 0;
+            if (indirimYuzde > 0) {
+                tlEkIndirim = F.Helpers.bankersRound(tlAra * indirimYuzde / 100, 2);
+            } else if (sabitIndirim > 0) {
+                tlEkIndirim = F.Doviz.conv(F.Helpers.bankersRound(sabitIndirim, 2));
+            }
+
+            var tlToplamIndirim = F.Helpers.bankersRound(tlFlInd + tlEkIndirim, 2);
+            var tlGenel = F.Helpers.bankersRound(tlAra - tlEkIndirim + tlKdv, 2);
+            var tlNet = F.Helpers.bankersRound(tlAra + tlFlInd - tlToplamIndirim, 2);
+            var tlPrim = Math.max(0, F.Helpers.bankersRound(F.Helpers.bankersRound(tlAra - tlEkIndirim, 2) - tlSdKart, 2));
+
+            F.State._tlToplam = {
+                ara: tlAra,
+                kdv: tlKdv,
+                flInd: tlFlInd,
+                indirim: tlToplamIndirim,
+                ekIndirim: tlEkIndirim,
+                genel: tlGenel,
+                net: tlNet,
+                sdKart: tlSdKart,
+                prim: tlPrim
+            };
+        }
+
+        // DOM güncelle
+        F.Hesaplama.domGuncelle();
+    };
+
+    /**
+     * DOM'u güncelle
+     */
+    F.Hesaplama.domGuncelle = function() {
+        // Ön sipariş modunda sadece miktar güncelle
+        if (F.Config.isOnSiparis || F.Config.isSevkiyat || F.Config.isCinSiparis) {
+            var topMiktar = F.State.toplamMiktar();
+            var topMiktarStr = F.Helpers.formatSayi(topMiktar);
+            var elMik = document.getElementById('frmToplamMiktar');
+            if (elMik) elMik.textContent = topMiktarStr;
+            var elOzMik = document.getElementById('frmOzetMiktar');
+            if (elOzMik) elOzMik.textContent = topMiktarStr + ' Adet';
+            return;
+        }
+
+        var fmt = F.Helpers.formatPara;
+        var conv = (F.Doviz && F.Doviz.aktif) ? F.Doviz.conv : function(v) { return v; };
+        var tl = F.State._tlToplam; // Satır bazlı TL toplamlar (null veya obje)
+
+        // Ara toplam: orijinal fiyatlar toplamı (indirimli tutar + fiyat listesi indirimi)
+        var gosterilenAraToplam = F.Helpers.bankersRound(F.State.araToplam + (F.State.fiyatListesiIndirimi || 0), 2);
+        var elAra = document.getElementById('frmAraToplam');
+        if (elAra) elAra.textContent = tl ? fmt(F.Helpers.bankersRound(tl.ara + tl.flInd, 2)) : fmt(conv(gosterilenAraToplam));
+
+        var elInd = document.getElementById('frmIndirimGoster');
+        if (elInd) elInd.textContent = '-' + (tl ? fmt(tl.indirim) : fmt(conv(F.State.indirimTutari)));
+
+        // Net Toplam = Brüt Toplam - İndirim
+        var netToplam = F.Helpers.bankersRound(gosterilenAraToplam - F.State.indirimTutari, 2);
+        F.State.netToplam = netToplam;
+
+        // İndirim gizleme: personel orijinal fiyatları görür
+        var displayNet = netToplam;
+        var displayKdv = F.State.kdvToplam;
+        var displayGenel = F.State.genelToplam;
+        if (F.Config.indirimGizle && F.State.indirimTutari > 0) {
+            displayNet = gosterilenAraToplam;
+            var orijKdv = F.Helpers.bankersRound(gosterilenAraToplam * (F.Config.aktifKdvOrani ? F.Config.aktifKdvOrani() : 0) / 100, 2);
+            displayKdv = orijKdv;
+            displayGenel = F.Helpers.bankersRound(gosterilenAraToplam + orijKdv, 2);
+        }
+
+        var elNet = document.getElementById('frmNetToplam');
+        if (elNet) elNet.textContent = tl ? fmt(tl.net) : fmt(conv(displayNet));
+
+        var elKdv = document.getElementById('frmKdvToplam');
+        if (elKdv) elKdv.textContent = tl ? fmt(tl.kdv) : fmt(conv(displayKdv));
+
+        var elGen = document.getElementById('frmGenelToplam');
+        if (elGen) elGen.textContent = tl ? fmt(tl.genel) : fmt(conv(displayGenel));
+
+        // USD eşdeğer (sadece TL modda görünür)
+        var elUsdEq = document.getElementById('frmGenelToplamUsd');
+        if (elUsdEq) {
+            if (F.Doviz && F.Doviz.aktif) {
+                elUsdEq.textContent = '≈ $' + F.Helpers.formatParaSayi(F.State.genelToplam);
+                elUsdEq.style.display = '';
+            } else {
+                elUsdEq.style.display = 'none';
+            }
+        }
+
+        // Toplam miktar
+        var topMiktar = F.State.toplamMiktar();
+        var topMiktarStr = F.Helpers.formatSayi(topMiktar);
+        var elMik = document.getElementById('frmToplamMiktar');
+        if (elMik) elMik.textContent = topMiktarStr;
+        var elOzMik = document.getElementById('frmOzetMiktar');
+        if (elOzMik) elOzMik.textContent = topMiktarStr + ' Adet';
+
+        // Prim cirosu tooltip (sadece bayi fiyat listesi için)
+        var primInfo = document.getElementById('frmPrimInfo');
+        if (primInfo) {
+            var isBayiFiyat = F.State.fiyatListeTipi === 'bayi';
+            var hasSatir = F.State.satirlar.length > 0;
+            primInfo.style.display = (isBayiFiyat && hasSatir) ? 'inline-flex' : 'none';
+
+            if (isBayiFiyat && hasSatir) {
+                var tip = document.getElementById('frmPrimTooltip');
+                var h = '';
+                if (F.State.sdKartToplam > 0) {
+                    h += '<div class="frm-pt-row frm-pt-neg"><span>SD Kart</span><span class="frm-pt-val">-' + fmt(tl ? tl.sdKart : conv(F.State.sdKartToplam)) + '</span></div>';
+                }
+                if (F.State.kdvToplam > 0) {
+                    h += '<div class="frm-pt-row frm-pt-neg"><span>KDV</span><span class="frm-pt-val">-' + fmt(tl ? tl.kdv : conv(F.State.kdvToplam)) + '</span></div>';
+                }
+                h += '<div class="frm-pt-row frm-pt-total"><span>Prim Cirosu</span><span class="frm-pt-val">' + fmt(tl ? tl.prim : conv(F.State.primTutari)) + '</span></div>';
+                tip.innerHTML = h;
+            }
+        }
+    };
+
+})();

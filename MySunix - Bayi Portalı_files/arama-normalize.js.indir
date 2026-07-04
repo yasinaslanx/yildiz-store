@@ -1,0 +1,79 @@
+/**
+ * MySunix Bayi Portal — Arama Normalize Yardımcıları
+ * Tire, boşluk ve Türkçe karakter toleransı ile esnek arama + vurgulama.
+ * Ana ERP js/arama-normalize.js mantığı, bayi namespace (window.BayiArama).
+ */
+window.BayiArama = window.BayiArama || {};
+
+(function (B) {
+    'use strict';
+
+    /** Metni normalize et: küçük harf + Türkçe→ASCII + tire/boşluk kaldır. */
+    B.normalize = function (str) {
+        if (!str) return '';
+        return String(str)
+            .toLowerCase()
+            .replace(/ı/g, 'i').replace(/İ/g, 'i')
+            .replace(/ğ/g, 'g').replace(/Ğ/g, 'g')
+            .replace(/ü/g, 'u').replace(/Ü/g, 'u')
+            .replace(/ş/g, 's').replace(/Ş/g, 's')
+            .replace(/ö/g, 'o').replace(/Ö/g, 'o')
+            .replace(/ç/g, 'c').replace(/Ç/g, 'c')
+            .replace(/[-\s]/g, '');
+    };
+
+    /** İki metin arasında esnek (normalize edilmiş) eşleşme. */
+    B.eslesiyorMu = function (haystack, needle) {
+        if (!haystack || !needle) return false;
+        return B.normalize(haystack).indexOf(B.normalize(needle)) !== -1;
+    };
+
+    /**
+     * Orijinal metinde eşleşen kısmı bulup <span class="bp-ara-hl"> ile vurgula.
+     * Tire/boşluk/Türkçe karakter farkına rağmen doğru aralığı işaretler.
+     */
+    B.vurgula = function (metin, aranan) {
+        // Güvenlik: tüm metin parçaları escHtml ile kaçışlanır (innerHTML'e gider).
+        // DB'den gelen ad/kod alanları XSS taşıyabilir.
+        if (!metin || !aranan) return B.escHtml(metin || '-');
+
+        var normalMetin = B.normalize(metin);
+        var normalAranan = B.normalize(aranan);
+
+        var eslesmePozisyonu = normalMetin.indexOf(normalAranan);
+        if (eslesmePozisyonu === -1) return B.escHtml(metin);
+
+        var normalIndex = 0;
+        var orijinalBaslangic = -1;
+        var orijinalBitis = -1;
+
+        for (var i = 0; i < metin.length; i++) {
+            var normalKarakter = B.normalize(metin[i]);
+
+            // Tire/boşluk: normalize'da kayboluyor — atla (ama eşleşme içindeysek dahil edilir)
+            if (normalKarakter.length === 0) continue;
+
+            if (normalIndex === eslesmePozisyonu) orijinalBaslangic = i;
+            normalIndex++;
+            if (normalIndex === eslesmePozisyonu + normalAranan.length) {
+                orijinalBitis = i + 1;
+                break;
+            }
+        }
+
+        if (orijinalBaslangic === -1 || orijinalBitis === -1) return B.escHtml(metin);
+
+        return B.escHtml(metin.substring(0, orijinalBaslangic)) +
+            '<span class="bp-ara-hl">' + B.escHtml(metin.substring(orijinalBaslangic, orijinalBitis)) + '</span>' +
+            B.escHtml(metin.substring(orijinalBitis));
+    };
+
+    /** HTML kaçışı (kullanıcı/DB metni güvenli render). */
+    B.escHtml = function (text) {
+        if (text === null || text === undefined) return '';
+        var div = document.createElement('div');
+        div.textContent = String(text);
+        return div.innerHTML;
+    };
+
+})(window.BayiArama);

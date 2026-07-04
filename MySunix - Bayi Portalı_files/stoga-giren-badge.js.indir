@@ -1,0 +1,146 @@
+/**
+ * Bayi Portal — Stoğa Giren Ürünler: Header/menü badge + girişte pop-up
+ * Her sayfada yüklenir. Pop-up oturumda bir kez (okunmamış varsa) gösterilir.
+ */
+(function() {
+    var headerBadge = document.getElementById('bpHwStokNotif');
+    var headerSayi  = document.getElementById('bsgNotifCount');
+    var menuBadge   = document.getElementById('bsgMenuNotifCount');
+
+    function uygula(sayi) {
+        if (sayi > 0) {
+            if (headerSayi)  headerSayi.textContent = sayi;
+            if (headerBadge) headerBadge.style.display = '';
+            if (menuBadge)  { menuBadge.textContent = sayi; menuBadge.style.display = ''; }
+        } else {
+            if (headerBadge) headerBadge.style.display = 'none';
+            if (menuBadge)   menuBadge.style.display = 'none';
+        }
+    }
+
+    function kontrol(popupGoster) {
+        fetch('ajax/stoga-giren-urunler/sayi.php', { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (!d || !d.success) return;
+                uygula(d.sayi || 0);
+                if (popupGoster && d.sayi > 0) popupAc(d);
+            })
+            .catch(function() {});
+    }
+
+    // okuma.js okuma yapınca badge'i tazelemek için global
+    window.bsgBadgeGuncelle = function() { kontrol(false); };
+
+    function esc(s) {
+        if (s == null) return '';
+        return String(s).replace(/[&<>"']/g, function(c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+    function resim(u) {
+        if (!u) return '';
+        if (typeof resimUrl === 'function') return resimUrl(u);
+        if (/^https?:\/\//i.test(u)) return u;
+        var p = String(u).replace(/^\/+/, '');
+        if (p.indexOf('uploads/') === 0 || p.indexOf('upload/') === 0) return p; // same-origin (bayi/.htaccess)
+        return 'https://sunixhub.com/' + p;
+    }
+    // Bayi tam stok adedini görmez — POS ile aynı aralık etiketi
+    function miktarAralik(m) {
+        m = Number(m) || 0;
+        if (m <= 0) return 'Yok';
+        if (m <= 10) return 'Sınırlı';
+        if (m <= 99) return 'Var';
+        if (m <= 499) return '100+';
+        if (m <= 999) return '500+';
+        return '1000+';
+    }
+
+    // Bir ürün önizleme öğesinin (varyantlı/düz) stok bölümü HTML'i
+    function stokBolumu(o) {
+        var detaylar = o.detaylar || [];
+        var varyantli = detaylar.some(function(v) { return v.varyant_adi && v.varyant_adi.length; });
+        if (varyantli) {
+            return '<div class="gp-varyantlar">' + detaylar.map(function(v) {
+                var ad = (v.varyant_adi && v.varyant_adi.length) ? v.varyant_adi : '—';
+                return '<div class="gp-varyant-satir">'
+                    + '<span class="gp-varyant-ad">' + esc(ad) + '</span>'
+                    + '<span class="gp-chip gp-chip--stok">' + miktarAralik(v.miktar) + '</span>'
+                    + '</div>';
+            }).join('') + '</div>';
+        }
+        return '<div class="gp-chips"><span class="gp-chip gp-chip--stok"><i class="icon-layers"></i> Stok: ' + miktarAralik(o.toplam_miktar) + '</span></div>';
+    }
+
+    function popupAc(d) {
+        if (typeof Swal === 'undefined') return;
+        // Oturumda bir kez (okunmamış kaldıkça yeni oturumda tekrar açılır)
+        try { if (sessionStorage.getItem('bsg_popup_gosterildi') === '1') return; } catch (e) {}
+        try { sessionStorage.setItem('bsg_popup_gosterildi', '1'); } catch (e) {}
+
+        var oniz = d.onizleme || [];
+        var liste = oniz.map(function(o) {
+            var img = resim(o.resim_url);
+            var imgHtml = img
+                ? '<img src="' + esc(img) + '" alt="" onerror="this.style.display=\'none\';var ic=this.parentNode.querySelector(\'i\');if(ic)ic.style.display=\'\'">'
+                : '';
+            var iconHtml = '<i class="icon-package"' + (img ? ' style="display:none"' : '') + '></i>';
+            // Depo bilgisi bayiye gösterilmez (stoğa giren bildirimlerinde hiçbir yerde)
+            return '<div class="gp-item">'
+                + '<div class="gp-item-img">' + iconHtml + imgHtml + '</div>'
+                + '<div class="gp-item-body">'
+                + '<div class="gp-item-ad">' + esc(o.urun_adi) + '</div>'
+                + stokBolumu(o)
+                + '</div></div>';
+        }).join('');
+
+        var kalan = d.sayi - oniz.length;
+        var fazla = kalan > 0
+            ? '<div class="gp-fazla">+ ' + kalan + ' ürün daha</div>'
+            : '';
+
+        Swal.fire({
+            html: '<div class="gp-head gp-head--stok">'
+                    + '<div class="gp-head-ic"><i class="icon-package"></i></div>'
+                    + '<div class="gp-head-tx">'
+                        + '<div class="gp-head-title">' + d.sayi + ' Yeni Ürün Stoğa Girdi</div>'
+                        + '<div class="gp-head-sub">Satışa hazır yeni ürünler geldi — stoğunuzu güncelleyin.</div>'
+                    + '</div>'
+                + '</div>'
+                + '<div class="gp-liste">' + liste + fazla + '</div>',
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonText: 'Listeyi Gör',
+            denyButtonText: 'Tümünü Okudum',
+            cancelButtonText: 'Kapat',
+            reverseButtons: true,
+            buttonsStyling: false,
+            width: 480,
+            customClass: {
+                popup: 'gp-popup gp-popup--stok',
+                actions: 'gp-actions',
+                confirmButton: 'gp-btn gp-btn--primary',
+                denyButton: 'gp-btn gp-btn--ok',
+                cancelButton: 'gp-btn gp-btn--ghost'
+            }
+        }).then(function(res) {
+            if (res.isConfirmed) {
+                window.location.href = 'index.php?sayfa=stoga-giren-urunler';
+            } else if (res.isDenied) {
+                fetch('ajax/stoga-giren-urunler/tumunu-okundu.php', { method: 'POST', credentials: 'same-origin' })
+                    .then(function(r) { return r.json(); })
+                    .then(function() {
+                        kontrol(false);
+                        // Açık liste sayfası varsa tazele (okunan kartlar soluklaşsın)
+                        if (window.BayiStokGiren && window.BayiStokGiren.Liste) window.BayiStokGiren.Liste.yukle();
+                    })
+                    .catch(function() {});
+            }
+        });
+    }
+
+    // İlk yükleme: badge + pop-up (oturumda bir kez)
+    kontrol(true);
+    setInterval(function() { kontrol(false); }, 60000);
+})();

@@ -1,0 +1,213 @@
+(function() {
+    'use strict';
+    var F = window.Form;
+    if (!F || !F.Pos) return;
+
+    F.Pos.Toggle = {};
+    var _ozetInjected = false;
+    var _lWrapOrigParent = null;
+    var _lWrapOrigNext = null;
+    var _nmaOrigParent = null;
+    var _nmaOrigNext = null;
+    var _nmaOvOrigParent = null;
+    var _nmaOvOrigNext = null;
+
+    F.Pos.Toggle.init = function() {
+        var btn = document.getElementById('frmPosToggle');
+        if (btn) {
+            btn.addEventListener('click', function() {
+                if (F.Pos.State.aktif) F.Pos.Toggle.kapat();
+                else F.Pos.Toggle.ac();
+            });
+        }
+
+        var kapatBtn = document.getElementById('frmPosKapatBtn');
+        if (kapatBtn) {
+            kapatBtn.addEventListener('click', function() {
+                F.Pos.Toggle.kapat();
+            });
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && F.Pos.State.aktif) {
+                var overlay = document.getElementById('frmOverlay');
+                if (overlay && overlay.classList.contains('frm-overlay-show')) return;
+                var overlayDetail = document.getElementById('frmOverlayDetail');
+                if (overlayDetail && overlayDetail.classList.contains('frm-overlay-show')) return;
+                F.Pos.Toggle.kapat();
+            }
+        });
+    };
+
+    F.Pos.Toggle.ac = function() {
+        if (F.Pos.State.aktif) return;
+        F.Pos.State.aktif = true;
+        document.body.classList.add('frm-pos-aktif');
+
+        var sdOverlay = document.querySelector('.frm-sd-overlay');
+        if (sdOverlay) sdOverlay.classList.remove('active');
+        var sdDropdown = document.getElementById('frmSdDropdown');
+        if (sdDropdown) sdDropdown.classList.remove('active');
+        var sdWrap = document.querySelector('.frm-search');
+        if (sdWrap) sdWrap.classList.remove('frm-sd-elevated');
+
+        _tabloTasi();
+        _injectOzetPanel();
+        _musteriTasi();
+        _ozetGoster(true);
+        _ozetGuncelle();
+
+        F.Events.emit('pos:acildi');
+    };
+
+    F.Pos.Toggle.kapat = function() {
+        if (!F.Pos.State.aktif) return;
+        F.Pos.State.aktif = false;
+        document.body.classList.remove('frm-pos-aktif');
+
+        _musteriGeriGetir();
+        _ozetGoster(false);
+        _tabloGeriGetir();
+
+        var frmUrunArama = document.getElementById('frmUrunArama');
+        if (frmUrunArama) frmUrunArama.value = '';
+
+        F.Events.emit('pos:kapandi');
+    };
+
+    function _tabloTasi() {
+        var lWrap = document.querySelector('.frm-l-wrap');
+        var posRight = document.getElementById('frmPosRight');
+        if (!lWrap || !posRight) return;
+
+        _lWrapOrigParent = lWrap.parentElement;
+        _lWrapOrigNext = lWrap.nextSibling;
+
+        posRight.insertBefore(lWrap, posRight.firstChild);
+    }
+
+    function _tabloGeriGetir() {
+        var lWrap = document.querySelector('.frm-l-wrap');
+        if (!lWrap || !_lWrapOrigParent) return;
+
+        if (_lWrapOrigNext) {
+            _lWrapOrigParent.insertBefore(lWrap, _lWrapOrigNext);
+        } else {
+            _lWrapOrigParent.appendChild(lWrap);
+        }
+    }
+
+    function _musteriTasi() {
+        var nmaWrap = document.getElementById('nmaWrap');
+        var musteriContainer = document.querySelector('.frm-pos-ozet-musteri');
+        if (!nmaWrap || !musteriContainer) return;
+
+        _nmaOrigParent = nmaWrap.parentElement;
+        _nmaOrigNext = nmaWrap.nextSibling;
+        musteriContainer.appendChild(nmaWrap);
+
+        var nmaOv = document.getElementById('nmaOverlay');
+        var posContainer = document.getElementById('frmPosContainer');
+        if (nmaOv && posContainer) {
+            _nmaOvOrigParent = nmaOv.parentElement;
+            _nmaOvOrigNext = nmaOv.nextSibling;
+            posContainer.appendChild(nmaOv);
+        }
+    }
+
+    function _musteriGeriGetir() {
+        var nmaOv = document.getElementById('nmaOverlay');
+        if (nmaOv && _nmaOvOrigParent) {
+            if (_nmaOvOrigNext) _nmaOvOrigParent.insertBefore(nmaOv, _nmaOvOrigNext);
+            else _nmaOvOrigParent.appendChild(nmaOv);
+        }
+
+        var nmaWrap = document.getElementById('nmaWrap');
+        if (!nmaWrap || !_nmaOrigParent) return;
+
+        if (_nmaOrigNext) {
+            _nmaOrigParent.insertBefore(nmaWrap, _nmaOrigNext);
+        } else {
+            _nmaOrigParent.appendChild(nmaWrap);
+        }
+    }
+
+    function _injectOzetPanel() {
+        if (_ozetInjected) return;
+        _ozetInjected = true;
+
+        var posRight = document.getElementById('frmPosRight');
+        if (!posRight) return;
+
+        var html = '<div class="frm-pos-ozet" id="frmPosOzet">';
+        html += '<div class="frm-pos-ozet-musteri">';
+        html += '<label><i class="icon-users"></i> Bayi</label>';
+        html += '</div>';
+        html += '<div class="frm-pos-ozet-alt">';
+        html += '<div class="frm-pos-ozet-satirlar">';
+        html += '<div class="frm-pos-ozet-satir"><span class="gl">Toplam Miktar</span><span class="gv" id="frmPosOzMiktar">0 Adet</span></div>';
+        html += '<div class="frm-pos-ozet-satir"><span class="gl">Brüt Toplam</span><span class="gv" id="frmPosOzBrut">$0.00</span></div>';
+        html += '<div class="frm-pos-ozet-satir red"><span class="gl">İndirim</span><span class="gv" id="frmPosOzIndirim">-$0.00</span></div>';
+        html += '<div class="frm-pos-ozet-satir frm-pos-ozet-net"><span class="gl">Net Toplam</span><span class="gv" id="frmPosOzNet">$0.00</span></div>';
+        html += '<div class="frm-pos-ozet-satir frm-pos-ozet-genel"><span class="gl">Genel Toplam</span><span class="gv" id="frmPosOzGenel">$0.00</span></div>';
+        html += '</div>';
+        html += '<div class="frm-pos-ozet-butonlar">';
+        html += '<button type="button" class="frm-pos-ozet-btn" id="frmPosOzKaydetBtn"><i class="icon-check-circle"></i> Siparişi Gönder</button>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+
+        posRight.insertAdjacentHTML('beforeend', html);
+
+        document.getElementById('frmPosOzKaydetBtn').addEventListener('click', function() {
+            var realBtn = document.getElementById('frmKaydetBtn');
+            if (realBtn) realBtn.click();
+        });
+    }
+
+    function _ozetGoster(show) {
+        var ozet = document.getElementById('frmPosOzet');
+        if (ozet) ozet.style.display = show ? '' : 'none';
+    }
+
+    function _ozetGuncelle() {
+        if (!F.Pos.State.aktif) return;
+        var map = {
+            frmPosOzMiktar: 'frmOzetMiktar',
+            frmPosOzBrut: 'frmAraToplam',
+            frmPosOzIndirim: 'frmIndirimGoster',
+            frmPosOzNet: 'frmNetToplam',
+            frmPosOzGenel: 'frmGenelToplam'
+        };
+        for (var posId in map) {
+            var posEl = document.getElementById(posId);
+            var srcEl = document.getElementById(map[posId]);
+            if (posEl && srcEl) posEl.textContent = srcEl.textContent;
+        }
+        var sepet = document.getElementById('frmPosSepetMiktar');
+        if (sepet) {
+            sepet.textContent = F.State.toplamMiktar ? F.State.toplamMiktar() : 0;
+        }
+    }
+
+    var _observerStarted = false;
+    function _startOzetObserver() {
+        if (_observerStarted) return;
+        _observerStarted = true;
+        ['frmOzetMiktar', 'frmAraToplam', 'frmIndirimGoster', 'frmNetToplam', 'frmGenelToplam'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el && 'MutationObserver' in window) {
+                new MutationObserver(function() {
+                    if (F.Pos.State.aktif) _ozetGuncelle();
+                }).observe(el, { childList: true, characterData: true, subtree: true });
+            }
+        });
+    }
+
+    F.Events.on('satir:eklendi', _ozetGuncelle);
+    F.Events.on('satir:silindi', _ozetGuncelle);
+    F.Events.on('satir:guncellendi', _ozetGuncelle);
+    F.Events.on('hesaplama:guncelle', function() { setTimeout(_ozetGuncelle, 50); });
+    F.Events.on('pos:acildi', _startOzetObserver);
+
+})();

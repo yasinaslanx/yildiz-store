@@ -1,0 +1,288 @@
+/**
+ * Form - Varyant Modal Sepete Ekle (FF gruplama ile)
+ * modal-varyant-render.js'den ayrılmıştır
+ */
+(function() {
+    'use strict';
+
+    var F = window.Form;
+    F.ModalVaryant = F.ModalVaryant || {};
+
+    /**
+     * Sepete Ekle - FF (Farklı Fiyat) gruplama ile
+     */
+    F.ModalVaryant.sepeteEkle = function() {
+        var topMiktar = F.ModalVaryant.toplamMiktar();
+        if (topMiktar <= 0) {
+            if (F.ModalVaryant.ST.satirId) {
+                F.Tablo.satirSil(F.ModalVaryant.ST.satirId);
+                F.Modal.kapat();
+                return;
+            }
+            Swal.fire('Uyarı', 'En az 1 adet seçin', 'warning');
+            return;
+        }
+
+        // Cam Depo kontrolü — varyantlardan herhangi biri Cam Depo'da mı?
+        if (F.StokKontrol && !F.Config.isIade) {
+            var camDepoVar = false;
+            var stData = F.ModalVaryant.ST;
+            for (var ck in stData.q) {
+                if (stData.q[ck] <= 0) continue;
+                var ckDepo = (stData.d[ck] !== undefined) ? stData.d[ck] : F.State.seciliDepoId;
+                if (F.StokKontrol.camDepoMu(ckDepo)) { camDepoVar = true; break; }
+            }
+            if (camDepoVar) {
+                F.StokKontrol.camDepoUyariGoster(stData.urunData.urun_adi).then(function(onaylandi) {
+                    if (onaylandi) F.ModalVaryant._sepeteEkleDevam();
+                });
+                return;
+            }
+        }
+
+        // Stok kontrolü (iade/ön sipariş/sevkiyat/çin modları hariç)
+        if (F.StokKontrol && !F.Config.isIade && !F.Config.isOnSiparis && !F.Config.isSevkiyat && !F.Config.isCinSiparis && !F.State.onTalepAktif) {
+            var stokKontrolData = F.ModalVaryant.ST;
+            var kontrolBekleyen = [];
+
+            for (var sk in stokKontrolData.q) {
+                var skQty = stokKontrolData.q[sk];
+                if (skQty <= 0) continue;
+                var skParts = sk.split('_');
+                var skTipKod = skParts[0];
+                var skId = parseInt(skParts[1]);
+                var skVaryantTip = skTipKod === 'r' ? 'renk' : (skTipKod === 'm' ? 'model' : 'model_renk');
+
+                // Düzenleme modunda fark hesapla
+                var skFark = F.StokKontrol.farkMiktarHesapla(stokKontrolData.urunData.id, skVaryantTip, skId, skQty);
+                if (skFark <= 0) continue;
+
+                if (!F.StokKontrol.onayliMi(stokKontrolData.urunData.id, skVaryantTip, skId)) {
+                    kontrolBekleyen.push({ urunId: stokKontrolData.urunData.id, varyantTip: skVaryantTip, varyantId: skId, miktar: skFark, key: sk });
+                }
+            }
+
+            if (kontrolBekleyen.length > 0) {
+                var yetersizler = [];
+                var tamamlanan = 0;
+
+                kontrolBekleyen.forEach(function(item) {
+                    F.StokKontrol.anlikKontrol({
+                        urunId: item.urunId, varyantTip: item.varyantTip, varyantId: item.varyantId, miktar: item.miktar,
+                        callback: function(sonuc) {
+                            tamamlanan++;
+                            if (!sonuc.yeterli) yetersizler.push({ item: item, sonuc: sonuc });
+                            if (tamamlanan === kontrolBekleyen.length) {
+                                if (yetersizler.length === 0) {
+                                    F.ModalVaryant._sepeteEkleDevam();
+                                } else {
+                                    var uyariListesi = yetersizler.map(function(y) {
+                                        var kParcalar = y.item.key.split('_');
+                                        var vData = F.ModalVaryant.getVaryantData(kParcalar[0], kParcalar[1], stokKontrolData.urunData);
+                                        var gosterimAdi = '?';
+                                        if (vData) {
+                                            // Modele bağlı renk: hangi modele ait olduğu da gösterilsin (örn: "iPhone 17 PRO · Mavi")
+                                            if (vData.tip === 'model_renk' && vData.modelAdi) {
+                                                gosterimAdi = (vData.markaAdi ? vData.markaAdi + ' ' : '') + vData.modelAdi + ' · ' + vData.adi;
+                                            } else {
+                                                gosterimAdi = vData.adi;
+                                            }
+                                        }
+                                        return { adi: gosterimAdi, mevcut: y.sonuc.mevcut_stok, istenen: y.item.miktar };
+                                    });
+                                    F.StokKontrol.cokluUyariGoster(uyariListesi, stokKontrolData.urunData).then(function(onaylandi) {
+                                        if (onaylandi) {
+                                            yetersizler.forEach(function(y) {
+                                                F.StokKontrol.onayliIsaretle(y.item.urunId, y.item.varyantTip, y.item.varyantId);
+                                                F.StokKontrol.onayLogla(y.item.urunId, y.item.varyantTip, y.item.varyantId, y.sonuc.mevcut_stok, y.item.miktar);
+                                            });
+                                            F.ModalVaryant._sepeteEkleDevam();
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    });
+                });
+                return;
+            }
+        }
+        F.ModalVaryant._sepeteEkleDevam();
+    };
+
+    F.ModalVaryant._sepeteEkleDevam = function() {
+        var topMiktar = F.ModalVaryant.toplamMiktar();
+
+        var data = F.ModalVaryant.ST.urunData;
+        var kural = F.ModalVaryant.ST.fiyatKurali;
+        var urunFiyat = data.fiyat || 0;
+        var kdvOrani = F.Config.aktifKdvOrani();
+        var varyantlar = [];
+
+        // 1) Tüm seçili varyantları topla
+        for (var k in F.ModalVaryant.ST.q) {
+            var qty = F.ModalVaryant.ST.q[k];
+            if (qty <= 0) continue;
+
+            var parts = k.split('_');
+            var tip = parts[0];
+            var id = parts[1];
+
+            var vData = F.ModalVaryant.getVaryantData(tip, id, data);
+            if (vData) {
+                vData.miktar = qty;
+                vData.depoId = (F.ModalVaryant.ST.d[k] !== undefined) ? F.ModalVaryant.ST.d[k] : F.State.seciliDepoId;
+                var _notData = F.ModalVaryant.ST.n[k] || {};
+                if (typeof _notData === 'string') _notData = { tr: _notData, en: '' };
+                vData.not_tr = _notData.tr || '';
+                vData.not_en = _notData.en || '';
+                vData.not = vData.not_tr || vData.not_en || '';
+
+                // Ön sipariş modunda fiyat 0
+                if (F.Config.isOnSiparis || F.Config.isSevkiyat || F.Config.isCinSiparis || F.State.onTalepAktif) {
+                    vData.normalBirimFiyat = 0;
+                    vData.birimFiyat = 0;
+                } else {
+                    // Orijinal fiyat: custom per-varyant > model fiyat > ürün fiyatı
+                    var modelFiyat = F.ModalVaryant.modelFiyatBul(k);
+                    var bazFiyat = (modelFiyat !== null) ? modelFiyat : urunFiyat;
+                    var orijFiyat = (F.ModalVaryant.ST.p[k] !== undefined) ? F.ModalVaryant.ST.p[k] : bazFiyat;
+
+                    vData.normalBirimFiyat = orijFiyat;
+                    if (kural) {
+                        vData.birimFiyat = F.Helpers.fiyatKuraliUygula(orijFiyat, kural);
+                    } else {
+                        vData.birimFiyat = orijFiyat;
+                    }
+
+                    // Manuel TL: ST.mtl'den oku
+                    if (F.ModalVaryant.ST.mtl && F.ModalVaryant.ST.mtl[k] != null) {
+                        vData.manuelTlFiyat = F.ModalVaryant.ST.mtl[k];
+                        vData.normalBirimFiyat = vData.birimFiyat; // kural gösterme
+                    } else {
+                        vData.manuelTlFiyat = null;
+                    }
+                }
+
+                varyantlar.push(vData);
+            }
+        }
+
+        // 2) Fiyata göre grupla
+        var fiyatGruplari = {};
+        var fiyatKeys = [];
+        for (var i = 0; i < varyantlar.length; i++) {
+            var v = varyantlar[i];
+            var fKey = v.birimFiyat.toFixed(4);
+            if (!fiyatGruplari[fKey]) {
+                fiyatGruplari[fKey] = { birimFiyat: v.birimFiyat, miktar: 0, varyantlar: [] };
+                fiyatKeys.push(fKey);
+            }
+            fiyatGruplari[fKey].miktar += v.miktar;
+            fiyatGruplari[fKey].varyantlar.push(v);
+        }
+
+        // 3) Dominant grubu belirle
+        var varsayilanIndirimliFiyat = kural ? F.Helpers.fiyatKuraliUygula(urunFiyat, kural) : urunFiyat;
+        var anaFiyatKey = varsayilanIndirimliFiyat.toFixed(4);
+        var dominantKey = fiyatGruplari[anaFiyatKey] ? anaFiyatKey : fiyatKeys[0];
+        if (!fiyatGruplari[anaFiyatKey]) {
+            for (var fi = 1; fi < fiyatKeys.length; fi++) {
+                if (fiyatGruplari[fiyatKeys[fi]].miktar > fiyatGruplari[dominantKey].miktar) {
+                    dominantKey = fiyatKeys[fi];
+                }
+            }
+        }
+        var dominantGrup = fiyatGruplari[dominantKey];
+
+        // 4) FF satırları oluştur (dominant olmayan gruplar)
+        var ffSatirlar = [];
+        for (var fki = 0; fki < fiyatKeys.length; fki++) {
+            if (fiyatKeys[fki] === dominantKey) continue;
+            var fg = fiyatGruplari[fiyatKeys[fki]];
+
+            var names = [];
+            for (var ni = 0; ni < fg.varyantlar.length; ni++) {
+                names.push(fg.varyantlar[ni].adi || '');
+            }
+
+            var ffNormFiyat = (fg.varyantlar[0].normalBirimFiyat != null) ? fg.varyantlar[0].normalBirimFiyat : null;
+            var ffTutar;
+            if (kural && ffNormFiyat != null) {
+                var orijFfTutar = F.Helpers.bankersRound(fg.miktar * ffNormFiyat, 2);
+                ffTutar = F.Hesaplama.kuralTutarHesapla(orijFfTutar, kural, fg.miktar);
+            } else {
+                ffTutar = F.Helpers.bankersRound(fg.miktar * fg.birimFiyat, 2);
+            }
+            var ffKdv = F.Helpers.bankersRound(ffTutar * kdvOrani / 100, 2);
+
+            // FF grubundaki ilk varyanttan manuelTlFiyat al
+            var ffManuelTl = (fg.varyantlar[0] && fg.varyantlar[0].manuelTlFiyat != null)
+                ? fg.varyantlar[0].manuelTlFiyat : null;
+
+            ffSatirlar.push({
+                adi: names.join(', '),
+                miktar: fg.miktar,
+                birimFiyat: fg.birimFiyat,
+                normalBirimFiyat: (ffNormFiyat != null) ? ffNormFiyat : fg.birimFiyat,
+                manuelTlFiyat: ffManuelTl,
+                tutar: ffTutar,
+                kdv: ffKdv,
+                toplam: ffTutar + ffKdv,
+                markaRenk: fg.varyantlar[0].markaRenk || '#a0b0cc'
+            });
+        }
+
+        F.Events.emit('modal:onayla', {
+            tip: F.ModalVaryant.ST.vt === 'renk' ? 'renk' : (F.ModalVaryant.ST.vt === 'model' ? 'model' : 'model_renk'),
+            satirId: F.ModalVaryant.ST.satirId,
+            urunId: data.id,
+            urunAdi: data.urun_adi,
+            urunKodu: data.urun_kodu,
+            resimUrl: data.resim_url,
+            kategoriId: data.kategori_id,
+            kategoriAdi: data.kategori || (window.FormKategoriler && window.FormKategoriler[data.kategori_id]) || 'Diğer',
+            miktar: topMiktar,
+            birimFiyat: dominantGrup.birimFiyat,
+            normalBirimFiyat: (dominantGrup.varyantlar[0].normalBirimFiyat != null) ? dominantGrup.varyantlar[0].normalBirimFiyat : urunFiyat,
+            fiyatKurali: kural || null,
+            kdvOrani: kdvOrani,
+            depoId: F.State.seciliDepoId,
+            not: '',
+            varyantlar: varyantlar,
+            ffSatirlar: ffSatirlar
+        });
+
+        F.Modal.kapat();
+    };  // _sepeteEkleDevam sonu
+
+    /**
+     * Varyant detay verisini al
+     */
+    F.ModalVaryant.getVaryantData = function(tip, id, data) {
+        if (tip === 'r') {
+            var renkler = data.renkler || [];
+            for (var i = 0; i < renkler.length; i++) {
+                if (renkler[i].id == id) {
+                    return { id: renkler[i].id, tip: 'renk', adi: renkler[i].renk_adi, renkAdi: renkler[i].renk_adi, renkKodu: renkler[i].renk_kodu || '' };
+                }
+            }
+        } else if (tip === 'm') {
+            var modeller = data.modeller || [];
+            for (var j = 0; j < modeller.length; j++) {
+                if (modeller[j].id == id) {
+                    return { id: modeller[j].id, tip: 'model', adi: modeller[j].model_adi, modelAdi: modeller[j].model_adi, markaAdi: modeller[j].marka_adi, markaRenk: modeller[j].marka_renk || '#666' };
+                }
+            }
+        } else if (tip === 'mr') {
+            var mrList = data.model_renkler || [];
+            for (var k = 0; k < mrList.length; k++) {
+                if (mrList[k].id == id) {
+                    return { id: mrList[k].id, tip: 'model_renk', telefonModelId: mrList[k].urun_telefon_model_id, adi: mrList[k].renk_adi, renkAdi: mrList[k].renk_adi, renkKodu: mrList[k].renk_kodu || '', modelAdi: mrList[k].model_adi, markaAdi: mrList[k].marka_adi, markaRenk: mrList[k].marka_renk || '#666' };
+                }
+            }
+        }
+        return null;
+    };
+
+})();

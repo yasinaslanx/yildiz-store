@@ -1,0 +1,180 @@
+/* Form - Onay Modal Stili */
+
+.frm-onay-popup {
+    max-width: 440px !important;
+    border-radius: 18px !important;
+    padding: 0 !important;
+}
+
+.frm-onay-popup .swal2-title {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #14532d !important;
+    padding: 24px 24px 8px !important;
+}
+
+.frm-onay-popup .swal2-icon {
+    margin: 24px auto 0 !important;
+    border-color: #14532d !important;
+    color: #14532d !important;
+}
+
+.frm-onay-popup .swal2-icon.swal2-question {
+    border-color: #14532d !important;
+    color: #14532d !important;
+}
+
+.frm-onay-popup .swal2-html-container {
+    padding: 0 24px !important;
+    margin: 12px 0 0 !important;
+}
+
+.frm-onay-popup .swal2-actions {
+    padding: 16px 24px 24px !important;
+    gap: 10px !important;
+}
+
+.frm-onay-popup .swal2-confirm {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    padding: 12px 28px !important;
+    box-shadow: 0 2px 8px rgba(20, 83, 45, .25) !important;
+}
+
+.frm-onay-popup .swal2-cancel {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    padding: 12px 28px !important;
+}
+
+/* Teslim/kargo aşaması uyarı bandı (hayalet stok önleme) */
+.frm-onay-uyari {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 12px 14px;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-left: 4px solid #f59e0b;
+    border-radius: 10px;
+    text-align: left;
+}
+
+.frm-onay-uyari-ic {
+    font-size: 18px;
+    line-height: 1.4;
+    flex-shrink: 0;
+}
+
+.frm-onay-uyari-tx {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #92400e;
+}
+
+.frm-onay-uyari-tx b {
+    color: #78350f;
+}
+
+/* Onay içerik */
+.frm-onay-wrap {
+    padding: 4px 0 8px;
+    background: #f0fdf4;
+    border-radius: 12px;
+    border: 1px solid #bbf7d0;
+    overflow: hidden;
+}
+
+.frm-onay-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 18px;
+    border-bottom: 1px solid #dcfce7;
+    font-size: 14px;
+}
+
+.frm-onay-row:last-child {
+    border-bottom: none;
+}
+
+.frm-onay-label {
+    color: #4b5563;
+    font-weight: 500;
+}
+
+.frm-onay-val {
+    font-weight: 700;
+    color: #1e293b;
+    font-variant-numeric: tabular-nums;
+    font-family: 'Inter', sans-serif;
+}
+
+.frm-onay-discount {
+    color: #dc2626 !important;
+}
+
+.frm-onay-total {
+    margin-top: 4px;
+    padding: 14px 18px !important;
+    border-top: 2px solid #14532d !important;
+    border-bottom: none !important;
+    background: #14532d;
+}
+
+.frm-onay-total .frm-onay-label {
+    color: #fff;
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.frm-onay-total .frm-onay-val {
+    color: #fff;
+    font-weight: 700;
+    font-size: 20px;
+}
+
+/* ===== RESPONSIVE: Telefon ===== */
+@media(max-width:639px){
+    .frm-onay-popup{max-width:92vw !important;max-height:85vh !important;overflow-y:auto !important}
+    .frm-onay-popup .swal2-title{font-size:16px !important;padding:18px 18px 6px !important}
+    .frm-onay-popup .swal2-html-container{padding:0 18px !important}
+    .frm-onay-popup .swal2-actions{padding:12px 18px 18px !important;gap:12px !important}
+    .frm-onay-popup .swal2-confirm,.frm-onay-popup .swal2-cancel{min-height:44px !important;font-size:15px !important}
+    .frm-onay-row{padding:9px 14px;font-size:13px}
+}
+
+/* ═══════════ FİŞ YAZDIR DİALOĞU (Detaylı/Özet/Yazdırma) ═══════════ */
+.frm-fis-popup{ max-width:480px !important; border-radius:18px !important; }
+.frm-fis-popup .swal2-title{ font-size:18px !important; font-weight:700 !important; color:#103595 !important; }
+.frm-fis-popup .swal2-actions{ gap:10px !important; flex-wrap:wrap !important; }
+.frm-fis-popup .swal2-confirm,.frm-fis-popup .swal2-deny,.frm-fis-popup .swal2-cancel{
+    border-radius:10px !important; font-weight:600 !important; font-size:14px !important; padding:12px 22px !important;
+}
+
+/* ═══════════ TABLET / DOKUNMATİK (Hızlı Satış tamamla akışı) ═══════════
+   Onay + Fiş SweetAlert'leri büyük, parmak dostu butonlarla. (px'ten bağımsız
+   coarse → 640-1024px tabletleri de kapsar; @media 639px telefon için kaldı.) */
+@media (pointer: coarse) {
+    .frm-onay-popup, .frm-fis-popup{ width:92vw !important; max-width:560px !important; max-height:88vh !important; overflow-y:auto !important; }
+    .frm-onay-popup .swal2-title, .frm-fis-popup .swal2-title{ font-size:22px !important; }
+    .frm-onay-popup .swal2-html-container, .frm-fis-popup .swal2-html-container{ font-size:15px !important; }
+    .frm-onay-popup .swal2-actions, .frm-fis-popup .swal2-actions{ padding:16px 20px 20px !important; gap:12px !important; }
+    .frm-onay-popup .swal2-confirm, .frm-onay-popup .swal2-cancel,
+    .frm-onay-popup .swal2-deny{
+        font-size:18px !important; padding:18px 24px !important; min-height:60px !important; border-radius:14px !important;
+        flex:1 1 42% !important; margin:0 !important;
+    }
+    .frm-onay-row{ padding:12px 16px !important; font-size:15px !important; }
+    .frm-onay-total .frm-onay-val{ font-size:23px !important; }
+    /* Fiş: 3 buton → alt alta tam genişlik (en net dokunma) */
+    .frm-fis-popup .swal2-actions{ flex-direction:column !important; }
+    .frm-fis-popup .swal2-confirm, .frm-fis-popup .swal2-deny, .frm-fis-popup .swal2-cancel{
+        width:100% !important; margin:0 !important; font-size:18px !important; padding:18px 24px !important;
+        min-height:60px !important; border-radius:14px !important;
+    }
+    .frm-fis-popup .swal2-confirm i, .frm-fis-popup .swal2-deny i{ margin-right:6px; }
+}

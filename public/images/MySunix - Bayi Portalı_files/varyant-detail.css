@@ -1,0 +1,208 @@
+/**
+ * Varyant Detail Modal - SweetAlert Detay Modalı
+ * Modül: Sipariş Formu / Varyant Detay Popup
+ *
+ * Prefix dönüşümü:
+ *   .vd- → .frm-vd-
+ */
+
+/* ═══════════ DETAY MODAL ═══════════ */
+.frm-vd-popup { border-radius: 14px !important; overflow: hidden; }
+.frm-vd-popup .swal2-close { color: #fff !important; opacity: .7; z-index: 2; }
+.frm-vd-popup .swal2-close:hover { opacity: 1; }
+.frm-vd-modal { font-family: 'DM Sans', sans-serif; }
+.frm-vd-header {
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.frm-vd-name {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+.frm-vd-price-tag {
+    font-size: 18px;
+    font-weight: 800;
+    opacity: .9;
+}
+.frm-vd-body { padding: 16px 20px; }
+.frm-vd-info-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+.frm-vd-info-box {
+    flex: 1;
+    background: #f5f6f8;
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.frm-vd-info-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.frm-vd-info-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1f2937;
+    font-variant-numeric: tabular-nums;
+}
+.frm-vd-blue { color: #2563eb; }
+.frm-vd-field { margin-bottom: 14px; }
+.frm-vd-field-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--frm-muted);
+    margin-bottom: 6px;
+}
+
+/* Miktar +/- kontrol */
+.frm-vd-qty-ctrl {
+    display: flex;
+    align-items: stretch;
+    border: 1.5px solid #d5d7dc;
+    border-radius: 10px;
+    overflow: hidden;
+    height: 42px;
+}
+.frm-vd-qty-btn {
+    width: 44px;
+    border: none;
+    background: #f5f6f8;
+    color: #374151;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s;
+}
+.frm-vd-qty-btn:hover { background: #e8eaee; }
+.frm-vd-qty-btn:active { background: #dcdfe3; }
+.frm-vd-qty-input {
+    flex: 1;
+    border: none;
+    border-left: 1px solid #ecedef;
+    border-right: 1px solid #ecedef;
+    text-align: center;
+    font: inherit;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2937;
+    background: #fff;
+    outline: none;
+    -moz-appearance: textfield;
+}
+.frm-vd-qty-input::-webkit-outer-spin-button,
+.frm-vd-qty-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+/* Depo select */
+.frm-vd-select {
+    width: 100%;
+    height: 42px;
+    padding: 0 12px;
+    border: 1.5px solid #d5d7dc;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1f2937;
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+}
+.frm-vd-select:focus { border-color: var(--frm-main); }
+
+/* Fiyat input */
+.frm-vd-price-input-wrap {
+    display: flex;
+    align-items: stretch;
+    border: 1.5px solid #d5d7dc;
+    border-radius: 10px;
+    overflow: hidden;
+    height: 42px;
+}
+.frm-vd-price-symbol {
+    width: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f6f8;
+    border-right: 1px solid #ecedef;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--frm-muted);
+}
+.frm-vd-price-input {
+    flex: 1;
+    border: none;
+    padding: 0 12px;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    background: #fff;
+    outline: none;
+}
+
+/* Footer */
+.frm-vd-footer {
+    padding: 0 20px 18px;
+}
+.frm-vd-btn-ok {
+    width: 100%;
+    height: 44px;
+    border: none;
+    border-radius: 10px;
+    background: var(--frm-main);
+    color: #fff;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s;
+}
+.frm-vd-btn-ok:hover { background: #0d2a7a; }
+.frm-vd-btn-ok:active { background: #0a2060; }
+
+/* ===== RESPONSIVE: Telefon ===== */
+@media(max-width:639px){
+    .frm-vd-popup{max-width:calc(100vw - 16px) !important;max-height:calc(100vh - 32px) !important}
+    .frm-vd-header{padding:14px 16px;gap:8px}
+    .frm-vd-name{font-size:14px}
+    .frm-vd-price-tag{font-size:16px}
+    .frm-vd-body{padding:12px 16px;overflow-y:auto}
+    .frm-vd-info-row{flex-direction:column;gap:8px}
+    .frm-vd-info-value{font-size:18px}
+    .frm-vd-qty-ctrl{height:48px}
+    .frm-vd-qty-btn{width:52px;font-size:20px}
+    .frm-vd-qty-input{font-size:22px}
+    .frm-vd-select{height:48px;font-size:15px}
+    .frm-vd-price-input-wrap{height:48px}
+    .frm-vd-price-input{font-size:17px}
+    .frm-vd-btn-ok{height:48px;font-size:16px}
+}
+
+/* ===== Çin Siparişi: Not alanları ve çeviri butonu ===== */
+.frm-vd-cin .frm-vd-body{gap:10px}
+.frm-vd-note-area{width:100%;min-height:72px;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;color:#111827;background:#fff;resize:vertical;line-height:1.5;transition:border-color .15s,box-shadow .15s;box-sizing:border-box}
+.frm-vd-note-area:focus{outline:none;border-color:#103595;box-shadow:0 0 0 3px rgba(16,53,149,.12)}
+.frm-vd-note-area::placeholder{color:#9ca3af;font-style:italic}
+.frm-vd-note-translate-row{display:flex;justify-content:center;margin:-4px 0}
+.frm-vd-btn-translate{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:#fefce8;border:1px solid #e5c06e;border-radius:6px;color:#78350f;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.frm-vd-btn-translate:hover:not(:disabled){background:#fef3c7;border-color:#d97706;color:#92400e}
+.frm-vd-btn-translate:disabled{opacity:.5;cursor:not-allowed}
+.frm-vd-btn-translate.loading{background:#f3f4f6;color:#6b7280}
+.frm-vd-btn-translate i{font-size:13px;color:#d97706}
+.frm-vd-cin .frm-vd-field-label{color:#374151;font-weight:600}
+

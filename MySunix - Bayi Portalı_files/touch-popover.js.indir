@@ -1,0 +1,45 @@
+/* ========================================================================
+   Bayi Portal — Dokunmatik Popover Tap-Toggle — TÜM SAYFALARDA
+   ------------------------------------------------------------------------
+   :hover ile açılan bilgi popover/tooltip'leri, dokunmatik (hover: none)
+   cihazlarda TAP ile aç/kapat yapar. Böylece masaüstündeki hover davranışı
+   korunur (touch.css :hover'ı yalnız hover:none'da kapatır), dokunmatikte
+   ise "yapışkan-hover açık kalma/kilitleme" sorunu olmadan bilgiye erişilir.
+
+   Mekanik: tetikleyiciye `.is-touch-pop` class'ı eklenir/kaldırılır;
+   touch.css `.is-touch-pop ... { display:block }` ile gösterir.
+
+   Yeni bir hover-popover eklerken: tetikleyici seçicisini TRIGGERS'a ekle
+   + touch.css'e ilgili `.is-touch-pop` göster kuralını yaz.
+
+   Bağımlılıksız/lokal. Yalnız dokunmatikte çalışır (masaüstü = no-op).
+   ======================================================================== */
+(function () {
+    'use strict';
+
+    // Yalnız gerçek dokunmatik (parmak) cihazlar — mouse'lu masaüstü hover'ı korunur.
+    if (!(window.matchMedia && window.matchMedia('(hover: none)').matches)) return;
+
+    // Hover ile açılan popover/tooltip TETİKLEYİCİLERİ (touch.css ile eşleşir).
+    var TRIGGERS = '.frm-md-sw-stat, .frm-prim-info';
+
+    function acikKapat() {
+        var acik = document.querySelectorAll('.is-touch-pop');
+        for (var i = 0; i < acik.length; i++) acik[i].classList.remove('is-touch-pop');
+    }
+
+    // Capture-faz: her tıklamada tetikleyiciyi bul; varsa toggle, yoksa tümünü kapat.
+    document.addEventListener('click', function (e) {
+        var trig = (e.target && e.target.closest) ? e.target.closest(TRIGGERS) : null;
+        if (!trig) {
+            // Açık popover'ın İÇİNE dokunma (örn. panel satırı) onu kapatmasın
+            if (e.target && e.target.closest && e.target.closest('.is-touch-pop')) return;
+            acikKapat();
+            return;
+        }
+        var zatenAcik = trig.classList.contains('is-touch-pop');
+        acikKapat();                 // tek seferde tek popover açık
+        if (!zatenAcik) trig.classList.add('is-touch-pop');
+    }, true);
+
+})();

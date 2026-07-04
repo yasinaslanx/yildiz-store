@@ -1,0 +1,930 @@
+/**
+ * Form - Tablo Satır Oluşturma, Silme, Numaralama
+ */
+(function() {
+    'use strict';
+
+    var F = window.Form;
+
+    F.Tablo = {};
+
+    var tbody;
+
+    F.Tablo.init = function() {
+        tbody = document.getElementById('frmTbody');
+        if (!tbody) return;
+
+        // Boş tablo mesajı göster
+        F.Tablo.bosKontrol();
+
+        // Satır ekleme event'i
+        F.Events.on('modal:onayla', function(data) {
+            if (F.State.onTalepAktif) {
+                if (F.OnTalep && F.OnTalep.kaydet) F.OnTalep.kaydet(data);
+            } else {
+                F.Tablo.satirEkle(data);
+            }
+        });
+
+        // Satır silme event'i
+        $(tbody).on('click', '.frm-del', function(e) {
+            e.stopPropagation();
+            var satirId = $(this).closest('tr').attr('data-satir-id');
+            if (satirId) F.Tablo.satirSil(satirId);
+        });
+
+        // Satır tıklama → düzenleme modalı aç
+        if (!F.State.readonly) {
+            $(tbody).on('click', 'tr[data-satir-id]', function(e) {
+                // Sil butonuna tıklamayı atla
+                if ($(e.target).closest('.frm-del, .frm-del-cell').length) return;
+                var satirId = this.getAttribute('data-satir-id');
+                if (!satirId) return;
+                // Hızlı toplu fiyat: Fiyat / Fiyat(KDV) hücresine tıklama (yalnızca Mağazam).
+                // Modül yüklüyse ve hücre fiyat sütunuysa modalı o açar; aksi halde normal düzenleme.
+                if (F.HizliFiyat && F.HizliFiyat.tetikle && F.HizliFiyat.tetikle(this, e.target)) return;
+                F.Tablo.satirDuzenle(satirId);
+            });
+        }
+    };
+
+    /**
+     * Varyant ID setini çıkar (karşılaştırma için)
+     */
+    function varyantIdSeti(varyantlar) {
+        var set = {};
+        if (!varyantlar || varyantlar.length === 0) return set;
+        for (var i = 0; i < varyantlar.length; i++) {
+            var v = varyantlar[i];
+            var key = (v.tip || 'x') + '_' + v.id;
+            set[key] = true;
+        }
+        return set;
+    }
+
+    /**
+     * İki varyant setinde kesişim var mı kontrol et
+     */
+    function varyantKesisimVar(set1, set2) {
+        for (var k in set1) {
+            if (set2[k]) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Aynı ürün+varyant tabloda var mı kontrol et
+     * Düz ürün: sadece urunId eşleşmesi
+     * Varyantlı ürün: urunId + varyant ID kesişimi
+     */
+    function duplikatBul(data) {
+        var yeniVaryantlar = data.varyantlar || [];
+        var yeniSet = varyantIdSeti(yeniVaryantlar);
+        var yeniDuz = (yeniVaryantlar.length === 0);
+
+        for (var i = 0; i < F.State.satirlar.length; i++) {
+            var satir = F.State.satirlar[i];
+            if (satir.urunId !== data.urunId) continue;
+
+            var mevcutVaryantlar = satir.varyantlar || [];
+            var mevcutDuz = (mevcutVaryantlar.length === 0);
+
+            if (yeniDuz && mevcutDuz) return { satir: satir, tip: 'birebir' };
+
+            if (!yeniDuz && !mevcutDuz) {
+                var mevcutSet = varyantIdSeti(mevcutVaryantlar);
+                if (varyantKesisimVar(yeniSet, mevcutSet)) return { satir: satir, tip: 'kesisim' };
+                return { satir: satir, tip: 'ayni_urun' };
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Tabloya satır ekle veya güncelle
+     */
+    F.Tablo.satirEkle = function(data) {
+        var satirId = data.satirId || F.State.yeniSatirId();
+        var tip = data.tip || 'duz'; // duz|renk|model|model_renk|kilif
+        var mevcutSatir = F.State.satirBul(satirId);
+
+        // Duplikasyon kontrolü (sadece yeni ekleme, güncelleme ve yükleme modu değil)
+        if (!mevcutSatir && !F.State.readonly && !F.Tablo._yuklemeModu) {
+            var duplikat = duplikatBul(data);
+            if (duplikat) {
+                var ds = duplikat.satir;
+                var dt = duplikat.tip;
+
+                if (dt === 'ayni_urun') {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Ürün Zaten Tabloda',
+                        html: '<b>' + (data.urunAdi || 'Bu ürün') + '</b> farklı varyantlarla zaten tabloda mevcut.<br>Mevcut satırı düzenleyerek varyant ekleyebilirsiniz.',
+                        showDenyButton: true,
+                        showCancelButton: true,
+                        confirmButtonText: 'Düzenle',
+                        denyButtonText: 'Ayrı Ekle',
+                        cancelButtonText: 'İptal',
+                        confirmButtonColor: '#103595',
+                        denyButtonColor: '#6b7280'
+                    }).then(function(result) {
+                        if (result.isConfirmed) {
+                            F.Tablo.satirDuzenle(ds.satirId);
+                        } else if (result.isDenied) {
+                            F.Tablo._satirEkleIcsel(data);
+                        }
+                    });
+                    return;
+                }
+
+                var carpisan = [];
+                if (data.varyantlar && data.varyantlar.length > 0) {
+                    var mevcutSet = varyantIdSeti(ds.varyantlar || []);
+                    for (var ci = 0; ci < data.varyantlar.length; ci++) {
+                        var cv = data.varyantlar[ci];
+                        var ck = (cv.tip || 'x') + '_' + cv.id;
+                        if (mevcutSet[ck]) carpisan.push(cv.adi || cv.renkAdi || cv.modelAdi || '');
+                    }
+                }
+                var detay = carpisan.length > 0 ? ' (' + carpisan.join(', ') + ')' : '';
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Ürün Zaten Tabloda',
+                    text: '"' + (data.urunAdi || 'Bu ürün') + '"' + detay + ' zaten tabloda mevcut. Yine de eklemek istiyor musunuz?',
+                    showCancelButton: true,
+                    confirmButtonText: 'Evet, Ekle',
+                    cancelButtonText: 'İptal',
+                    confirmButtonColor: '#103595',
+                    cancelButtonColor: '#6b7280'
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        F.Tablo._satirEkleIcsel(data);
+                    }
+                });
+                return;
+            }
+        }
+
+        F.Tablo._satirEkleIcsel(data);
+    };
+
+    /**
+     * Satır ekleme iç fonksiyonu (duplikasyon kontrolü sonrası)
+     */
+    F.Tablo._satirEkleIcsel = function(data) {
+        var satirId = data.satirId || F.State.yeniSatirId();
+        var tip = data.tip || 'duz';
+        var mevcutSatir = F.State.satirBul(satirId);
+
+        // Satır verisi oluştur
+        var satirData = {
+            satirId: satirId,
+            urunId: data.urunId,
+            // Ürün kaynağı: bayi-own mu Sunix mi (kaynak haritasından; satış kaydında stok doğru kaynaktan düşer)
+            urunKaynak: data.urunKaynak || (F.State.urunKaynakMap && F.State.urunKaynakMap[data.urunId]) || 'sunix',
+            urunAdi: data.urunAdi,
+            urunKodu: data.urunKodu || '',
+            resimUrl: data.resimUrl || '',
+            tip: tip,
+            miktar: data.miktar || 0,
+            birimFiyat: (data.birimFiyat != null) ? data.birimFiyat : 0,
+            normalBirimFiyat: (data.normalBirimFiyat != null) ? data.normalBirimFiyat : ((data.birimFiyat != null) ? data.birimFiyat : 0),
+            fiyatKurali: data.fiyatKurali || null,
+            tutar: 0,
+            kdvOrani: (data.kdvOrani != null) ? data.kdvOrani : F.Config.aktifKdvOrani(),
+            kdv: 0,
+            toplam: 0,
+            depoId: data.depoId || F.State.seciliDepoId,
+            not: data.not || '',
+            manuelTlFiyat: (data.manuelTlFiyat != null) ? data.manuelTlFiyat : null,
+            varyantlar: data.varyantlar || [],
+            ffSatirlar: data.ffSatirlar || [],
+            paketBilgi: data.paketBilgi || null,
+            kategoriId: data.kategoriId || 0,
+            kategoriAdi: data.kategoriAdi || (window.FormKategoriler && window.FormKategoriler[data.kategoriId]) || 'Diğer',
+            sevkiyatTipi: data.sevkiyatTipi || 'konteyner',
+            sdKart: data.sdKart || (data.fiyatKurali && data.fiyatKurali.sd_kart ? 1 : 0)
+        };
+
+        // Recency damgası: bu ekleme/güncelleme/okutma "son dokunma" olarak işaretlenir.
+        // Barkod modunda son dokunulan satırın kategorisi en üste, satır o kategorinin başına gelir.
+        satirData._seq = F.State.yeniSeq();
+
+        // Hesapla — satirHesapla ile tutarlı (kural varsa toplam üzerinden indirim)
+        // Yükleme modunda (yukle.js): fiyatKurali henüz AJAX'tan gelmedi, DB'deki tutarı koru.
+        // AJAX dönünce fiyat.js kuralı uygular ve satirHesapla doğru path (kuralTutarHesapla) ile yeniden hesaplar.
+        if (F.Tablo._yuklemeModu && !satirData.fiyatKurali && data.toplam > 0) {
+            satirData.toplam = data.toplam;
+            satirData.kdv = data.kdvTutar || 0;
+            satirData.tutar = F.Helpers.bankersRound(satirData.toplam - satirData.kdv, 2);
+        } else if (satirData.varyantlar && satirData.varyantlar.length > 0) {
+            // FF grupları + kural mantığını satirHesapla'ya devret
+            F.Hesaplama.satirHesapla(satirData);
+            satirData.kdv = satirData.kdvTutar;
+        } else {
+            if (satirData.fiyatKurali && satirData.normalBirimFiyat != null) {
+                var orijTutar = F.Helpers.bankersRound(satirData.miktar * satirData.normalBirimFiyat, 2);
+                satirData.tutar = F.Hesaplama.kuralTutarHesapla(orijTutar, satirData.fiyatKurali, satirData.miktar);
+            } else {
+                satirData.tutar = F.Helpers.bankersRound(satirData.miktar * satirData.birimFiyat, 2);
+            }
+            satirData.kdv = F.Helpers.bankersRound(satirData.tutar * satirData.kdvOrani / 100, 2);
+            satirData.toplam = F.Helpers.bankersRound(satirData.tutar + satirData.kdv, 2);
+        }
+
+        // FF satırlarını varyantlardan yeniden oluştur (badge verisi için)
+        if (satirData.varyantlar && satirData.varyantlar.length > 0) {
+            F.Tablo.ffYenidenOlustur(satirData);
+        }
+
+        // HTML oluştur
+        var html = F.Tablo.satirHtml(satirData);
+        if (satirData.ffSatirlar && satirData.ffSatirlar.length > 0) {
+            html += F.Tablo.ffSatirlarHtml(satirData);
+        }
+
+        if (mevcutSatir) {
+            // --- GÜNCELLEME MODU ---
+            // State'deki veriyi güncelle
+            var idx = F.State.satirIndex(satirId);
+            if (idx > -1) F.State.satirlar[idx] = satirData;
+
+            // Eski DOM satırlarını sil
+            var eskiRows = tbody.querySelectorAll('tr[data-satir-id="' + satirId + '"]');
+            var firstRow = eskiRows[0];
+            // Yeni HTML'i ilk satırın yerine ekle
+            if (firstRow) {
+                firstRow.insertAdjacentHTML('beforebegin', html);
+            }
+            for (var i = 0; i < eskiRows.length; i++) {
+                eskiRows[i].remove();
+            }
+
+            F.Events.emit('satir:guncellendi', { satirId: satirId, data: satirData });
+        } else {
+            // --- YENİ EKLEME MODU ---
+            F.State.satirEkle(satirData);
+
+            // Boş mesajı kaldır
+            var bos = tbody.querySelector('.frm-empty-row');
+            if (bos) bos.remove();
+
+            // Tabloya ekle
+            tbody.insertAdjacentHTML('beforeend', html);
+
+            F.Events.emit('satir:eklendi', { satirId: satirId, data: satirData });
+        }
+
+        // Numaraları güncelle
+        F.Tablo.numaralariGuncelle();
+
+        // Hesaplama güncelle
+        F.Events.emit('hesaplama:guncelle');
+
+        // Toplam miktar güncelle
+        F.Tablo.toplamMiktarGuncelle();
+
+        if (!F.Tablo._yuklemeModu && F.Gruplama) {
+            F.Gruplama.uygula();
+        }
+    };
+
+    /**
+     * Fiyat hücresi HTML oluştur (kural varsa çift satırlı, yoksa düz)
+     */
+    F.Tablo.fiyatHucresiHtml = function(s) {
+        var fmt = F.Helpers.formatPara;
+        var conv = (F.Doviz && F.Doviz.aktif) ? F.Doviz.conv : function(v) { return v; };
+
+        // TL Önizleme (salt görsel): gösterilen birim fiyatın TL karşılığı alt-metni
+        var tlAktif = (F.TlOnizleme && F.TlOnizleme.aktif());
+        var tlFiyat = ((F.State.readonly || F.Config.indirimGizle) && s.normalBirimFiyat != null) ? s.normalBirimFiyat : s.birimFiyat;
+        var tlAlt = tlAktif ? F.TlOnizleme.altMetin(tlFiyat) : '';
+
+        // Manuel TL: direkt TL fiyat göster (conv bypass)
+        // Düz ürün veya varyantlı satırın dominant varyantı
+        var mtlFiyatDisplay = null;
+        if (s.manuelTlFiyat != null && F.Doviz && F.Doviz.aktif) {
+            mtlFiyatDisplay = s.manuelTlFiyat;
+        } else if (F.Doviz && F.Doviz.aktif && s.varyantlar && s.varyantlar.length > 0) {
+            for (var mfi = 0; mfi < s.varyantlar.length; mfi++) {
+                if (s.varyantlar[mfi].manuelTlFiyat != null) {
+                    mtlFiyatDisplay = s.varyantlar[mfi].manuelTlFiyat;
+                    break;
+                }
+            }
+        }
+        if (mtlFiyatDisplay != null) {
+            return '<td class="c">' + fmt(mtlFiyatDisplay) + '</td>';
+        }
+
+        // Görüntüleme modunda veya indirim gizle modunda: orijinal fiyat göster, kural badge gizle
+        if (F.State.readonly || F.Config.indirimGizle) {
+            var readonlyFiyat = (s.normalBirimFiyat != null) ? s.normalBirimFiyat : s.birimFiyat;
+            return '<td class="c">' + fmt(conv(readonlyFiyat)) + tlAlt + '</td>';
+        }
+
+        if (s.fiyatKurali) {
+            var k = s.fiyatKurali;
+
+            // İndirimsiz kural (deger=0): düz fiyat göster, üstü çizili yapma
+            if (parseFloat(k.deger) === 0) {
+                return '<td class="c">' + fmt(conv(s.birimFiyat)) + tlAlt + '</td>';
+            }
+
+            var badgeText = '';
+            var badgeClass = '';
+
+            if (k.islem_tipi === 'zam') {
+                badgeClass = 'frm-tbl-fiyat-zam';
+                badgeText = k.deger_tipi === 'yuzde' ? '+%' + k.deger : '+' + fmt(conv(k.fark_tutari));
+            } else {
+                badgeClass = 'frm-tbl-fiyat-ind';
+                badgeText = k.deger_tipi === 'yuzde' ? '-%' + k.deger : '-' + fmt(conv(k.fark_tutari));
+            }
+
+            var html = '<td class="c frm-tbl-fiyat-cell">';
+            html += '<div class="frm-tbl-fiyat-kural">';
+            html += '<span class="frm-tbl-fiyat-eski">' + fmt(conv(s.normalBirimFiyat)) + '</span>';
+            html += '<span class="frm-tbl-fiyat-badge ' + badgeClass + '">' + badgeText + '</span>';
+            html += '</div>';
+            html += '<div class="frm-tbl-fiyat-yeni">' + fmt(conv(s.birimFiyat)) + '</div>';
+            html += tlAlt;
+            html += '</td>';
+            return html;
+        }
+
+        return '<td class="c">' + fmt(conv(s.birimFiyat)) + tlAlt + '</td>';
+    };
+
+    /**
+     * Ana satır HTML oluştur
+     */
+    F.Tablo.satirHtml = function(s) {
+        var esc = F.Helpers.escHtml;
+        var fmt = F.Helpers.formatPara;
+        var hasFf = (s.ffSatirlar && s.ffSatirlar.length > 0);
+        var trClass = hasFf ? 'frm-has-ff' : '';
+        var evenClass = ''; // Numaralama sonrası uygulanır
+
+        var resim = s.resimUrl || '';
+
+        // FF varsa, ana satırda sadece dominant grubun miktar/toplamını göster
+        var displayMiktar = s.miktar;
+        var displayToplam = s.toplam;
+        if (hasFf && s.ffGruplar) {
+            var dk = s.birimFiyat.toFixed(4);
+            var dg = s.ffGruplar[dk];
+            if (dg) {
+                displayMiktar = dg.miktar;
+                var dTutar = dg.tutar || F.Helpers.bankersRound(dg.miktar * dg.birimFiyat, 2);
+                var dKdv = F.Helpers.bankersRound(dTutar * s.kdvOrani / 100, 2);
+                displayToplam = F.Helpers.bankersRound(dTutar + dKdv, 2);
+            }
+        }
+
+        var html = '<tr class="' + trClass + '" data-satir-id="' + s.satirId + '">';
+
+        // Ürün
+        html += '<td><div class="frm-prod">';
+        if (resim) {
+            html += '<img class="frm-img" src="' + esc(resim) + '" onerror="this.onerror=null;this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">';
+            html += '<div class="frm-img-ph" style="display:none"><i class="icon-image"></i></div>';
+        } else {
+            html += '<div class="frm-img-ph"><i class="icon-image"></i></div>';
+        }
+        html += '<div>';
+        html += '<div class="frm-name-row">';
+
+        // İsim önce
+        html += '<span class="frm-name">' + esc(s.urunAdi) + '</span>';
+
+        // Detay genişlet butonu (sadece varyant/paket badge varsa göster)
+        var hasDetail = (s.varyantlar && s.varyantlar.length > 0) || s.paketBilgi;
+        if (hasDetail) {
+            html += '<span class="frm-row-exp" title="Detay"><i class="icon-chevron-down"></i></span>';
+        }
+
+        html += '</div>';
+
+        // Not gösterimi (başlığın altında, varyantların üstünde)
+        html += F.Tablo.notIcerikHtml(s);
+
+        // Depo gösterimi (varsayılan depo dışı seçimler)
+        html += F.Tablo.depoIcerikHtml(s);
+
+        // Varyant badge'leri (FF varsa sadece dominant grubun varyantlarını göster)
+        if (s.varyantlar && s.varyantlar.length > 0) {
+            if (hasFf && s.ffGruplar) {
+                var dkBadge = s.birimFiyat.toFixed(4);
+                var dgBadge = s.ffGruplar[dkBadge];
+                if (dgBadge && dgBadge.varyantlar) {
+                    var tempSatir = { tip: s.tip, varyantlar: dgBadge.varyantlar };
+                    html += F.TabloVaryant.badgeHtml(tempSatir);
+                } else {
+                    html += F.TabloVaryant.badgeHtml(s);
+                }
+            } else {
+                html += F.TabloVaryant.badgeHtml(s);
+            }
+        }
+
+        // Paket bilgi
+        if (s.paketBilgi) {
+            html += F.TabloVaryant.paketBilgiHtml(s.paketBilgi);
+        }
+
+        html += '</div></div></td>';
+
+        // Miktar
+        html += '<td class="c"><span class="frm-qty">' + F.Helpers.formatSayi(displayMiktar) + '</span></td>';
+
+        if (!F.Config.isOnSiparis && !F.Config.isSevkiyat && !F.Config.isCinSiparis) {
+            // Fiyat (kural varsa çift satırlı)
+            html += F.Tablo.fiyatHucresiHtml(s);
+
+            // Fiyat(KDV) - KDV yoksa tire, varsa kalın/büyük
+            var convFn = (F.Doviz && F.Doviz.aktif) ? F.Doviz.conv : function(v) { return v; };
+            // Manuel TL birim fiyat belirle (düz veya varyant)
+            var mtlBirim = null;
+            if (s.manuelTlFiyat != null && F.Doviz && F.Doviz.aktif) {
+                mtlBirim = s.manuelTlFiyat;
+            } else if (F.Doviz && F.Doviz.aktif && s.varyantlar && s.varyantlar.length > 0) {
+                // Dominant varyantın manuelTlFiyat'ını kontrol et
+                for (var mvi = 0; mvi < s.varyantlar.length; mvi++) {
+                    if (s.varyantlar[mvi].manuelTlFiyat != null) {
+                        mtlBirim = s.varyantlar[mvi].manuelTlFiyat;
+                        break;
+                    }
+                }
+            }
+            var birimKdvliStr;
+            if (mtlBirim != null) {
+                birimKdvliStr = (s.kdvOrani > 0)
+                    ? fmt(F.Helpers.bankersRound(mtlBirim * (1 + s.kdvOrani / 100), 2))
+                    : '-';
+            } else {
+                var kdvBirimFiyat = ((F.State.readonly || F.Config.indirimGizle) && s.normalBirimFiyat != null) ? s.normalBirimFiyat : s.birimFiyat;
+                birimKdvliStr = (s.kdvOrani > 0)
+                    ? fmt(convFn(F.Helpers.bankersRound(kdvBirimFiyat * (1 + s.kdvOrani / 100), 2)))
+                    : '-';
+            }
+            html += '<td class="c frm-fiyat-pri">' + birimKdvliStr + '</td>';
+
+            // Toplam Tutar — varyant bazlı manuelTlFiyat kontrolü
+            var displayToplamTl;
+            if (s.manuelTlFiyat != null && F.Doviz && F.Doviz.aktif) {
+                // Düz ürün manuel TL
+                var mtlTutar = F.Helpers.bankersRound(displayMiktar * s.manuelTlFiyat, 2);
+                var mtlKdv = F.Helpers.bankersRound(mtlTutar * s.kdvOrani / 100, 2);
+                displayToplamTl = F.Helpers.bankersRound(mtlTutar + mtlKdv, 2);
+            } else if (F.Doviz && F.Doviz.aktif && s.varyantlar && s.varyantlar.length > 0 && s.varyantlar.some(function(v) { return v.manuelTlFiyat != null; })) {
+                // Varyantlı satır: en az bir varyant manuel TL
+                // FF varsa dominant grubun varyantlarını, yoksa tüm varyantları kullan
+                var tlVaryantlar = (hasFf && s.ffGruplar) ? (function() {
+                    var dk = s.birimFiyat.toFixed(4);
+                    var dg = s.ffGruplar[dk];
+                    return dg ? dg.varyantlar : s.varyantlar;
+                })() : s.varyantlar;
+                var vtlTutar = 0;
+                for (var vti = 0; vti < tlVaryantlar.length; vti++) {
+                    var vtv = tlVaryantlar[vti];
+                    var vtMik = vtv.miktar || 0;
+                    if (vtv.manuelTlFiyat != null) {
+                        vtlTutar += F.Helpers.bankersRound(vtMik * vtv.manuelTlFiyat, 2);
+                    } else {
+                        var vtvFiyat = (vtv.birimFiyat != null) ? vtv.birimFiyat : ((s.birimFiyat != null) ? s.birimFiyat : 0);
+                        vtlTutar += convFn(F.Helpers.bankersRound(vtMik * vtvFiyat, 2));
+                    }
+                }
+                vtlTutar = F.Helpers.bankersRound(vtlTutar, 2);
+                var vtlKdv = F.Helpers.bankersRound(vtlTutar * s.kdvOrani / 100, 2);
+                displayToplamTl = F.Helpers.bankersRound(vtlTutar + vtlKdv, 2);
+            } else {
+                if ((F.State.readonly || F.Config.indirimGizle) && s.normalBirimFiyat != null && s.normalBirimFiyat !== s.birimFiyat) {
+                    var roTutar = F.Helpers.bankersRound(displayMiktar * s.normalBirimFiyat, 2);
+                    var roKdv = F.Helpers.bankersRound(roTutar * s.kdvOrani / 100, 2);
+                    displayToplamTl = convFn(F.Helpers.bankersRound(roTutar + roKdv, 2));
+                } else {
+                    displayToplamTl = convFn(displayToplam);
+                }
+            }
+            html += '<td class="c"><span class="frm-total">' + fmt(displayToplamTl) + '</span>' + ((F.TlOnizleme && F.TlOnizleme.aktif()) ? F.TlOnizleme.altMetin(displayToplamTl) : '') + '</td>';
+        }
+
+        // Sevkiyat Tipi (Çin sipariş modunda)
+        if (F.Config.isCinSiparis) {
+            var sevkTipi = s.sevkiyatTipi || 'konteyner';
+            var sevkIcon = sevkTipi === 'ucak' ? 'icon-navigation' : 'icon-box';
+            var sevkText = (F.CsI18n && F.CsI18n.t) ? F.CsI18n.t('cs_' + sevkTipi) : (sevkTipi === 'ucak' ? 'Uçak' : 'Konteyner');
+            html += '<td class="c"><span class="frm-cs-sevk-badge frm-cs-sevk-' + sevkTipi + '"><i class="' + sevkIcon + '"></i> ' + sevkText + '</span></td>';
+        }
+
+        // Sil
+        if (!F.State.readonly) {
+            html += '<td class="c frm-del-cell"><button class="frm-del" title="Sil">&times;</button></td>';
+        }
+
+        html += '</tr>';
+        return html;
+    };
+
+    // ffSatirlarHtml + ffYenidenOlustur → tablo-ff.js dosyasına taşındı
+
+    /**
+     * Satır düzenle - AJAX ile taze ürün verisi çek → ilgili modalı aç
+     */
+    F.Tablo.satirDuzenle = function(satirId) {
+        var satirData = F.State.satirBul(satirId);
+        if (!satirData) return;
+
+        // Arızalı iade modunda: arızalı düzenleme modalı aç
+        if (F.State.isIade && F.State.iadeKategorisi === 'arizali') {
+            F.Tablo.arizaliSatirDuzenle(satirId, satirData);
+            return;
+        }
+
+        // AJAX ile taze ürün verisi
+        // tum_varyantlar=1: mevcut satırı düzenlerken satışa-kapalı varyantlar da gelsin
+        // (sonradan kapatılmış varyantın miktarı kaybolmasın). Yeni eklemede filtre uygulanır.
+        F.Helpers.ajaxPost('urun-detay.php', {
+            urun_id: satirData.urunId,
+            depo_id: F.State.seciliDepoId,
+            tum_varyantlar: 1
+        }, function(res) {
+            if (!res.success || !res.data) {
+                Swal.fire('Hata', res.message || 'Ürün detayı yüklenemedi', 'error');
+                return;
+            }
+
+            var urunData = res.data;
+            var tip = satirData.tip || 'duz';
+
+            // Modal tip belirleme (state'deki tip'e güven)
+            if (tip === 'renk' || tip === 'model' || tip === 'model_renk') tip = 'varyant';
+            // Kilif ama paket_sablon yoksa (şablon deaktif edilmiş olabilir) → varyant
+            if (tip === 'kilif' && urunData && !urunData.paket_sablon) tip = 'varyant';
+
+            F.Events.emit('modal:ac', {
+                tip: tip,
+                urunData: urunData,
+                satirId: satirId
+            });
+        }, function() {
+            Swal.fire('Hata', 'Ürün detayı yüklenirken hata oluştu', 'error');
+        });
+    };
+
+    /**
+     * Arızalı iade satır düzenleme — basit modal (ekleme ile aynı)
+     */
+    F.Tablo.arizaliSatirDuzenle = function(satirId, satirData) {
+        var esc = F.Helpers.escHtml;
+        var fmt = F.Helpers.formatPara;
+        // 0 fiyat geçerli değerdir — sadece null/undefined durumunda fallback
+        var fiyat = (satirData.normalBirimFiyat != null) ? satirData.normalBirimFiyat
+                  : ((satirData.birimFiyat != null) ? satirData.birimFiyat : 0);
+        var container = document.getElementById('frmOverlayContent');
+        if (!container) return;
+
+        var html = '<div class="frm-md-mc" style="--frm-ac:#dc2626">';
+        html += '<div class="frm-md-sw"><div class="frm-md-sw-top"><div><div class="frm-md-sw-name">' + esc(satirData.urunAdi) + '</div><div class="frm-md-sw-cat">' + esc(satirData.urunKodu || '') + ' \u2014 Ar\u0131zal\u0131 \u0130ade</div></div><div><div class="frm-md-sw-cat" style="text-align:right">Birim Fiyat</div><div class="frm-md-sw-price">' + fmt(fiyat) + '</div></div></div><div class="frm-md-sw-divider"></div></div>';
+        html += '<div class="frm-md-bd">';
+        html += '<div class="frm-md-cp open"><div class="frm-md-cp-h"><div class="frm-md-cp-t"><i class="icon-box"></i> Miktar</div></div><div class="frm-md-cp-b"><div class="frm-md-cp-in"><div class="frm-md-qc"><button type="button" class="frm-md-qc-btn" id="frmArizaQtyMinus"></button><input class="frm-md-qc-inp" type="text" autocomplete="off" value="' + (satirData.miktar || 1) + '" id="frmArizaQty"><button type="button" class="frm-md-qc-btn frm-md-qc-plus" id="frmArizaQtyPlus"></button></div></div></div></div>';
+        html += '<div class="frm-md-cp open"><div class="frm-md-cp-h"><div class="frm-md-cp-t"><i class="icon-dollar-sign"></i> Fiyat</div></div><div class="frm-md-cp-b"><div class="frm-md-cp-in"><div class="frm-md-pw"><span class="frm-md-pw-s">' + F.Config.paraSembolu + '</span><input class="frm-md-pw-i" type="text" inputmode="decimal" autocomplete="off" value="' + fiyat.toFixed(2) + '" id="frmArizaFiyat"></div></div></div></div>';
+        html += '<div class="frm-md-cp open"><div class="frm-md-cp-h"><div class="frm-md-cp-t"><i class="icon-alert-triangle"></i> Ar\u0131za A\u00e7\u0131klamas\u0131</div></div><div class="frm-md-cp-b"><div class="frm-md-cp-in"><textarea class="frm-md-txa" autocomplete="off" placeholder="Ar\u0131za detay\u0131n\u0131 yaz\u0131n\u0131z..." id="frmArizaAciklama" rows="2">' + esc(satirData.not || '') + '</textarea></div></div></div>';
+        html += '</div>';
+        html += '<div class="frm-md-ft"><div><div class="frm-md-ft-lbl">Toplam Tutar</div><div class="frm-md-ft-line"><span class="frm-md-ft-val" id="frmArizaToplam">' + fmt(F.Helpers.bankersRound((satirData.miktar || 1) * fiyat, 2)) + '</span></div></div><button type="button" class="frm-md-btn" id="frmArizaUygula">G\u00fcncelle</button></div>';
+        html += '</div>';
+
+        container.innerHTML = html;
+        document.getElementById('frmOverlay').classList.add('frm-overlay-show');
+        document.body.style.overflow = 'hidden';
+
+        setTimeout(function() {
+            container.querySelectorAll('.frm-md-cp.open .frm-md-cp-b').forEach(function(b) { b.style.maxHeight = 'none'; b.style.overflow = 'visible'; });
+            var qEl = document.getElementById('frmArizaQty');
+            if (qEl) { qEl.focus(); qEl.select(); }
+        }, 50);
+
+        function toplamHesapla() {
+            var q = parseInt(document.getElementById('frmArizaQty').value) || 0;
+            var p = parseFloat((document.getElementById('frmArizaFiyat').value || '0').replace(/,/g, '')) || 0;
+            var el = document.getElementById('frmArizaToplam');
+            if (el) el.textContent = fmt(F.Helpers.bankersRound(q * p, 2));
+        }
+
+        document.getElementById('frmArizaQtyMinus').addEventListener('click', function() { var v = parseInt(document.getElementById('frmArizaQty').value) || 1; if (v > 1) document.getElementById('frmArizaQty').value = v - 1; toplamHesapla(); });
+        document.getElementById('frmArizaQtyPlus').addEventListener('click', function() { var v = parseInt(document.getElementById('frmArizaQty').value) || 0; document.getElementById('frmArizaQty').value = v + 1; toplamHesapla(); });
+        document.getElementById('frmArizaQty').addEventListener('input', toplamHesapla);
+        document.getElementById('frmArizaFiyat').addEventListener('input', toplamHesapla);
+
+        document.getElementById('frmArizaUygula').addEventListener('click', function() {
+            var miktar = parseInt(document.getElementById('frmArizaQty').value) || 0;
+            var birimFiyat = parseFloat((document.getElementById('frmArizaFiyat').value || '0').replace(/,/g, '')) || 0;
+            var aciklama = (document.getElementById('frmArizaAciklama').value || '').trim();
+            if (miktar <= 0) { Swal.fire('Uyar\u0131', 'Miktar 0\'dan b\u00fcy\u00fck olmal\u0131', 'warning'); return; }
+
+            var kdvOrani = satirData.kdvOrani || F.Config.aktifKdvOrani();
+            var kural = satirData.fiyatKurali;
+            var tutar;
+            if (kural) {
+                var orijTutar = F.Helpers.bankersRound(miktar * birimFiyat, 2);
+                tutar = F.Hesaplama.kuralTutarHesapla(orijTutar, kural, miktar);
+            } else {
+                tutar = F.Helpers.bankersRound(miktar * birimFiyat, 2);
+            }
+            var kdv = F.Helpers.bankersRound(tutar * kdvOrani / 100, 2);
+
+            // Mevcut satırı güncelle
+            satirData.miktar = miktar;
+            satirData.normalBirimFiyat = birimFiyat;
+            satirData.birimFiyat = kural ? F.Helpers.fiyatKuraliUygula(birimFiyat, kural) : birimFiyat;
+            satirData.tutar = tutar;
+            satirData.kdv = kdv;
+            satirData.toplam = tutar + kdv;
+            satirData.not = aciklama;
+
+            F.Modal.kapat();
+            F.Tablo.satirEkle(satirData); // güncelleme modu (mevcut satirId ile)
+        });
+    };
+
+    /**
+     * Satır sil
+     */
+    F.Tablo.satirSil = function(satirId) {
+        // State'den sil
+        F.State.satirSil(satirId);
+
+        // DOM'dan sil (ana satır + ff satırları)
+        var rows = tbody.querySelectorAll('tr[data-satir-id="' + satirId + '"]');
+        for (var i = 0; i < rows.length; i++) {
+            rows[i].remove();
+        }
+
+        // Numaraları güncelle
+        F.Tablo.numaralariGuncelle();
+
+        // Boş kontrol
+        F.Tablo.bosKontrol();
+
+        // Hesaplama güncelle
+        F.Events.emit('satir:silindi', { satirId: satirId });
+        F.Events.emit('hesaplama:guncelle');
+
+        // Toplam miktar güncelle
+        F.Tablo.toplamMiktarGuncelle();
+
+        if (F.Gruplama) F.Gruplama.uygula();
+    };
+
+    /**
+     * Satır numaralarını güncelle (even/odd)
+     */
+    F.Tablo.numaralariGuncelle = function() {
+        var anaSatirlar = tbody.querySelectorAll('tr:not(.frm-ff-satir):not(.frm-empty-row):not(.frm-kat-baslik)');
+        for (var i = 0; i < anaSatirlar.length; i++) {
+            // Even/odd
+            anaSatirlar[i].classList.toggle('frm-even', i % 2 === 1);
+        }
+        // FF satırlarına da even uygula
+        var ffSatirlar = tbody.querySelectorAll('.frm-ff-satir');
+        for (var j = 0; j < ffSatirlar.length; j++) {
+            var parentId = ffSatirlar[j].getAttribute('data-satir-id');
+            var parentRow = tbody.querySelector('tr:not(.frm-ff-satir)[data-satir-id="' + parentId + '"]');
+            if (parentRow) {
+                ffSatirlar[j].classList.toggle('frm-even', parentRow.classList.contains('frm-even'));
+            }
+        }
+    };
+
+    /**
+     * Boş tablo kontrol
+     */
+    F.Tablo.bosKontrol = function() {
+        if (F.State.satirlar.length === 0 && tbody) {
+            var colSpan;
+            if (F.Config.isCinSiparis) {
+                colSpan = F.State.readonly ? 3 : 4; // Ürün + Miktar + Sevkiyat + (Sil)
+            } else if (F.Config.isOnSiparis || F.Config.isSevkiyat) {
+                colSpan = F.State.readonly ? 2 : 3;
+            } else {
+                colSpan = F.State.readonly ? 5 : 6;
+            }
+            var emptyImg = (typeof resimUrl === 'function') ? resimUrl('images/urunekleback.jpg') : '/images/urunekleback.jpg';
+            tbody.innerHTML = '<tr class="frm-empty-row"><td colspan="' + colSpan + '"><div class="frm-empty-bg"><img src="' + emptyImg + '" alt=""></div></td></tr>';
+        }
+    };
+
+    /**
+     * Toplam miktar güncelle
+     */
+    F.Tablo.toplamMiktarGuncelle = function() {
+        var val = F.Helpers.formatSayi(F.State.toplamMiktar());
+        var el = document.getElementById('frmToplamMiktar');
+        if (el) el.textContent = val;
+        var elOz = document.getElementById('frmOzetMiktar');
+        if (elOz) elOz.textContent = val + ' Adet';
+    };
+
+    /**
+     * Not içerik HTML oluştur (ürün adının altında inline gösterim)
+     */
+    F.Tablo.notIcerikHtml = function(s) {
+        var esc = F.Helpers.escHtml;
+        var notlar = [];
+
+        // Genel/düz ürün notu
+        if (s.not) {
+            notlar.push({ label: '', text: s.not });
+        }
+
+        // Varyant notları
+        if (s.varyantlar && s.varyantlar.length > 0) {
+            var vNotlar = [];
+            for (var i = 0; i < s.varyantlar.length; i++) {
+                var v = s.varyantlar[i];
+                if (!v.not) continue;
+                vNotlar.push({
+                    label: v.adi || v.renkAdi || v.modelAdi || '',
+                    text: v.not
+                });
+            }
+            // Varyant adına göre Türkçe sırala
+            vNotlar.sort(function(a, b) { return a.label.localeCompare(b.label, 'tr'); });
+            notlar = notlar.concat(vNotlar);
+        }
+
+        if (notlar.length === 0) return '';
+
+        var html = '<div class="frm-tbl-not-icerik">';
+        html += '<i class="icon-edit-3 frm-tbl-not-icon"></i>';
+
+        for (var j = 0; j < notlar.length; j++) {
+            var n = notlar[j];
+            html += '<span class="frm-tbl-not-item">';
+            if (n.label) {
+                html += '<b class="frm-tbl-not-label">' + esc(n.label) + ':</b> ';
+            }
+            html += esc(n.text);
+            html += '</span>';
+            if (j < notlar.length - 1) html += '<span class="frm-tbl-not-sep">|</span>';
+        }
+
+        html += '</div>';
+        return html;
+    };
+
+    /**
+     * Depo adını ID'ye göre getir
+     */
+    F.Tablo.depoAdiGetir = function(depoId) {
+        if (!depoId || !F.Config.depolar) return '';
+        for (var i = 0; i < F.Config.depolar.length; i++) {
+            if (F.Config.depolar[i].id === depoId) return F.Config.depolar[i].adi;
+        }
+        return '';
+    };
+
+    /**
+     * Depo içerik HTML oluştur (varsayılan depo dışı seçimler için, not tarzında gösterim)
+     */
+    F.Tablo.depoIcerikHtml = function(s) {
+        var esc = F.Helpers.escHtml;
+        var varsayilanId = F.Config.varsayilanDepoId;
+        var depolar = [];
+
+        if (!s.varyantlar || s.varyantlar.length === 0) {
+            // Düz ürün
+            if (s.depoId && s.depoId !== varsayilanId) {
+                var depoAdi = F.Tablo.depoAdiGetir(s.depoId);
+                if (depoAdi) depolar.push({ label: '', text: depoAdi });
+            }
+        } else {
+            // Varyantlı ürün: depo bazlı grupla
+            var depoGruplari = {};
+            for (var i = 0; i < s.varyantlar.length; i++) {
+                var v = s.varyantlar[i];
+                var efDepo = v.depoId || s.depoId;
+                if (efDepo && efDepo !== varsayilanId) {
+                    if (!depoGruplari[efDepo]) depoGruplari[efDepo] = [];
+                    depoGruplari[efDepo].push(v.adi || v.renkAdi || v.modelAdi || '');
+                }
+            }
+            for (var dId in depoGruplari) {
+                var dAdi = F.Tablo.depoAdiGetir(parseInt(dId));
+                if (!dAdi) continue;
+                depolar.push({ label: depoGruplari[dId].join(', '), text: dAdi });
+            }
+        }
+
+        if (depolar.length === 0) return '';
+
+        var html = '<div class="frm-tbl-depo-icerik">';
+        html += '<i class="icon-package frm-tbl-depo-icon"></i>';
+        for (var j = 0; j < depolar.length; j++) {
+            var d = depolar[j];
+            html += '<span class="frm-tbl-depo-item">';
+            if (d.label) {
+                html += '<b class="frm-tbl-depo-label">' + esc(d.label) + ':</b> ';
+            }
+            html += esc(d.text);
+            html += '</span>';
+            if (j < depolar.length - 1) html += '<span class="frm-tbl-depo-sep">|</span>';
+        }
+        html += '</div>';
+        return html;
+    };
+
+    /**
+     * FF satırı için depo içerik HTML (varyant bazlı)
+     */
+    F.Tablo.depoIcerikHtmlFf = function(ff, parentDepoId) {
+        var esc = F.Helpers.escHtml;
+        var varsayilanId = F.Config.varsayilanDepoId;
+        var depolar = [];
+
+        if (!ff.varyantlar || ff.varyantlar.length === 0) return '';
+
+        var depoGruplari = {};
+        for (var i = 0; i < ff.varyantlar.length; i++) {
+            var v = ff.varyantlar[i];
+            var efDepo = v.depoId || parentDepoId;
+            if (efDepo && efDepo !== varsayilanId) {
+                if (!depoGruplari[efDepo]) depoGruplari[efDepo] = [];
+                depoGruplari[efDepo].push(v.adi || v.renkAdi || v.modelAdi || '');
+            }
+        }
+        for (var dId in depoGruplari) {
+            var dAdi = F.Tablo.depoAdiGetir(parseInt(dId));
+            if (!dAdi) continue;
+            depolar.push({ label: depoGruplari[dId].join(', '), text: dAdi });
+        }
+
+        if (depolar.length === 0) return '';
+
+        var html = '<div class="frm-tbl-depo-icerik">';
+        html += '<i class="icon-package frm-tbl-depo-icon"></i>';
+        for (var j = 0; j < depolar.length; j++) {
+            var d = depolar[j];
+            html += '<span class="frm-tbl-depo-item">';
+            if (d.label) {
+                html += '<b class="frm-tbl-depo-label">' + esc(d.label) + ':</b> ';
+            }
+            html += esc(d.text);
+            html += '</span>';
+            if (j < depolar.length - 1) html += '<span class="frm-tbl-depo-sep">|</span>';
+        }
+        html += '</div>';
+        return html;
+    };
+
+    /**
+     * Tüm satırları yeniden çiz (fiyat değişikliğinde kullanılır)
+     */
+    F.Tablo.tumSatirlariYenidenCiz = function() {
+        if (!tbody) return;
+
+        var bos = tbody.querySelector('.frm-empty-row');
+        if (bos) bos.remove();
+
+        tbody.innerHTML = '';
+
+        if (F.Gruplama) F.Gruplama.sirala();
+        // Render sırası tek noktadan (barkod modunda recency; State mutasyona uğramaz)
+        var renderSatirlar = (F.Gruplama && F.Gruplama.renderSirasi)
+            ? F.Gruplama.renderSirasi(F.State.satirlar)
+            : F.State.satirlar;
+        var sonKategori = null;
+        var colSpan = F.Gruplama ? F.Gruplama._colSpan() : 6;
+
+        for (var i = 0; i < renderSatirlar.length; i++) {
+            var s = renderSatirlar[i];
+
+            s.kdvOrani = F.Config.aktifKdvOrani();
+            F.Hesaplama.satirHesapla(s);
+            s.kdv = s.kdvTutar;
+            F.Tablo.ffYenidenOlustur(s);
+
+            var katAdi = s.kategoriAdi || 'Diğer';
+            if (katAdi !== sonKategori && F.Gruplama) {
+                var katSayisi = F.Gruplama._kategoriSayisi(katAdi);
+                tbody.insertAdjacentHTML('beforeend', F.Gruplama.baslikHtml(s.kategoriId, katAdi, katSayisi, colSpan));
+                sonKategori = katAdi;
+            }
+
+            var html = F.Tablo.satirHtml(s);
+            if (s.ffSatirlar && s.ffSatirlar.length > 0) {
+                html += F.Tablo.ffSatirlarHtml(s);
+            }
+            tbody.insertAdjacentHTML('beforeend', html);
+        }
+
+        F.Tablo.bosKontrol();
+        F.Tablo.numaralariGuncelle();
+        F.Tablo.toplamMiktarGuncelle();
+    };
+
+})();

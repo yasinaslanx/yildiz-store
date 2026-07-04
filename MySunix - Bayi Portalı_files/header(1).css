@@ -1,0 +1,617 @@
+/* ========================================================================
+   Bayi Portal v49 — Üst Header (page header bar)
+   Class'lar: .bp-ph (page header), .bp-hw (header widget)
+   ======================================================================== */
+
+.bp-ph {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 18px;
+  background: var(--bp-card);
+  border: 1px solid rgba(255, 255, 255, .7);
+  border-radius: var(--bp-card-radius);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .6) inset,
+    0 4px 12px rgba(10, 24, 58, .12),
+    0 20px 40px -10px rgba(10, 24, 58, .24);
+  flex-shrink: 0;
+  min-height: var(--bp-header-h);
+  /* Body scroll mimarisi: header viewport'un üstünde sabit (sticky) */
+  position: sticky;
+  top: 0;
+  /* Global header chrome'u her zaman sayfa içeriği sticky header'larının üstünde
+     kalmalı (örn. müşteriler filtre barı z-12) — yoksa profil dropdown'u altta kalır */
+  z-index: 30;
+}
+
+/* Sol — sayfa başlığı */
+.bp-ph-l {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.bp-ph-page-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.bp-ph-page-sub {
+  font-size: 10.5px;
+  color: var(--bp-muted);
+  font-weight: 600;
+  letter-spacing: .2px;
+}
+/* Ana ERP başlık stili (css/header.css .page-title-header h3): gradient metin dolgusu.
+   Divider yok; dikey ortalı (margin/padding sıfır → .bp-ph-l align-items:center ile ortalanır). */
+.bp-ph-page-title {
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -.5px;
+  line-height: 1.2;
+  margin: 0;
+  white-space: nowrap;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ========================================================================
+   Hamburger (mobil için — desktop'ta gizli)
+   ======================================================================== */
+.bp-hamburger {
+  display: none;
+  width: 40px;
+  height: 40px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+  margin-right: 4px;
+}
+.bp-hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--bp-accent);
+  border-radius: 2px;
+  transition: all .25s;
+}
+
+/* ========================================================================
+   Header widget base — ana ERP stili
+   ======================================================================== */
+.bp-hw {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .95) 0%, rgba(248, 250, 252, .95) 100%);
+  border: 1px solid rgba(16, 53, 149, .12);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(16, 53, 149, .06);
+  transition: all .2s;
+  white-space: nowrap;
+}
+.bp-hw:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(16, 53, 149, .1);
+  border-color: rgba(16, 53, 149, .2);
+}
+
+/* ========================================================================
+   Segmented widget grubu — saat + USD + aksiyon iconları tek pill içinde
+   Sidebar tabs DNA'sı: beyaz bg, ince border, inset shadow
+   ======================================================================== */
+.bp-hw-segment {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255, 255, 255, .85);
+  border: 1px solid rgba(148, 165, 195, .55);
+  border-radius: 14px;
+  box-shadow:
+    inset 0 1px 2px rgba(10, 36, 117, .06),
+    0 2px 8px rgba(10, 36, 117, .05);
+}
+
+/* Segment içindeki widget'lar: kendi border/bg/shadow'u kaldırılır */
+.bp-hw-segment .bp-hw {
+  height: 44px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 10px;
+}
+.bp-hw-segment .bp-hw:hover {
+  transform: none;
+  background: rgba(255, 255, 255, .95);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* ========================================================================
+   Orta — arama kutusu (ana ERP tema adapte)
+   ======================================================================== */
+.bp-ph-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+  padding: 0 12px;
+}
+.bp-hw-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 440px;
+  height: 48px;
+  padding: 0 14px;
+  background: rgba(255, 255, 255, .85);
+  border: 1px solid rgba(148, 165, 195, .55);
+  border-radius: 12px;
+  box-shadow:
+    inset 0 1px 2px rgba(10, 36, 117, .06),
+    0 2px 8px rgba(10, 36, 117, .05);
+  transition: all .2s ease;
+  cursor: text;
+}
+.bp-hw-search:hover {
+  background: rgba(255, 255, 255, .95);
+}
+.bp-hw-search:focus-within {
+  background: #fff;
+  border-color: var(--bp-accent-3);
+  box-shadow:
+    0 0 0 3px rgba(96, 165, 250, .2),
+    inset 0 1px 2px rgba(10, 36, 117, .06);
+}
+
+.bp-hw-search-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bp-accent);
+  opacity: .8;
+  flex-shrink: 0;
+  transition: opacity .2s ease;
+}
+.bp-hw-search-icon i { font-size: 15px; color: inherit; }
+.bp-hw-search:focus-within .bp-hw-search-icon { opacity: 1; }
+
+.bp-hw-search-input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: 500 13.5px 'Inter', -apple-system, system-ui, sans-serif;
+  color: var(--bp-text);
+  padding: 0;
+  min-width: 0;
+}
+.bp-hw-search-input::placeholder {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.bp-hw-search-shortcut {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.bp-hw-search-shortcut kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  font: 700 10.5px 'Inter', sans-serif;
+  color: var(--bp-muted);
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  line-height: 1;
+}
+.bp-hw-search:focus-within .bp-hw-search-shortcut { opacity: 0; }
+
+/* ========================================================================
+   USD/TL döviz widget'ı + HaremAltın tooltip (ana ERP tema adapte)
+   ======================================================================== */
+.bp-hw-fx {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+}
+.bp-hw-fx-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, .35);
+}
+.bp-hw-fx-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1;
+}
+.bp-hw-fx-code {
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  line-height: 1;
+}
+.bp-hw-fx-rate {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  letter-spacing: .3px;
+  line-height: 1;
+  font-feature-settings: 'tnum';
+}
+
+/* Tooltip — hover'da açılır */
+.bp-hw-fx-tooltip {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  min-width: 240px;
+  background: #fff;
+  color: var(--bp-text);
+  border: 1px solid rgba(16, 53, 149, .1);
+  border-radius: 12px;
+  box-shadow:
+    0 10px 40px rgba(16, 53, 149, .2),
+    0 2px 10px rgba(0, 0, 0, .08);
+  opacity: 0;
+  visibility: hidden;
+  transition: all .3s cubic-bezier(.4, 0, .2, 1);
+  z-index: 1000;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.bp-hw-fx-tooltip::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-bottom-color: #fff;
+  filter: drop-shadow(0 -2px 2px rgba(16, 53, 149, .08));
+}
+.bp-hw-fx:hover .bp-hw-fx-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Tooltip header (yeşil USD gradient) */
+.bp-hw-fx-tt-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #fff;
+}
+.bp-hw-fx-tt-name {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+/* HaremAltın rozeti — altın/sarı tema (ana ERP ile birebir) */
+.bp-hw-fx-tt-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
+  white-space: nowrap;
+}
+
+/* Tooltip body (alış/satış/değişim satırları) */
+.bp-hw-fx-tt-body { padding: 12px 14px; }
+.bp-hw-fx-tt-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+.bp-hw-fx-tt-row:not(:last-child) {
+  border-bottom: 1px solid rgba(16, 53, 149, .08);
+}
+.bp-hw-fx-tt-lbl {
+  font-size: 12px;
+  color: var(--bp-muted);
+  font-weight: 500;
+}
+.bp-hw-fx-tt-val {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--bp-text);
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-feature-settings: 'tnum';
+}
+.bp-hw-fx-tt-val.is-buy  { color: #059669; }
+.bp-hw-fx-tt-val.is-sell { color: #dc2626; }
+.bp-hw-fx-tt-val.is-up   { color: #059669; }
+.bp-hw-fx-tt-val.is-down { color: #dc2626; }
+
+/* Tooltip footer (güncelleme saati) */
+.bp-hw-fx-tt-foot {
+  padding: 8px 14px;
+  background: #f8fafc;
+  border-top: 1px solid rgba(16, 53, 149, .08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.bp-hw-fx-tt-update {
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.bp-hw-fx-tt-update i { font-size: 11px; }
+
+/* ========================================================================
+   Sağ — widget grubu
+   ======================================================================== */
+.bp-ph-r {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ========================================================================
+   Hızlı Satış kısayolu — yalnız Mağazam aktif + form yetkili kullanıcıda.
+   Kare/kompakt, tema gradient dolgulu (dikkat çekici aksiyon). Tıklayınca
+   form&mod=siparis-yeni&pos=1 → Hızlı Satış modu otomatik açılır.
+   ======================================================================== */
+.bp-hw-hizli-satis {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 52px;
+  padding: 0 16px;
+  border-radius: 12px;
+  background: var(--bp-grad-active, linear-gradient(135deg, #0a2475, #103595 55%, #2563d9));
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -.1px;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow:
+    0 4px 12px rgba(16, 53, 149, .28),
+    inset 0 1px 0 rgba(255, 255, 255, .15);
+  transition: transform .14s ease, box-shadow .14s ease, filter .14s ease;
+}
+.bp-hw-hizli-satis:hover {
+  color: #fff;
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow:
+    0 6px 18px rgba(16, 53, 149, .38),
+    inset 0 1px 0 rgba(255, 255, 255, .2);
+}
+.bp-hw-hizli-satis:active { transform: translateY(0); }
+.bp-hw-hizli-satis i { font-size: 17px; }
+
+/* Dar ekranda yazıyı gizle → kompakt kare icon buton */
+@media (max-width: 980px) {
+  .bp-hw-hizli-satis {
+    padding: 0;
+    width: 52px;
+    justify-content: center;
+  }
+  .bp-hw-hizli-satis span { display: none; }
+}
+
+/* Tarih-Saat */
+.bp-hw-time {
+  padding: 0 14px;
+}
+.bp-hw-time > i {
+  font-size: 14px;
+  color: var(--bp-accent);
+  flex-shrink: 0;
+}
+.bp-hw-time-meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.bp-hw-time-clock {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--bp-text);
+  letter-spacing: -.2px;
+  font-feature-settings: 'tnum';
+}
+.bp-hw-time-date {
+  font-size: 10.5px;
+  color: var(--bp-muted);
+  font-weight: 500;
+}
+
+
+/* Kullanıcı dropdown */
+.bp-hw-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 14px 4px 4px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .95), rgba(248, 250, 252, .95));
+  border: 1px solid rgba(16, 53, 149, .12);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all .2s;
+  box-shadow: 0 2px 8px rgba(16, 53, 149, .06);
+  flex-shrink: 0;
+  position: relative;
+}
+.bp-hw-user:hover:not(.is-open) {
+  transform: translateY(-1px);
+  border-color: rgba(16, 53, 149, .22);
+  box-shadow: 0 4px 14px rgba(16, 53, 149, .1);
+}
+.bp-hw-user.is-open {
+  border-color: rgba(16, 53, 149, .25);
+  box-shadow: 0 4px 14px rgba(16, 53, 149, .14);
+}
+.bp-hw-user-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--bp-grad-active);
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: .2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 4px 12px rgba(16, 53, 149, .28),
+    inset 0 1px 0 rgba(255, 255, 255, .15);
+  flex-shrink: 0;
+}
+.bp-hw-user-who {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  min-width: 0;
+  max-width: 160px;
+}
+.bp-hw-user-who strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--bp-text);
+  letter-spacing: -.1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bp-hw-user-who small {
+  font-size: 10.5px;
+  color: var(--bp-muted);
+  font-weight: 500;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bp-hw-user > i {
+  font-size: 10px;
+  color: var(--bp-muted);
+  margin-left: 2px;
+}
+
+/* Kullanıcı dropdown menüsü */
+.bp-hw-user-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 220px;
+  background: var(--bp-card);
+  border: 1px solid var(--bp-hair);
+  border-radius: 12px;
+  box-shadow:
+    0 4px 12px rgba(10, 24, 58, .08),
+    0 20px 40px -10px rgba(10, 24, 58, .2);
+  padding: 6px;
+  z-index: 200;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity .18s, transform .18s, visibility .18s;
+}
+.bp-hw-user.is-open .bp-hw-user-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+/* user ile menu arasındaki 6px gap'te mouse'un kaybolmasını önle — görünmez köprü */
+.bp-hw-user.is-open .bp-hw-user-menu::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 0;
+  right: 0;
+  height: 6px;
+}
+.bp-hw-user-menu a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--bp-text);
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+}
+.bp-hw-user-menu a i {
+  font-size: 15px;
+  color: var(--bp-muted);
+}
+.bp-hw-user-menu a:hover {
+  background: var(--bp-accent-softer);
+  color: var(--bp-accent-deeper);
+}
+.bp-hw-user-menu a:hover i {
+  color: var(--bp-accent);
+}
+.bp-hw-user-menu a.is-danger {
+  color: var(--bp-red);
+}
+.bp-hw-user-menu a.is-danger i {
+  color: var(--bp-red);
+}
+.bp-hw-user-menu a.is-danger:hover {
+  background: var(--bp-red-soft);
+  color: var(--bp-red);
+}
+.bp-hw-user-menu hr {
+  border: 0;
+  height: 1px;
+  background: var(--bp-hair);
+  margin: 4px 0;
+}

@@ -1,0 +1,1070 @@
+/**
+ * Form - Mevcut Sipariş/İade Yükleme (Düzenleme Modu)
+ */
+(function() {
+    'use strict';
+
+    var F = window.Form;
+
+    F.Yukle = {};
+
+    /**
+     * Init - Düzenleme veya görüntüleme modunda veri yükle
+     */
+    F.Yukle.init = function() {
+        var mod = F.Config.mod;
+        var id = F.Config.id;
+        var kopyalaId = F.Config.kopyalaId;
+
+        // Kopyalama modu: siparis-yeni + kopyalaId
+        if (mod === 'siparis-yeni' && kopyalaId) {
+            F.Yukle.kopyalaYukle(kopyalaId);
+            return;
+        }
+
+        if (!id) return;
+
+        if (mod === 'siparis-duzenle' || mod === 'siparis-goruntule') {
+            F.Yukle.siparisYukle(id);
+        } else if (mod === 'iade-duzenle') {
+            F.Yukle.iadeYukle(id);
+        } else if (mod === 'on-siparis-duzenle' || mod === 'on-siparis-goruntule') {
+            F.Yukle.onSiparisYukle(id);
+        } else if (mod === 'sevkiyat' || mod === 'sevkiyat-duzenle') {
+            F.Yukle.sevkiyatYukle(id);
+        } else if (mod === 'kampanya-urun' || mod === 'kampanya-hediye') {
+            F.Yukle.kampanyaYukle(id);
+        } else if (mod === 'cin-siparis-duzenle' || mod === 'cin-siparis-goruntule') {
+            F.Yukle.cinSiparisYukle(id);
+        }
+    };
+
+    /**
+     * Kampanya ürünleri yükle
+     */
+    F.Yukle.kampanyaYukle = function(kampanyaId) {
+        F.Yukle.showLoading();
+
+        var endpoint = F.Config.isKampanyaUrun
+            ? 'ajax/kampanya/urun-yukle.php'
+            : 'ajax/kampanya/hediye-yukle.php';
+
+        $.ajax({
+            url: endpoint,
+            type: 'GET',
+            data: { kampanya_id: kampanyaId },
+            dataType: 'json',
+            success: function(res) {
+                F.Yukle.hideLoading();
+                if (!res.success) return;
+
+                var data = res.data;
+
+                // Satırları yükle (duplikasyon kontrolünü bypass et)
+                F.Tablo._yuklemeModu = true;
+                if (data.satirlar && data.satirlar.length > 0) {
+                    for (var i = 0; i < data.satirlar.length; i++) {
+                        var s = data.satirlar[i];
+                        var satirData = {
+                            urunId: s.urun_id,
+                            urunKaynak: s.urun_kaynak || 'sunix',
+                            urunAdi: s.urun_adi,
+                            urunKodu: s.urun_kodu || '',
+                            miktar: s.miktar || 1,
+                            birimFiyat: 0,
+                            normalBirimFiyat: 0,
+                            kdvOrani: 0,
+                            depoId: F.Config.varsayilanDepoId,
+                            resimUrl: s.resim_url || '',
+                            tip: s.tip || 'duz',
+                            varyantlar: []
+                        };
+
+                        // Varyantlar
+                        if (s.varyantlar && s.varyantlar.length > 0) {
+                            for (var j = 0; j < s.varyantlar.length; j++) {
+                                var v = s.varyantlar[j];
+                                satirData.varyantlar.push({
+                                    modelId: v.model_id || null,
+                                    renkId: v.renk_id || null,
+                                    tmrId: v.telefon_model_renk_id || null,
+                                    modelAdi: v.model_adi || '',
+                                    renkAdi: v.renk_adi || '',
+                                    miktar: v.miktar || 0,
+                                    birimFiyat: 0,
+                                    urunKodu: v.urun_kodu || ''
+                                });
+                            }
+                        }
+
+                        F.Tablo.satirEkle(satirData);
+                    }
+                }
+                F.Tablo._yuklemeModu = false;
+
+                F.Events.emit('hesaplama:guncelle');
+            },
+            error: function() {
+                F.Yukle.hideLoading();
+            }
+        });
+    };
+
+    /**
+     * Sipariş yükle
+     */
+    F.Yukle.siparisYukle = function(id) {
+        F.Yukle.showLoading();
+
+        F.Helpers.ajaxGet('siparis-yukle.php?id=' + id, null, function(res) {
+            F.Yukle.hideLoading();
+
+            if (!res.success) {
+                Swal.fire({ icon: 'error', title: 'Hata', text: res.message || 'Sipariş yüklenemedi.', confirmButtonColor: '#103595' });
+                return;
+            }
+
+            F.Yukle.veriUygula(res.data);
+        });
+    };
+
+    /**
+     * İade yükle
+     */
+    F.Yukle.iadeYukle = function(id) {
+        F.Yukle.showLoading();
+
+        F.Helpers.ajaxGet('iade-yukle.php?id=' + id, null, function(res) {
+            F.Yukle.hideLoading();
+
+            if (!res.success) {
+                Swal.fire({ icon: 'error', title: 'Hata', text: res.message || 'İade yüklenemedi.', confirmButtonColor: '#103595' });
+                return;
+            }
+
+            F.Yukle.veriUygula(res.data);
+        });
+    };
+
+    /**
+     * Ön sipariş yükle
+     */
+    F.Yukle.onSiparisYukle = function(id) {
+        F.Yukle.showLoading();
+
+        F.Helpers.ajaxGet('on-siparis-yukle.php?id=' + id, null, function(res) {
+            F.Yukle.hideLoading();
+
+            if (!res.success) {
+                Swal.fire({ icon: 'error', title: 'Hata', text: res.message || 'Ön talep yüklenemedi.', confirmButtonColor: '#103595' });
+                return;
+            }
+
+            F.Yukle.veriUygula(res.data);
+
+            // Düzenleme modunda: state'i ön talep moduna kur (sonraki hızlı kaydetler bu kaydı günceller)
+            if (F.Config.mod === 'on-siparis-duzenle' && res.data) {
+                F.State.onTalepAktif = true;
+                F.State.onTalepSessionId = res.data.id;
+                F.State.onTalepSessionNo = res.data.on_siparis_no;
+                F.State.musteriId = res.data.musteri_id;
+                F.State.musteriTipi = res.data.musteri_tipi || 'bayi';
+                F.State.musteriAdi = res.data.musteri_adi || '';
+
+                // Mevcut ürün kalemlerini state'e yansıt (counter badge için)
+                F.State.onTalepUrunler = (res.data.satirlar || []).map(function(s) {
+                    return {
+                        urunId: s.urun_id,
+                        urunAdi: s.urun_adi,
+                        urunKodu: s.urun_kodu || '',
+                        tip: s.tip || 'duz',
+                        varyantlar: (s.varyantlar || []).map(function(v) {
+                            return {
+                                tip: v.tip || s.tip || 'duz',
+                                id: v.telefon_model_renk_id || v.renk_id || v.model_id || null,
+                                miktar: v.miktar || 0,
+                                modelId: v.model_id || null,
+                                renkId: v.renk_id || null,
+                                modelAdi: v.model_adi || '',
+                                renkAdi: v.renk_adi || ''
+                            };
+                        }),
+                        toplamMiktar: s.miktar || 0,
+                        itemIds: [],
+                        not: s.not || ''
+                    };
+                });
+
+                // Üst başlığa ön talep no'sunu yansıt
+                var noEl = document.getElementById('frmSiparisNo');
+                if (noEl && res.data.on_siparis_no) noEl.textContent = '— ' + res.data.on_siparis_no;
+
+                if (F.OnTalep && F.OnTalep.counterGuncelle) F.OnTalep.counterGuncelle();
+            }
+        });
+    };
+
+    /**
+     * Sevkiyat yükle
+     */
+    F.Yukle.sevkiyatYukle = function(id) {
+        F.Yukle.showLoading();
+
+        F.Helpers.ajaxGet('sevkiyat-yukle.php?id=' + id, null, function(res) {
+            F.Yukle.hideLoading();
+
+            if (!res.success) {
+                Swal.fire({ icon: 'error', title: 'Hata', text: res.message || 'Sevkiyat yüklenemedi.', confirmButtonColor: '#103595' });
+                return;
+            }
+
+            var data = res.data;
+
+            // Sevkiyat bilgilerini event ile panele gönder
+            F.Events.emit('sevkiyat:yuklendi', data);
+
+            // veriUygula'yı kullanarak satırları yükle (müşteri/tarih alanları boş kalacak, sorun değil)
+            F.Yukle.veriUygula(data);
+        });
+    };
+
+    /**
+     * Veriyi state ve DOM'a uygula
+     */
+    F.Yukle.veriUygula = function(data) {
+        // TL sipariş kontrol değişkenleri (fonksiyon kapsamında)
+        var isTlSiparis = (data.para_birimi === 'TRY' || data.para_birimi === 'TL');
+        var storedKur = isTlSiparis ? (parseFloat(data.doviz_kuru) || 0) : 0;
+
+        // Sipariş durumunu state'e kaydet
+        F.State.durum = data.durum || null;
+        F.State.bayiId = data.bayi_id || null;
+        F.State.teslimAlindiTarihi = data.teslim_alindi_tarihi || null;
+        F.State.siparisKaynagi = data.siparis_kaynagi || null;
+
+        // Taslak düzenleme modunda taslak butonlarını göster
+        if (data.durum === 'taslak' && F.Config.mod === 'siparis-duzenle') {
+            var btnTaslak = document.getElementById('frmTaslakBtn');
+            if (btnTaslak) btnTaslak.style.display = '';
+            var btnTaslakSil = document.getElementById('frmTaslakSilBtn');
+            if (btnTaslakSil) btnTaslakSil.style.display = '';
+        }
+
+        // Miktar değişikliği verisini state'e kaydet
+        F.State.miktarDegisiklikVar = data.miktar_degisiklik_var || false;
+        F.State.miktarDegisiklikleri = data.miktar_degisiklikleri || [];
+
+        // Sipariş/Ön sipariş no'yu panel başlığına yaz (görüntüleme modu)
+        var goruntuNo = data.siparis_no || data.on_siparis_no;
+        if (goruntuNo && F.Config.readonly) {
+            var noEl = document.getElementById('frmSiparisNo');
+            if (noEl) noEl.textContent = '— ' + goruntuNo;
+        }
+
+        // Müşteri bilgisi
+        if (data.musteri_id) {
+            F.State.paraBirimi = data.para_birimi || 'USD';
+
+            // TL sipariş yüklemede: Doviz modülünün musteri:secildi event'inde otomatik aktifleşmesini engelle
+            // Satırlar yüklendikten sonra elle aktifleştirilecek
+            if (isTlSiparis && F.Doviz) {
+                F.Doviz._yuklemeModuAtla = true;
+            }
+
+            // Widget'a set et (state + input + badge hepsini halleder)
+            if (F.Musteri && F.Musteri.set) {
+                F.Musteri.set({
+                    id: data.musteri_id,
+                    tip: data.musteri_tipi,
+                    adi: data.musteri_adi,
+                    fiyat_grubu_id: data.fiyat_grubu_id,
+                    fiyat_grubu_adi: data.fiyat_grubu_adi,
+                    fiyat_liste_tipi: data.fiyat_liste_tipi
+                });
+            }
+
+            // KDV: müşterinin güncel ayarını State'e taşı (F.Musteri.uygula ile tutarlı).
+            // Müşteri düzenlemede değiştirilirse uygula() doğru KDV'yi yeniden uygular.
+            // NOT: frmKdvOrani input'una BURADA dokunulmaz — aşağıda kayıtlı satır oranından
+            // doğru dolduruluyor (KDV'siz siparişte 0 korunur). Burada yalnızca State beslenir.
+            F.State.kdvDahil = data.musteri_kdv_dahil || 'hayir';
+            F.State.musteriKdvOrani = parseFloat(data.musteri_kdv_orani) || 0;
+
+            // Fiyat listesi event'i tetikle
+            F.Events.emit('musteri:secildi', {
+                id: data.musteri_id,
+                tip: data.musteri_tipi,
+                adi: data.musteri_adi,
+                fiyatGrubuId: data.fiyat_grubu_id,
+                paraBirimi: data.para_birimi
+            });
+
+            // Flag'i geri al
+            if (F.Doviz) {
+                F.Doviz._yuklemeModuAtla = false;
+            }
+        }
+
+        // Tarihler (sipariş: siparis_tarihi, iade: iade_tarihi)
+        var tarihTr = data.siparis_tarihi_tr || data.iade_tarihi_tr;
+        if (tarihTr) {
+            var tarihEl = document.getElementById('frmTarih');
+            if (tarihEl && tarihEl._flatpickr) {
+                tarihEl._flatpickr.setDate(tarihTr, true, 'd.m.Y');
+            } else if (tarihEl) {
+                tarihEl.value = tarihTr;
+            }
+        }
+
+        // Sipariş/İade saati
+        var saatDeger = data.siparis_saati || data.iade_saati || '';
+        if (saatDeger) {
+            var saatEl = document.getElementById('frmSaat');
+            if (saatEl && saatEl._flatpickr) {
+                saatEl._flatpickr.setDate(saatDeger, true, 'H:i');
+            } else if (saatEl) {
+                saatEl.value = saatDeger;
+            }
+        }
+
+        // Sevk tarihi - Türkçe format + format parametresi ile tutarlı parse
+        var sevkTr = data.teslimat_tarihi_tr || data.teslim_tarihi_tr || data.islem_tarihi_tr;
+        if (sevkTr) {
+            var sevkEl = document.getElementById('frmSevkTarih');
+            if (sevkEl) {
+                if (sevkEl._flatpickr) {
+                    sevkEl._flatpickr.setDate(sevkTr, false, 'd.m.Y');
+                } else {
+                    sevkEl.value = sevkTr;
+                }
+            }
+        }
+
+        // Vade tarihi - Türkçe format + format parametresi ile tutarlı parse
+        var vadeTr = data.vade_tarihi_tr;
+        if (vadeTr) {
+            var vadeEl = document.getElementById('frmVade');
+            if (vadeEl) {
+                if (vadeEl._flatpickr) {
+                    vadeEl._flatpickr.setDate(vadeTr, false, 'd.m.Y');
+                } else {
+                    vadeEl.value = vadeTr;
+                }
+            }
+        }
+
+        // Not
+        if (data.not) {
+            var notEl = document.getElementById('frmNot');
+            if (notEl) notEl.value = data.not;
+        }
+
+        // Oluşturan / Düzenleyen bilgisi
+        var usrWrap = document.getElementById('frmUsrWrap');
+        if (usrWrap) {
+            var elOlusAdi = document.getElementById('frmOlusturanBilgi');
+            var elOlusTarih = document.getElementById('frmOlusturanTarih');
+            if (elOlusAdi) elOlusAdi.textContent = data.olusturan_kullanici || 'Sistem';
+            if (elOlusTarih) elOlusTarih.textContent = data.olusturulma_tarihi_tr || '';
+
+            var duzEl = document.getElementById('frmUsrDuzenleyen');
+            var showDuz = false;
+            if (data.duzenleyen_kullanici && data.guncellenme_tarihi_tr) {
+                document.getElementById('frmDuzenleyenBilgi').textContent = data.duzenleyen_kullanici;
+                document.getElementById('frmDuzenleyenTarih').textContent = data.guncellenme_tarihi_tr;
+                duzEl.style.display = '';
+                showDuz = true;
+            } else if (data.guncellenme_tarihi_tr && !data.duzenleyen_kullanici) {
+                document.getElementById('frmDuzenleyenBilgi').textContent = 'Güncellendi';
+                document.getElementById('frmDuzenleyenTarih').textContent = data.guncellenme_tarihi_tr;
+                duzEl.style.display = '';
+                showDuz = true;
+            }
+
+            // Tek kutu varken kompakt yatay tasarım
+            if (!showDuz) {
+                usrWrap.classList.add('frm-usr-solo');
+            }
+
+            usrWrap.style.display = '';
+        }
+
+        // SD Kart / Prim (kaydedilmiş değerler)
+        if (data.sd_kart_toplam) {
+            F.State.sdKartToplam = parseFloat(data.sd_kart_toplam) || 0;
+        }
+        if (data.prim_tutari) {
+            F.State.primTutari = parseFloat(data.prim_tutari) || 0;
+        }
+
+        // İndirim (fiyat listesinden gelen değer — State'e ata)
+        if (data.indirim_yuzdesi) {
+            F.State.indirimYuzde = parseFloat(data.indirim_yuzdesi) || 0;
+        }
+        if (data.indirim_tutari) {
+            F.State.indirimTutari = parseFloat(data.indirim_tutari) || 0;
+        }
+        // Hızlı indirim yüzdesi (kuralsız liste fiyatında toplu indirim) — input siparis:yuklendi ile senkronlanır
+        F.State.hizliIndirimYuzde = parseFloat(data.hizli_indirim_yuzdesi) || 0;
+
+        // İade kategorisi
+        if (data.iade_kategorisi) {
+            F.State.iadeKategorisi = data.iade_kategorisi;
+            F.Config.iadeKategorisi = data.iade_kategorisi;
+            // UI butonlarını güncelle
+            if (F.Init && F.Init.iadeKategoriInit) {
+                var btns = document.querySelectorAll('.frm-iade-kat-btn');
+                btns.forEach(function(b) {
+                    b.classList.toggle('active', b.getAttribute('data-kat') === data.iade_kategorisi);
+                });
+                var banner = document.getElementById('frmIadeKatBanner');
+                var bannerText = document.getElementById('frmIadeKatBannerText');
+                if (banner) banner.classList.toggle('arizali', data.iade_kategorisi === 'arizali');
+                // Hedef depo listesini kategoriye göre kur + orijinal depoyu seçili getir
+                if (F.IadeAlanlari && F.IadeAlanlari.depolariYenile) {
+                    F.IadeAlanlari.depolariYenile(data.iade_kategorisi, data.iade_depo_id || 0);
+                }
+                if (bannerText) {
+                    bannerText.textContent = data.iade_kategorisi === 'arizali'
+                        ? 'Ar\u0131zal\u0131 iade \u2014 Varyant se\u00e7imi gerekmez, ar\u0131za deposuna aktar\u0131l\u0131r.'
+                        : '\u00dcr\u00fcn iadesi \u2014 Varyant bilgileriyle girilir.';
+                }
+            }
+        }
+
+        // Kargo alanları → State'e kaydet + eski uyumluluk
+        F.State.kargoFirmasi = data.kargo_firmasi || null;
+        F.State.kargoTakipNo = data.kargo_takip_no || null;
+        F.State.kargolamaTarihi = data.kargolama_tarihi_tr || null;
+
+        if (data.kargo_takip_no) {
+            var ktEl = document.getElementById('frmKargoTakipNo');
+            if (ktEl) ktEl.value = data.kargo_takip_no;
+        }
+        if (data.kargo_firmasi) {
+            var kfEl = document.getElementById('frmKargoFirmasi');
+            if (kfEl) kfEl.value = data.kargo_firmasi;
+        }
+        if (data.koli_sayisi) {
+            var ksEl = document.getElementById('frmKoliSayisi');
+            if (ksEl) ksEl.value = data.koli_sayisi;
+        }
+
+        // Satırları yükle (duplikasyon kontrolünü bypass et)
+        F.Tablo._yuklemeModu = true;
+        if (data.satirlar && data.satirlar.length > 0) {
+            for (var i = 0; i < data.satirlar.length; i++) {
+                var s = data.satirlar[i];
+                var satirData = {
+                    tip: s.tip || 'duz',
+                    urunId: s.urun_id,
+                    urunKaynak: s.urun_kaynak || 'sunix',
+                    urunAdi: s.urun_adi,
+                    urunKodu: s.urun_kodu,
+                    resimUrl: s.resim_url,
+                    kategoriId: s.kategori_id,
+                    miktar: parseInt(s.miktar) || 0,
+                    birimFiyat: parseFloat(s.birim_fiyat) || 0,
+                    normalBirimFiyat: parseFloat(s.normal_birim_fiyat || s.birim_fiyat) || 0,
+                    manuelTlFiyat: (isTlSiparis && parseInt(s.manuel_tl_fiyat)) ? parseFloat(s.birim_fiyat) : null,
+                    fiyatKurali: null,
+                    kdvOrani: (s.kdv_orani != null) ? parseFloat(s.kdv_orani) : ((s.urun_kdv_orani != null) ? parseFloat(s.urun_kdv_orani) : 0),
+                    kdvTutar: parseFloat(s.kdv_tutari) || 0,
+                    toplam: parseFloat(s.toplam_fiyat || s.toplam) || 0,
+                    sdKart: parseInt(s.sd_kart) || 0,
+                    depoId: s.depo_id ? parseInt(s.depo_id) : F.Config.varsayilanDepoId,
+                    not: s.not || '',
+                    varyantlar: (s.varyantlar || []).map(function(v) {
+                        var vAdi = '';
+                        if (v.renk_adi || v.renkAdi) {
+                            vAdi = v.renk_adi || v.renkAdi;
+                        } else if (v.model_adi || v.modelAdi) {
+                            vAdi = v.model_adi || v.modelAdi;
+                        }
+
+                        // Tip ve ID belirle (modal-varyant-render.js restore key'leri için)
+                        var parentTip = s.tip || 'duz';
+                        var vTip, vId;
+                        if (parentTip === 'renk') {
+                            vTip = 'renk';
+                            vId = v.renk_id != null ? v.renk_id : v.renkId;
+                        } else if (parentTip === 'kilif') {
+                            vTip = 'kilif';
+                            vId = v.renk_id != null ? v.renk_id : v.renkId;
+                        } else if (parentTip === 'model' || parentTip === 'model_renk') {
+                            var hasTmr = (v.telefon_model_renk_id != null && v.telefon_model_renk_id !== 0) ||
+                                         (v.telefonModelRenkId != null && v.telefonModelRenkId !== 0);
+                            if (hasTmr) {
+                                vTip = 'model_renk';
+                                vId = v.telefon_model_renk_id != null ? v.telefon_model_renk_id : v.telefonModelRenkId;
+                            } else {
+                                vTip = 'model';
+                                vId = v.utm_id || (v.model_id != null ? v.model_id : v.modelId);
+                            }
+                        } else {
+                            vTip = 'model_renk';
+                            vId = v.telefon_model_renk_id != null ? v.telefon_model_renk_id : v.telefonModelRenkId;
+                        }
+
+                        // Fiyat alanları: 0 geçerli değerdir, null/undefined ise fallback
+                        var vNormRaw = (v.normal_birim_fiyat != null) ? v.normal_birim_fiyat
+                                     : ((v.normalBirimFiyat != null) ? v.normalBirimFiyat
+                                     : ((v.birim_fiyat != null) ? v.birim_fiyat
+                                     : ((v.birimFiyat != null) ? v.birimFiyat : 0)));
+                        var vBirimRaw = (v.birim_fiyat != null) ? v.birim_fiyat
+                                      : ((v.birimFiyat != null) ? v.birimFiyat : 0);
+                        return {
+                            tip: vTip,
+                            id: vId,
+                            utmId: v.utm_id || v.utmId || null,
+                            depoId: v.depo_id ? parseInt(v.depo_id) : null,
+                            normalBirimFiyat: parseFloat(vNormRaw) || 0,
+                            adi: vAdi,
+                            detayId: v.detay_id || v.detayId,
+                            modelId: v.model_id != null ? v.model_id : v.modelId,
+                            renkId: v.renk_id != null ? v.renk_id : v.renkId,
+                            telefonModelRenkId: v.telefon_model_renk_id != null ? v.telefon_model_renk_id : v.telefonModelRenkId,
+                            modelAdi: v.model_adi || v.modelAdi || '',
+                            renkAdi: v.renk_adi || v.renkAdi || '',
+                            renkKodu: v.renk_kodu || v.renkKodu || '',
+                            markaAdi: v.marka_adi || v.markaAdi || '',
+                            markaLogo: v.marka_logo || v.markaLogo || '',
+                            markaRenk: v.marka_renk || v.markaRenk || '',
+                            miktar: parseInt(v.miktar) || 0,
+                            birimFiyat: parseFloat(vBirimRaw) || 0,
+                            manuelTlFiyat: (isTlSiparis && parseInt(v.manuel_tl_fiyat)) ? parseFloat(vBirimRaw) : null,
+                            toplam: parseFloat(v.toplam_fiyat || v.toplam) || 0,
+                            orijinalMiktar: v.orijinal_miktar != null ? parseInt(v.orijinal_miktar) : (v.orijinalMiktar || null),
+                            not: v.not || ''
+                        };
+                    })
+                };
+
+                // Kilif satırları için paketBilgi oluştur
+                if (satirData.tip === 'kilif' && s.paket_adet) {
+                    satirData.paketBilgi = {
+                        tipLabel: s.paket_tipi === 'ayri' ? 'Ayrı' : 'Karma',
+                        paketAdet: parseInt(s.paket_adet) || 0,
+                        paketSayisi: Math.floor(satirData.miktar / (parseInt(s.paket_adet) || 1))
+                    };
+                }
+
+                F.Tablo.satirEkle(satirData);
+            }
+        }
+        F.Tablo._yuklemeModu = false;
+
+        // Düzenleme modunda orijinal miktarları stok kontrolüne kaydet
+        if (F.Config.mod === 'siparis-duzenle' && F.StokKontrol) {
+            for (var om = 0; om < F.State.satirlar.length; om++) {
+                var omS = F.State.satirlar[om];
+                if (omS.tip === 'duz') {
+                    F.StokKontrol.orijinalMiktarKaydet(omS.urunId, '', 0, omS.miktar || 0);
+                } else if (omS.tip === 'kilif' && omS.varyantlar && omS.varyantlar.length > 0) {
+                    // Kılıf: model bazında topla (kılıf stok kontrolü model bazında, utm.id kullanır)
+                    var kilifModelToplam = {};
+                    for (var omK = 0; omK < omS.varyantlar.length; omK++) {
+                        var omKv = omS.varyantlar[omK];
+                        var omKmId = omKv.utmId || omKv.modelId || 0;
+                        if (omKmId) kilifModelToplam[omKmId] = (kilifModelToplam[omKmId] || 0) + (omKv.miktar || 0);
+                    }
+                    for (var kmId in kilifModelToplam) {
+                        F.StokKontrol.orijinalMiktarKaydet(omS.urunId, 'model', parseInt(kmId), kilifModelToplam[kmId]);
+                    }
+                } else if (omS.varyantlar && omS.varyantlar.length > 0) {
+                    // Renk/Model/Model_Renk
+                    for (var omV = 0; omV < omS.varyantlar.length; omV++) {
+                        var omVr = omS.varyantlar[omV];
+                        var omVTip = omVr.tip || '';
+                        var omVId = omVr.id || 0;
+                        F.StokKontrol.orijinalMiktarKaydet(omS.urunId, omVTip, omVId, omVr.miktar || 0);
+                    }
+                }
+            }
+        }
+
+        // TL sipariş yükleme: Satır fiyatlarını USD'ye reverse-convert et
+        // State USD tutar, display katmanı tekrar TL'ye çevirir
+        // Manuel TL satırlar: reverse-convert yapma, TL fiyat korunsun
+        if (isTlSiparis && storedKur > 0 && F.Doviz) {
+            for (var ri = 0; ri < F.State.satirlar.length; ri++) {
+                var rs = F.State.satirlar[ri];
+                if (rs.manuelTlFiyat != null) {
+                    // Manuel TL: USD'yi TL'den hesapla (6 ondalık hassasiyet)
+                    rs.birimFiyat = F.Helpers.bankersRound(rs.manuelTlFiyat / storedKur, 6);
+                    rs.normalBirimFiyat = rs.birimFiyat;
+                } else {
+                    // 0 fiyat geçerli değer — dönüşümde fallback yok
+                    rs.birimFiyat = F.Helpers.bankersRound((rs.birimFiyat || 0) / storedKur, 2);
+                    var rsNormBase = (rs.normalBirimFiyat != null) ? rs.normalBirimFiyat : (rs.birimFiyat || 0);
+                    rs.normalBirimFiyat = F.Helpers.bankersRound(rsNormBase / storedKur, 2);
+                }
+                // Varyant fiyatları da reverse-convert (0 fiyat geçerli değerdir)
+                if (rs.varyantlar && rs.varyantlar.length > 0) {
+                    for (var rj = 0; rj < rs.varyantlar.length; rj++) {
+                        var rv = rs.varyantlar[rj];
+                        if (rv.manuelTlFiyat != null) {
+                            // Manuel TL varyant
+                            rv.birimFiyat = F.Helpers.bankersRound(rv.manuelTlFiyat / storedKur, 6);
+                            rv.normalBirimFiyat = rv.birimFiyat;
+                        } else {
+                            if (rv.birimFiyat != null) rv.birimFiyat = F.Helpers.bankersRound(rv.birimFiyat / storedKur, 2);
+                            if (rv.normalBirimFiyat != null) rv.normalBirimFiyat = F.Helpers.bankersRound(rv.normalBirimFiyat / storedKur, 2);
+                        }
+                    }
+                }
+            }
+            // Döviz modunu aktifle (kayıtlı kur ile)
+            F.Doviz.aktifEt(storedKur);
+        } else if (isTlSiparis && !storedKur && F.Doviz) {
+            // Eski TL sipariş (doviz_kuru=NULL) — güncel kur ile aktifle
+            F.Doviz.aktifEt();
+        }
+
+        // KDV oranı input'unu ata
+        var kdvInp = document.getElementById('frmKdvOrani');
+        if (kdvInp) {
+            // Önce global kdv_orani'nı dene (iade_talepleri / siparisler tablosundan), sonra satırdan
+            if (data.kdv_orani != null) {
+                kdvInp.value = data.kdv_orani;
+            } else if (F.State.satirlar.length > 0 && F.State.satirlar[0].kdvOrani != null) {
+                kdvInp.value = F.State.satirlar[0].kdvOrani;
+            } else {
+                kdvInp.value = 0;
+            }
+        }
+
+        // Readonly mod
+        if (F.Config.readonly) {
+            F.Yukle.readonlyUygula();
+        }
+
+        // Sipariş düzenleme kilidi: düzenlenebilir durumlar dışında engelle.
+        // - Sunix tedarik siparişi (sunix-siparis): yalnızca taslak/Proforma aşamasında düzenlenebilir;
+        //   sonrası merkez onay akışına girdiği için bayi tarafından değiştirilemez.
+        // - Mağazam kendi satışı (musteri-siparis): bayinin kendi fişidir → tüm AKTİF satışlar serbestçe
+        //   düzenlenebilir; yalnızca iptal/iade edilmiş olanlar kilitlidir. (Backend
+        //   musteri-siparis/siparis-kaydet.php ile birebir aynı kural: onaylandi vb. düzenlenirken eski stok
+        //   iade edilip yeni miktar yeniden düşülür; form.php görüntüleme de Düzenle butonunu aktif satışa gösterir.)
+        if (F.Config.mod === 'siparis-duzenle' && F.State.durum) {
+            var isSunixSiparis = (F.Config.ajaxBase || '').indexOf('sunix-siparis') !== -1;
+            var duzenlenebilir = isSunixSiparis
+                ? (F.State.durum === 'taslak' || F.State.durum === 'onay_bekliyor')
+                : (F.State.durum !== 'iptal_edildi' && F.State.durum !== 'iade');
+            if (!duzenlenebilir) {
+                F.Yukle.readonlyUygula();
+                var durumEtiketi = {
+                    'onay_bekliyor': 'Proforma',
+                    'hazirlaniyor': 'İrsaliye',
+                    'muhasebe_onayi': 'Fatura',
+                    'kargolandi': 'Kargoya Verildi',
+                    'teslim_edildi': 'Teslim Edildi',
+                    'iptal_edildi': 'İptal Edildi',
+                    'onaylandi': 'Onaylandı',
+                    'bekliyor': 'Onay Bekliyor',
+                    'red': 'Reddedildi',
+                    'iade': 'İade'
+                };
+                var durumText = durumEtiketi[F.State.durum] || F.State.durum;
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Düzenleme Kapalı',
+                    html: 'Bu sipariş <b>' + durumText + '</b> aşamasında olduğu için düzenlenemez.',
+                    confirmButtonColor: '#103595',
+                    confirmButtonText: 'Tamam'
+                });
+            }
+        }
+
+        // Hesaplama güncelle
+        F.Events.emit('hesaplama:guncelle');
+
+        // Sipariş/iade yüklendi event'i
+        F.Events.emit('siparis:yuklendi');
+
+        // Yükleme event'lerinin dirty state yapmasını önle
+        setTimeout(function() {
+            if (F.Dirty && F.Dirty.temizle) F.Dirty.temizle();
+        }, 100);
+    };
+
+    /**
+     * Readonly mod uygula
+     */
+    F.Yukle.readonlyUygula = function() {
+        // Input'ları disable et (toggle hariç)
+        document.querySelectorAll('.frm input, .frm select, .frm textarea').forEach(function(el) {
+            if (el.id === 'frmVaryantToggle') return;
+            el.disabled = true;
+        });
+
+        // Sil butonlarını ve sil sütun header'ını gizle
+        document.querySelectorAll('.frm-del-cell').forEach(function(el) {
+            el.style.display = 'none';
+        });
+        var thead = document.querySelector('.frm-l table thead tr');
+        if (thead) {
+            var lastTh = thead.querySelector('th:last-child');
+            if (lastTh && lastTh.style.width === '36px') lastTh.style.display = 'none';
+        }
+
+        // Arama gizle
+        var aramaEl = document.getElementById('frmUrunArama');
+        if (aramaEl) {
+            var searchBox = aramaEl.closest('.frm-search');
+            if (searchBox) searchBox.style.display = 'none';
+        }
+
+        // Müşteri arama widget'ını disable et
+        var nmaInput = document.getElementById('nmaInput');
+        if (nmaInput) nmaInput.disabled = true;
+        var nmaClearBtn = document.getElementById('nmaClearBtn');
+        if (nmaClearBtn) nmaClearBtn.style.display = 'none';
+
+        // Butonları gizle
+        var btnKaydet = document.getElementById('frmKaydetBtn');
+        if (btnKaydet) btnKaydet.style.display = 'none';
+        var btnTaslak = document.getElementById('frmTaslakBtn');
+        if (btnTaslak) btnTaslak.style.display = 'none';
+    };
+
+    /**
+     * Kopyalama modu: mevcut siparişi yükle, müşteri hariç uygula
+     */
+    F.Yukle.kopyalaYukle = function(kopyalaId) {
+        F.Yukle.showLoading();
+
+        F.Helpers.ajaxGet('siparis-yukle.php?id=' + kopyalaId, null, function(res) {
+            F.Yukle.hideLoading();
+
+            if (!res.success) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Hata',
+                    text: res.message || 'Kaynak sipariş yüklenemedi.',
+                    confirmButtonColor: '#103595'
+                });
+                return;
+            }
+
+            F.Yukle.kopyalaUygula(res.data);
+        }, function() {
+            F.Yukle.hideLoading();
+            Swal.fire({
+                icon: 'error',
+                title: 'Bağlantı Hatası',
+                text: 'Sunucuya bağlanılamadı. Lütfen tekrar deneyin.',
+                confirmButtonColor: '#103595'
+            });
+        });
+    };
+
+    /**
+     * Kopyalama verisini yeni forma uygula
+     * Müşteri bilgisi HARİÇ tüm ürün verileri birebir kopyalanır
+     */
+    F.Yukle.kopyalaUygula = function(data) {
+        // TL sipariş kontrol değişkenleri
+        var isTlSiparis = (data.para_birimi === 'TRY' || data.para_birimi === 'TL');
+        var storedKur = isTlSiparis ? (parseFloat(data.doviz_kuru) || 0) : 0;
+
+        // NOT: Müşteri bilgileri KASITLI olarak atlanır (boş bırakılır)
+        // NOT: Tarihler atlanır (bugün varsayılan kalır)
+        // NOT: Durum, kargo, oluşturan bilgileri atlanır
+
+        // Sipariş notu kopyala
+        if (data.not) {
+            var notEl = document.getElementById('frmNot');
+            if (notEl) notEl.value = data.not;
+        }
+
+        // İndirim bilgisini kopyala
+        if (data.indirim_yuzdesi) {
+            F.State.indirimYuzde = parseFloat(data.indirim_yuzdesi) || 0;
+        }
+        if (data.indirim_tutari) {
+            F.State.indirimTutari = parseFloat(data.indirim_tutari) || 0;
+        }
+        // Hızlı indirim yüzdesi kopyala (satır fiyatları zaten kopyalanan birim/normal ile geliyor)
+        F.State.hizliIndirimYuzde = parseFloat(data.hizli_indirim_yuzdesi) || 0;
+
+        // Satırları yükle (duplikasyon kontrolünü bypass et)
+        F.Tablo._yuklemeModu = true;
+        if (data.satirlar && data.satirlar.length > 0) {
+            for (var i = 0; i < data.satirlar.length; i++) {
+                var s = data.satirlar[i];
+                var satirData = {
+                    tip: s.tip || 'duz',
+                    urunId: s.urun_id,
+                    urunKaynak: s.urun_kaynak || 'sunix',
+                    urunAdi: s.urun_adi,
+                    urunKodu: s.urun_kodu,
+                    resimUrl: s.resim_url,
+                    kategoriId: s.kategori_id,
+                    miktar: parseInt(s.miktar) || 0,
+                    birimFiyat: parseFloat(s.birim_fiyat) || 0,
+                    normalBirimFiyat: parseFloat(s.normal_birim_fiyat || s.birim_fiyat) || 0,
+                    manuelTlFiyat: (isTlSiparis && parseInt(s.manuel_tl_fiyat)) ? parseFloat(s.birim_fiyat) : null,
+                    fiyatKurali: null,
+                    kdvOrani: (s.kdv_orani != null) ? parseFloat(s.kdv_orani) : ((s.urun_kdv_orani != null) ? parseFloat(s.urun_kdv_orani) : 0),
+                    kdvTutar: parseFloat(s.kdv_tutari) || 0,
+                    toplam: parseFloat(s.toplam_fiyat || s.toplam) || 0,
+                    sdKart: parseInt(s.sd_kart) || 0,
+                    depoId: s.depo_id ? parseInt(s.depo_id) : F.Config.varsayilanDepoId,
+                    not: s.not || '',
+                    varyantlar: (s.varyantlar || []).map(function(v) {
+                        var vAdi = '';
+                        if (v.renk_adi || v.renkAdi) {
+                            vAdi = v.renk_adi || v.renkAdi;
+                        } else if (v.model_adi || v.modelAdi) {
+                            vAdi = v.model_adi || v.modelAdi;
+                        }
+
+                        var parentTip = s.tip || 'duz';
+                        var vTip, vId;
+                        if (parentTip === 'renk') {
+                            vTip = 'renk';
+                            vId = v.renk_id != null ? v.renk_id : v.renkId;
+                        } else if (parentTip === 'kilif') {
+                            vTip = 'kilif';
+                            vId = v.renk_id != null ? v.renk_id : v.renkId;
+                        } else if (parentTip === 'model' || parentTip === 'model_renk') {
+                            var hasTmr = (v.telefon_model_renk_id != null && v.telefon_model_renk_id !== 0) ||
+                                         (v.telefonModelRenkId != null && v.telefonModelRenkId !== 0);
+                            if (hasTmr) {
+                                vTip = 'model_renk';
+                                vId = v.telefon_model_renk_id != null ? v.telefon_model_renk_id : v.telefonModelRenkId;
+                            } else {
+                                vTip = 'model';
+                                vId = v.utm_id || (v.model_id != null ? v.model_id : v.modelId);
+                            }
+                        } else {
+                            vTip = 'model_renk';
+                            vId = v.telefon_model_renk_id != null ? v.telefon_model_renk_id : v.telefonModelRenkId;
+                        }
+
+                        // Fiyat alanları: 0 geçerli değerdir, null/undefined ise fallback
+                        var vNormRaw = (v.normal_birim_fiyat != null) ? v.normal_birim_fiyat
+                                     : ((v.normalBirimFiyat != null) ? v.normalBirimFiyat
+                                     : ((v.birim_fiyat != null) ? v.birim_fiyat
+                                     : ((v.birimFiyat != null) ? v.birimFiyat : 0)));
+                        var vBirimRaw = (v.birim_fiyat != null) ? v.birim_fiyat
+                                      : ((v.birimFiyat != null) ? v.birimFiyat : 0);
+                        return {
+                            tip: vTip,
+                            id: vId,
+                            utmId: v.utm_id || v.utmId || null,
+                            depoId: v.depo_id ? parseInt(v.depo_id) : null,
+                            normalBirimFiyat: parseFloat(vNormRaw) || 0,
+                            adi: vAdi,
+                            modelId: v.model_id != null ? v.model_id : v.modelId,
+                            renkId: v.renk_id != null ? v.renk_id : v.renkId,
+                            telefonModelRenkId: v.telefon_model_renk_id != null ? v.telefon_model_renk_id : v.telefonModelRenkId,
+                            modelAdi: v.model_adi || v.modelAdi || '',
+                            renkAdi: v.renk_adi || v.renkAdi || '',
+                            renkKodu: v.renk_kodu || v.renkKodu || '',
+                            markaAdi: v.marka_adi || v.markaAdi || '',
+                            markaLogo: v.marka_logo || v.markaLogo || '',
+                            markaRenk: v.marka_renk || v.markaRenk || '',
+                            miktar: parseInt(v.miktar) || 0,
+                            birimFiyat: parseFloat(vBirimRaw) || 0,
+                            manuelTlFiyat: (isTlSiparis && parseInt(v.manuel_tl_fiyat)) ? parseFloat(vBirimRaw) : null,
+                            toplam: parseFloat(v.toplam_fiyat || v.toplam) || 0,
+                            orijinalMiktar: null, // Kopyalamada orijinal miktar takibi sıfırlanır
+                            not: v.not || ''
+                        };
+                    })
+                };
+
+                // Kilif satırları için paketBilgi oluştur
+                if (satirData.tip === 'kilif' && s.paket_adet) {
+                    satirData.paketBilgi = {
+                        tipLabel: s.paket_tipi === 'ayri' ? 'Ayrı' : 'Karma',
+                        paketAdet: parseInt(s.paket_adet) || 0,
+                        paketSayisi: Math.floor(satirData.miktar / (parseInt(s.paket_adet) || 1))
+                    };
+                }
+
+                F.Tablo.satirEkle(satirData);
+            }
+        }
+        F.Tablo._yuklemeModu = false;
+
+        // TL sipariş kopyalama: Satır fiyatlarını USD'ye reverse-convert et + döviz modunu aktifle
+        // Manuel TL satırlar: reverse-convert yapma, TL fiyat korunsun
+        if (isTlSiparis && storedKur > 0 && F.Doviz) {
+            for (var ri = 0; ri < F.State.satirlar.length; ri++) {
+                var rs = F.State.satirlar[ri];
+                if (rs.manuelTlFiyat != null) {
+                    rs.birimFiyat = F.Helpers.bankersRound(rs.manuelTlFiyat / storedKur, 6);
+                    rs.normalBirimFiyat = rs.birimFiyat;
+                } else {
+                    // 0 fiyat geçerli değer — dönüşümde fallback yok
+                    rs.birimFiyat = F.Helpers.bankersRound((rs.birimFiyat || 0) / storedKur, 2);
+                    var rsNormBase2 = (rs.normalBirimFiyat != null) ? rs.normalBirimFiyat : (rs.birimFiyat || 0);
+                    rs.normalBirimFiyat = F.Helpers.bankersRound(rsNormBase2 / storedKur, 2);
+                }
+                if (rs.varyantlar && rs.varyantlar.length > 0) {
+                    for (var rj = 0; rj < rs.varyantlar.length; rj++) {
+                        var rv = rs.varyantlar[rj];
+                        if (rv.manuelTlFiyat != null) {
+                            rv.birimFiyat = F.Helpers.bankersRound(rv.manuelTlFiyat / storedKur, 6);
+                            rv.normalBirimFiyat = rv.birimFiyat;
+                        } else {
+                            if (rv.birimFiyat != null) rv.birimFiyat = F.Helpers.bankersRound(rv.birimFiyat / storedKur, 2);
+                            if (rv.normalBirimFiyat != null) rv.normalBirimFiyat = F.Helpers.bankersRound(rv.normalBirimFiyat / storedKur, 2);
+                        }
+                    }
+                }
+            }
+            // Kayıtlı kur ile TL modunu aktifleştir (₺ sembolü + panel)
+            F.Doviz.aktifEt(storedKur);
+        } else if (isTlSiparis && !storedKur && F.Doviz) {
+            // Eski TL sipariş (doviz_kuru=NULL) — güncel kur ile aktifle
+            F.Doviz.aktifEt();
+        }
+
+        // KDV oranı input'unu ata
+        var kdvInp = document.getElementById('frmKdvOrani');
+        if (kdvInp) {
+            if (data.kdv_orani != null) {
+                kdvInp.value = data.kdv_orani;
+            } else if (F.State.satirlar.length > 0 && F.State.satirlar[0].kdvOrani != null) {
+                kdvInp.value = F.State.satirlar[0].kdvOrani;
+            }
+        }
+
+        // Hesaplama güncelle
+        F.Events.emit('hesaplama:guncelle');
+
+        // Hızlı indirim input + görünürlüğü senkronla (kopyalamada siparis:yuklendi emit edilmez)
+        if (F.HizliIndirim && F.HizliIndirim.senkronla) F.HizliIndirim.senkronla();
+
+        // Kopyalama başarılı bildirimi
+        var siparisNo = data.siparis_no || '';
+        Swal.fire({
+            icon: 'success',
+            title: 'Sipariş Kopyalandı',
+            text: (siparisNo ? siparisNo + ' verileri' : 'Sipariş verileri') + ' yeni forma aktarıldı. Lütfen müşteri/bayi seçin.',
+            confirmButtonColor: '#103595',
+            timer: 3500,
+            timerProgressBar: true
+        });
+    };
+
+    /**
+     * Loading göster/gizle
+     */
+    F.Yukle.showLoading = function() {
+        var el = document.getElementById('frmTbody');
+        if (el) el.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#999"><i class="icon-loader" style="animation:spin 1s linear infinite"></i> Yükleniyor...</td></tr>';
+    };
+
+    F.Yukle.hideLoading = function() {
+        var el = document.getElementById('frmTbody');
+        if (el) el.innerHTML = '';
+    };
+
+    /**
+     * Çin siparişi yükle
+     */
+    F.Yukle.cinSiparisYukle = function(id) {
+        if (!id) return;
+        F.Yukle.showLoading();
+        $.ajax({
+            url: F.Config.ajaxBase + 'cin-siparis-yukle.php',
+            type: 'GET',
+            data: { id: id },
+            dataType: 'json',
+            success: function(res) {
+                F.Yukle.hideLoading();
+                if (!res.success) {
+                    Swal.fire('Hata', res.message || 'Sipariş yüklenemedi.', 'error');
+                    return;
+                }
+                var data = res.data;
+
+                // Sipariş bilgilerini doldur
+                var notTrEl = document.getElementById('frmCsNotTr');
+                var notEnEl = document.getElementById('frmCsNotEn');
+                if (notTrEl && data.notTr) notTrEl.value = data.notTr;
+                if (notEnEl && data.notEn) notEnEl.value = data.notEn;
+
+                // Sipariş tarihi (d.m.Y)
+                if (F.CinSiparisAlanlari && F.CinSiparisAlanlari.tarihSet) {
+                    F.CinSiparisAlanlari.tarihSet(data.siparisTarihiTr || data.siparisTarihi || '');
+                }
+
+                // Durum badge
+                if (F.CinSiparisAlanlari && F.CinSiparisAlanlari.durumBadgeGuncelle) {
+                    F.CinSiparisAlanlari.durumBadgeGuncelle(data.durum || 'taslak');
+                }
+
+                // Sipariş no göster
+                var noEl = document.getElementById('frmSiparisNo');
+                if (noEl && data.siparisNo) noEl.textContent = data.siparisNo;
+
+                // Satırları yükle (duplikasyon kontrolünü bypass et)
+                F.Tablo._yuklemeModu = true;
+                if (data.satirlar && data.satirlar.length > 0) {
+                    for (var i = 0; i < data.satirlar.length; i++) {
+                        var s = data.satirlar[i];
+                        var satirData = {
+                            urunId: s.urunId,
+                            urunKaynak: s.urunKaynak || s.urun_kaynak || 'sunix',
+                            urunAdi: s.urunAdi,
+                            urunAdiEn: s.urunAdiEn || '',
+                            urunKodu: s.urunKodu || '',
+                            resimUrl: s.resimUrl || '',
+                            tip: s.tip || 'duz',
+                            miktar: s.miktar || 0,
+                            birimFiyat: 0,
+                            normalBirimFiyat: 0,
+                            kategoriId: s.kategoriId || 0,
+                            sevkiyatTipi: s.sevkiyatTipi || 'konteyner',
+                            not: s.notTr || '',
+                            varyantlar: []
+                        };
+
+                        if (s.varyantlar && s.varyantlar.length > 0) {
+                            for (var vi = 0; vi < s.varyantlar.length; vi++) {
+                                var v = s.varyantlar[vi];
+                                var vNotTr = v.notTr || v.not_tr || '';
+                                var vNotEn = v.notEn || v.not_en || '';
+                                satirData.varyantlar.push({
+                                    id: v.modelId || v.renkId || null,
+                                    tip: s.tip || 'duz',
+                                    modelId: v.modelId,
+                                    renkId: v.renkId,
+                                    modelAdi: v.modelAdi || '',
+                                    renkAdi: v.renkAdi || '',
+                                    adi: v.renkAdi || v.modelAdi || '',
+                                    renkKodu: v.renkKodu || '',
+                                    renkResim: v.renkResim || '',
+                                    miktar: v.miktar || 0,
+                                    birimFiyat: 0,
+                                    normalBirimFiyat: 0,
+                                    depoId: F.State.seciliDepoId,
+                                    not_tr: vNotTr,
+                                    not_en: vNotEn,
+                                    not: vNotTr || vNotEn
+                                });
+                            }
+                        }
+
+                        F.Tablo.satirEkle(satirData);
+                    }
+                }
+                F.Tablo._yuklemeModu = false;
+
+                // Özet güncelle
+                if (F.CinSiparisAlanlari) F.CinSiparisAlanlari.ozetGuncelle();
+            },
+            error: function() {
+                F.Yukle.hideLoading();
+                Swal.fire('Hata', 'Sunucu hatası oluştu.', 'error');
+            }
+        });
+    };
+
+})();

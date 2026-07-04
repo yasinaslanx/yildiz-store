@@ -1,0 +1,228 @@
+window.BayiEgitim = window.BayiEgitim || {};
+
+BayiEgitim.Engine = (function () {
+    var C = BayiEgitim.Config;
+    var bot = BayiEgitim.BotSVG;
+    var tour = null;
+    var sidebarWasCollapsed = false;
+    var currentStepIndex = 0;
+
+    function loadCSS(href) {
+        return new Promise(function (resolve) {
+            if (document.querySelector('link[href="' + href + '"]')) return resolve();
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = href;
+            link.onload = resolve;
+            link.onerror = resolve;
+            document.head.appendChild(link);
+        });
+    }
+
+    function loadJS(src) {
+        return new Promise(function (resolve, reject) {
+            if (window.Shepherd) return resolve();
+            var script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
+
+    function saveStep(adim) {
+        $.post(C.ajaxUrl, { islem: 'adim-guncelle', adim: adim });
+    }
+
+    function complete() {
+        $.post(C.ajaxUrl, { islem: 'tamamla' });
+        restoreSidebar();
+        showTebrik();
+    }
+
+    function ensureSidebarOpen() {
+        return new Promise(function (resolve) {
+            var body = document.body;
+            if (body.classList.contains('is-menu-collapsed')) {
+                sidebarWasCollapsed = true;
+                body.classList.remove('is-menu-collapsed');
+                setTimeout(resolve, 350);
+            } else {
+                resolve();
+            }
+        });
+    }
+
+    function restoreSidebar() {
+        if (sidebarWasCollapsed) {
+            document.body.classList.add('is-menu-collapsed');
+            sidebarWasCollapsed = false;
+        }
+    }
+
+    function showHosgeldin() {
+        return new Promise(function (resolve) {
+            var overlay = document.createElement('div');
+            overlay.className = 'egitim-hosgeldin-overlay';
+            overlay.innerHTML =
+                '<div class="egitim-hosgeldin-kart">' +
+                    '<div class="egitim-hosgeldin-stars"><span></span><span></span><span></span><span></span><span></span><span></span></div>' +
+                    '<div class="egitim-hosgeldin-bot">' + bot.getSVG(130) + '</div>' +
+                    '<h2>MySunix Portalına Hoş Geldiniz!</h2>' +
+                    '<p>Size Sunix Bayi Portalını tanıtmam için kısa bir tur hazırladım. Mağazanızı en verimli şekilde kullanmanız için tüm bölümleri adım adım göstereceğim.</p>' +
+                    '<div class="egitim-hosgeldin-aksiyonlar">' +
+                        '<button class="egitim-btn egitim-btn-primary" id="egitimBaslaBtn">Haydi Başlayalım</button>' +
+                        '<button class="egitim-btn egitim-btn-ghost" id="egitimAtlaBtn">Şimdilik Atla</button>' +
+                    '</div>' +
+                '</div>';
+            document.body.appendChild(overlay);
+
+            requestAnimationFrame(function () {
+                overlay.classList.add('is-visible');
+            });
+
+            document.getElementById('egitimBaslaBtn').addEventListener('click', function () {
+                overlay.classList.remove('is-visible');
+                setTimeout(function () {
+                    overlay.remove();
+                    resolve(true);
+                }, 300);
+            });
+
+            document.getElementById('egitimAtlaBtn').addEventListener('click', function () {
+                overlay.classList.remove('is-visible');
+                setTimeout(function () {
+                    overlay.remove();
+                    resolve(false);
+                }, 300);
+            });
+        });
+    }
+
+    function showTebrik() {
+        Swal.fire({
+            html: '<div style="text-align:center;">' +
+                '<div class="egitim-tebrik-bot">' + bot.getSVG(100) + '</div>' +
+                '<h2 style="color:#103595; margin:16px 0 8px; font-size:22px;">Tebrikler!</h2>' +
+                '<p style="color:#4b5563; font-size:15px;">Portalı tanımaya hazırsınız. İyi çalışmalar!</p>' +
+                '</div>',
+            showConfirmButton: true,
+            confirmButtonText: 'Ana Sayfaya Dön',
+            confirmButtonColor: '#103595',
+            allowOutsideClick: false,
+            customClass: { popup: 'egitim-tebrik-popup' }
+        }).then(function () {
+            window.location.href = 'index.php?sayfa=pano';
+        });
+    }
+
+    function buildProgressHTML(current, total) {
+        var pct = Math.round(((current + 1) / total) * 100);
+        return '<div class="egitim-progress">' +
+            '<div class="egitim-progress-bar" style="width:' + pct + '%"></div>' +
+            '<span class="egitim-progress-text">Adım ' + (current + 1) + ' / ' + total + '</span>' +
+        '</div>';
+    }
+
+    function createTour(startAt) {
+        var steps = BayiEgitim.Steps;
+        var totalSteps = steps.length;
+
+        tour = new Shepherd.Tour({
+            useModalOverlay: true,
+            defaultStepOptions: {
+                scrollTo: { behavior: 'smooth', block: 'center' },
+                cancelIcon: { enabled: false },
+                modalOverlayOpeningPadding: 8,
+                modalOverlayOpeningRadius: 12
+            }
+        });
+
+        steps.forEach(function (def, idx) {
+            var isFirst = (idx === 0);
+            var isLast = (idx === steps.length - 1);
+
+            var buttons = [];
+            if (!isFirst) {
+                buttons.push({
+                    text: 'Geri',
+                    action: tour.back,
+                    classes: 'egitim-btn egitim-btn-secondary'
+                });
+            }
+            buttons.push({
+                text: 'Eğitimi Geç',
+                action: function () { cancelTour(); },
+                classes: 'egitim-btn egitim-btn-ghost'
+            });
+            buttons.push({
+                text: isLast ? 'Tamamla' : 'Sonraki',
+                action: isLast ? function () { tour.complete(); } : tour.next,
+                classes: 'egitim-btn egitim-btn-primary'
+            });
+
+            tour.addStep({
+                id: def.id,
+                title: '',
+                text: def.text + buildProgressHTML(idx, totalSteps),
+                attachTo: def.attachTo,
+                buttons: buttons,
+                beforeShowPromise: def.beforeShowPromise || undefined,
+                when: {
+                    show: function () {
+                        currentStepIndex = idx;
+                        saveStep(idx);
+                    }
+                }
+            });
+        });
+
+        tour.on('complete', function () {
+            complete();
+        });
+
+        tour.on('cancel', function () {
+            restoreSidebar();
+        });
+
+        if (startAt > 0 && startAt < steps.length) {
+            tour.start();
+            tour.show(steps[startAt].id);
+        } else {
+            tour.start();
+        }
+    }
+
+    function cancelTour() {
+        if (tour) tour.cancel();
+        saveStep(currentStepIndex);
+        restoreSidebar();
+    }
+
+    function init(baslangicAdim) {
+        Promise.all([
+            loadCSS(C.shepherdCss),
+            loadJS(C.shepherdJs)
+        ]).then(function () {
+            if (!window.Shepherd) return;
+
+            if (baslangicAdim === 0) {
+                showHosgeldin().then(function (devam) {
+                    if (devam) {
+                        saveStep(0);
+                        createTour(0);
+                    }
+                });
+            } else {
+                createTour(baslangicAdim);
+            }
+        }).catch(function () {
+            // Shepherd yüklenemezse sessizce geç
+        });
+    }
+
+    return {
+        init: init,
+        ensureSidebarOpen: ensureSidebarOpen
+    };
+})();

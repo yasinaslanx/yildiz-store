@@ -1,0 +1,215 @@
+/**
+ * Form - Merkezi State Yönetimi
+ */
+(function() {
+    'use strict';
+
+    var F = window.Form;
+
+    F.State = {
+        // Müşteri
+        musteriId: null,
+        musteriTipi: null,          // bayi|musteri
+        musteriAdi: '',
+        fiyatGrubuId: null,
+        fiyatGrubuAdi: null,
+        fiyatListeTipi: null,       // 'bayi' | 'genel' | null
+        kdvDahil: 'hayir',
+        musteriKdvOrani: 0,
+        paraBirimi: F.Config.paraBirimi,
+        dovizKuru: 0,               // USD/TRY kuru (0 = USD modu)
+
+        // Tablo satırları
+        satirlar: [],
+        satirSayaci: 0,
+        // Barkod modu sıralaması için artan "son dokunma" damgası (recency).
+        // Her ekleme/güncelleme/okutmada satıra yeni _seq atanır; barkod modunda
+        // son dokunulan satır/kategori en üste taşınır. Görsel only — kayıt sırasını etkilemez.
+        seqSayaci: 0,
+
+        // İade kategorisi
+        iadeKategorisi: F.Config.iadeKategorisi,
+
+        // Depo
+        seciliDepoId: F.Config.varsayilanDepoId,
+        depoOnizleme: F.Config.varsayilanDepoId,
+
+        // Toplam
+        araToplam: 0,
+        fiyatListesiIndirimi: 0,
+        indirimYuzde: 0,
+        indirimTutari: 0,
+        sabitIndirimTutari: 0,
+        hizliIndirimYuzde: 0,       // Mağazam: kuralsız liste fiyatında toplu hızlı indirim %
+        netToplam: 0,
+        kdvToplam: 0,
+        genelToplam: 0,
+
+        // SD Kart / Prim
+        sdKartToplam: 0,
+        primTutari: 0,
+
+        // Vade
+        vadeGun: 0,
+
+        // Not
+        siparisNotu: '',
+
+        // Sevkiyat tipi (satirData'da kullanılır)
+        sevkiyatTipi: '',
+
+        // Sipariş durumu
+        durum: null,
+
+        // Sipariş ek meta (teslim alındı butonu için)
+        bayiId: null,
+        teslimAlindiTarihi: null,
+        siparisKaynagi: null,
+
+        // Miktar değişikliği
+        miktarDegisiklikVar: false,
+        miktarDegisiklikleri: [],
+
+        // Ön Talep (siparis-yeni modunda)
+        onTalepAktif: false,
+        onTalepEditData: null,
+        onTalepSessionId: null,
+        onTalepSessionNo: null,
+        onTalepUrunler: []
+    };
+
+    /**
+     * Yeni satır ID'si üret
+     */
+    F.State.yeniSatirId = function() {
+        F.State.satirSayaci++;
+        return 'frm-s-' + F.State.satirSayaci;
+    };
+
+    /**
+     * Yeni recency (son dokunma) damgası üret — barkod modu sıralaması için
+     */
+    F.State.yeniSeq = function() {
+        F.State.seqSayaci++;
+        return F.State.seqSayaci;
+    };
+
+    /**
+     * Satır bul (ID ile)
+     */
+    F.State.satirBul = function(satirId) {
+        for (var i = 0; i < F.State.satirlar.length; i++) {
+            if (F.State.satirlar[i].satirId === satirId) return F.State.satirlar[i];
+        }
+        return null;
+    };
+
+    /**
+     * Satır index bul
+     */
+    F.State.satirIndex = function(satirId) {
+        for (var i = 0; i < F.State.satirlar.length; i++) {
+            if (F.State.satirlar[i].satirId === satirId) return i;
+        }
+        return -1;
+    };
+
+    /**
+     * Satır sil
+     */
+    F.State.satirSil = function(satirId) {
+        var idx = F.State.satirIndex(satirId);
+        if (idx > -1) {
+            F.State.satirlar.splice(idx, 1);
+            return true;
+        }
+        return false;
+    };
+
+    /**
+     * Satır ekle
+     */
+    F.State.satirEkle = function(satirData) {
+        F.State.satirlar.push(satirData);
+    };
+
+    /**
+     * Toplam miktar hesapla
+     */
+    F.State.toplamMiktar = function() {
+        var toplam = 0;
+        for (var i = 0; i < F.State.satirlar.length; i++) {
+            toplam += (F.State.satirlar[i].miktar || 0);
+        }
+        return toplam;
+    };
+
+    /**
+     * State'i sıfırla
+     */
+    F.State.sifirla = function() {
+        F.State.satirlar = [];
+        F.State.satirSayaci = 0;
+        F.State.seqSayaci = 0;
+        F.State.musteriId = null;
+        F.State.musteriTipi = null;
+        F.State.musteriAdi = '';
+        F.State.fiyatGrubuId = null;
+        F.State.fiyatGrubuAdi = null;
+        F.State.fiyatListeTipi = null;
+        F.State.kdvDahil = 'hayir';
+        F.State.musteriKdvOrani = 0;
+        F.State.araToplam = 0;
+        F.State.fiyatListesiIndirimi = 0;
+        F.State.indirimYuzde = 0;
+        F.State.indirimTutari = 0;
+        F.State.sabitIndirimTutari = 0;
+        F.State.hizliIndirimYuzde = 0;
+        F.State.netToplam = 0;
+        F.State.kdvToplam = 0;
+        F.State.genelToplam = 0;
+        F.State.sdKartToplam = 0;
+        F.State.primTutari = 0;
+        F.State.vadeGun = 0;
+        F.State.siparisNotu = '';
+        F.State.durum = null;
+        F.State.seciliDepoId = F.Config.varsayilanDepoId;
+        F.State.iadeKategorisi = F.Config.iadeKategorisi;
+        F.State.paraBirimi = F.Config.paraBirimi;
+        F.State.dovizKuru = 0;
+        F.State.miktarDegisiklikVar = false;
+        F.State.miktarDegisiklikleri = [];
+        F.State.onTalepAktif = false;
+        F.State.onTalepEditData = null;
+        F.State.onTalepSessionId = null;
+        F.State.onTalepSessionNo = null;
+        F.State.onTalepUrunler = [];
+    };
+
+    /**
+     * Ön talep listesinde ürün bul
+     */
+    F.State.onTalepUrunBul = function(urunId) {
+        for (var i = 0; i < F.State.onTalepUrunler.length; i++) {
+            if (F.State.onTalepUrunler[i].urunId === urunId) return F.State.onTalepUrunler[i];
+        }
+        return null;
+    };
+
+    /**
+     * Ön talep toplam ürün sayısı
+     */
+    F.State.onTalepToplamUrun = function() {
+        return F.State.onTalepUrunler.length;
+    };
+
+    // Config'den delegate edilen read-only alanlar (tek kaynak)
+    ['mod', 'id', 'readonly', 'isIade', 'isOnSiparis', 'isSevkiyat', 'isKampanya', 'isCinSiparis'].forEach(function(key) {
+        Object.defineProperty(F.State, key, {
+            get: function() { return F.Config[key]; },
+            enumerable: true,
+            configurable: true
+        });
+    });
+
+})();
