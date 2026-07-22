@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const EMAIL_FROM = process.env.EMAIL_FROM || "Sunix Store <onboarding@resend.dev>";
 
 export async function sendPasswordResetEmail(to: string, resetUrl: string) {
   const html = `
@@ -82,7 +83,7 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Sunix Store <onboarding@resend.dev>', // Use Resend's testing domain
+      from: EMAIL_FROM,
       to,
       subject: "Şifre Sıfırlama Talebi — Sunix Store",
       html,
@@ -163,7 +164,7 @@ export async function sendOtpEmail(to: string, code: string) {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Sunix Store <onboarding@resend.dev>',
+      from: EMAIL_FROM,
       to,
       subject: "Giriş Doğrulama Kodunuz — Sunix Store",
       html,
@@ -288,7 +289,7 @@ export async function sendAbandonedCartEmail(
 
   try {
     const { error } = await resend.emails.send({
-      from: "Sunix Store <onboarding@resend.dev>",
+      from: EMAIL_FROM,
       to: [to],
       subject: `🛒 ${firstName}, sepetiniz sizi bekliyor! Özel kuponunuz: ${couponCode}`,
       html,
@@ -327,7 +328,7 @@ export async function sendContactFormEmail(
 
   try {
     const { error } = await resend.emails.send({
-      from: 'Sunix Store İletişim <onboarding@resend.dev>',
+      from: EMAIL_FROM,
       to,
       subject: `Yeni İletişim Mesajı: ${subject}`,
       replyTo: email,
@@ -437,7 +438,7 @@ export async function sendShippingEmail(
 
   try {
     const { error } = await resend.emails.send({
-      from: 'Sunix Store <onboarding@resend.dev>',
+      from: EMAIL_FROM,
       to,
       subject: `🚚 Kargonuz Yola Çıktı! Sipariş #${orderNumber}`,
       html,

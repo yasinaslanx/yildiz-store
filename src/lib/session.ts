@@ -29,20 +29,15 @@ export async function setSessionCookie(user: SessionUser, rememberMe: boolean = 
   const token = await createSessionToken(user, rememberMe);
   const cookieStore = await cookies();
 
-  const cookieOptions: any = {
+  cookieStore.set({
     name: SESSION_COOKIE_NAME,
     value: token,
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-  };
-
-  if (rememberMe) {
-    cookieOptions.maxAge = 60 * 60 * 24 * 30; // 30 days
-  }
-
-  cookieStore.set(cookieOptions);
+    ...(rememberMe ? { maxAge: 60 * 60 * 24 * 30 } : {}),
+  });
 }
 
 export async function deleteSessionCookie() {
@@ -122,8 +117,12 @@ export async function requireAdminUser() {
 export async function requirePermission(permission: string) {
   const user = await requireAdminUser();
 
-  // Süper adminler için her şeye izin ver
-  const isSuperAdmin = user.email === "admin@sunixstore.com" || user.email === "aslanyasin320@gmail.com";
+  // ENV'den ve varsayılan listeden süper admin e-postalarını al
+  const envEmails = process.env.SUPERADMIN_EMAILS
+    ? process.env.SUPERADMIN_EMAILS.split(",").map((e) => e.trim().toLowerCase())
+    : ["admin@sunixstore.com", "aslanyasin320@gmail.com"];
+
+  const isSuperAdmin = envEmails.includes(user.email.toLowerCase());
   if (isSuperAdmin) {
     return user;
   }

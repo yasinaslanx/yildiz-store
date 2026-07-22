@@ -66,6 +66,14 @@ function LoginForm() {
       return;
     }
 
+    if (result.bypassOtp) {
+      showToast("Süper Admin girişi başarılı!", "success");
+      router.refresh();
+      router.push(redirect === "/" ? "/admin" : redirect);
+      setLoading(false);
+      return;
+    }
+
     showToast(result.message, "success");
     setStep(2);
     setLoading(false);
@@ -130,7 +138,7 @@ function LoginForm() {
       } else {
         showToast(data.message, "error");
       }
-    } catch (error) {
+    } catch {
       showToast("Bağlantı hatası.", "error");
     } finally {
       setLoading(false);
@@ -195,17 +203,25 @@ function LoginForm() {
               </div>
             </div>
 
-            <div className="flex items-center justify-center space-x-2">
-              <input
-                type="checkbox"
-                id="rememberMe"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded border-stone-300 text-stone-900 focus:ring-black cursor-pointer"
-              />
-              <label htmlFor="rememberMe" className="text-xs font-bold text-stone-600 cursor-pointer select-none">
-                Beni Hatırla
-              </label>
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded border-stone-300 text-stone-900 focus:ring-black cursor-pointer"
+                />
+                <label htmlFor="rememberMe" className="text-xs font-bold text-stone-600 cursor-pointer select-none">
+                  Beni Hatırla
+                </label>
+              </div>
+              <Link
+                href="/forgot-password"
+                className="text-xs font-black text-stone-900 underline underline-offset-4 hover:text-stone-600 transition"
+              >
+                Şifremi Unuttum
+              </Link>
             </div>
 
             <button

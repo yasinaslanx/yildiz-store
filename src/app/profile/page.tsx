@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/store/auth-store";
 import { useFavorites } from "@/store/favorites-store";
@@ -29,6 +29,66 @@ function ProfileContent() {
   const [ordersLoading, setOrdersLoading] = useState(false);
 
   const [points, setPoints] = useState<number | null>(null);
+
+  // Email verification state
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [verificationError, setVerificationError] = useState("");
+  const [verificationSuccess, setVerificationSuccess] = useState("");
+
+  const handleSendVerificationCode = async () => {
+    if (!user?.email) return;
+    setOtpLoading(true);
+    setVerificationError("");
+    setVerificationSuccess("");
+    try {
+      const res = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email, isRegister: false }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setOtpSent(true);
+        setVerificationSuccess("Doğrulama kodu e-posta adresinize gönderildi.");
+      } else {
+        setVerificationError(data.message || "Kod gönderilemedi.");
+      }
+    } catch {
+      setVerificationError("Ağ hatası oluştu.");
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleVerifyEmail = async () => {
+    if (!user?.email || !otpCode) return;
+    setOtpLoading(true);
+    setVerificationError("");
+    setVerificationSuccess("");
+    try {
+      const res = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email, code: otpCode, isRegister: false }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setVerificationSuccess("E-posta adresiniz başarıyla doğrulandı!");
+        setOtpSent(false);
+        setOtpCode("");
+        // Session'ı güncellemek için yenile
+        window.location.reload();
+      } else {
+        setVerificationError(data.message || "Kod doğrulanamadı.");
+      }
+    } catch {
+      setVerificationError("Ağ hatası oluştu.");
+    } finally {
+      setOtpLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (user && activeTab === "info" && points === null) {
@@ -98,6 +158,9 @@ function ProfileContent() {
     )},
     { id: "favorites", label: "Favorilerim", icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    )},
+    { id: "returns", label: "İade & Değişim", icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
     )}
   ];
 
@@ -160,7 +223,13 @@ function ProfileContent() {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                if (tab.id === "returns") {
+                  router.push("/returns");
+                } else {
+                  setActiveTab(tab.id);
+                }
+              }}
               className={`flex w-full items-center gap-4 rounded-2xl px-5 py-4 transition-all duration-300 cursor-pointer border-2 ${
                 activeTab === tab.id
                   ? "bg-white border-black text-black shadow-xl shadow-stone-100"
@@ -193,6 +262,61 @@ function ProfileContent() {
                     <div>
                       <p className="text-[9px] font-black uppercase tracking-widest text-stone-300">E-Posta</p>
                       <p className="mt-1 text-lg font-black text-stone-900 italic tracking-tighter">{user.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-stone-300">E-Posta Doğrulama Durumu</p>
+                      {user.isEmailVerified ? (
+                        <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-green-50 border border-green-200 px-4 py-1 text-xs font-black uppercase tracking-widest text-green-700">
+                          ✓ E-posta Adresiniz Doğrulandı
+                        </div>
+                      ) : (
+                        <div className="mt-2 space-y-4">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <span className="inline-flex items-center gap-2 rounded-full bg-amber-50 border border-amber-200 px-4 py-1 text-xs font-black uppercase tracking-widest text-amber-700">
+                              ⚠️ E-posta Adresiniz Doğrulanmadı
+                            </span>
+                            {!otpSent && (
+                              <button
+                                onClick={handleSendVerificationCode}
+                                disabled={otpLoading}
+                                className="cursor-pointer text-xs font-black uppercase tracking-widest text-stone-900 underline underline-offset-4 hover:text-stone-600 disabled:opacity-50"
+                              >
+                                {otpLoading ? "Kod Gönderiliyor..." : "Şimdi Doğrula / Kod Gönder"}
+                              </button>
+                            )}
+                          </div>
+
+                          {otpSent && (
+                            <div className="rounded-2xl border border-stone-200 bg-white p-4 space-y-3 max-w-sm">
+                              <p className="text-xs font-bold text-stone-600">Lütfen e-postanıza gönderilen 6 haneli doğrulama kodunu girin:</p>
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  maxLength={6}
+                                  placeholder="000000"
+                                  value={otpCode}
+                                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                                  className="w-32 text-center rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm font-black outline-none focus:border-stone-900 focus:bg-white"
+                                />
+                                <button
+                                  onClick={handleVerifyEmail}
+                                  disabled={otpLoading || otpCode.length !== 6}
+                                  className="cursor-pointer rounded-xl bg-black px-4 py-2 text-xs font-black uppercase tracking-widest text-white hover:bg-stone-800 disabled:opacity-50"
+                                >
+                                  {otpLoading ? "Doğrulanıyor..." : "Kodu Doğrula"}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          {verificationError && (
+                            <p className="text-xs font-black uppercase tracking-widest text-red-500">{verificationError}</p>
+                          )}
+                          {verificationSuccess && (
+                            <p className="text-xs font-black uppercase tracking-widest text-green-600">{verificationSuccess}</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

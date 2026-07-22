@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { fetchFavorites, toggleFavoriteRequest } from "@/lib/api";
 import { useAuth } from "@/store/auth-store";
 
@@ -37,11 +37,13 @@ export function FavoritesProvider({
     const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
 
     if (stored) {
-      try {
-        setItems(JSON.parse(stored));
-      } catch {
-        setItems([]);
-      }
+      queueMicrotask(() => {
+        try {
+          setItems(JSON.parse(stored));
+        } catch {
+          setItems([]);
+        }
+      });
     }
   }, []);
 
@@ -66,7 +68,7 @@ export function FavoritesProvider({
     void loadDbFavorites();
   }, [user?.id]);
 
-  const toggleFavorite = (item: FavoriteItem) => {
+  const toggleFavorite = useCallback((item: FavoriteItem) => {
     if (user?.id) {
       void toggleFavoriteRequest({
         variantId: item.id,
@@ -92,16 +94,16 @@ export function FavoritesProvider({
 
       return [item, ...prev];
     });
-  };
+  }, [user?.id]);
 
-  const isFavorite = (id: string) => {
+  const isFavorite = useCallback((id: string) => {
     return items.some((item) => item.id === id);
-  };
+  }, [items]);
 
-  const clearLocalState = () => {
+  const clearLocalState = useCallback(() => {
     setItems([]);
     localStorage.removeItem(FAVORITES_STORAGE_KEY);
-  };
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -110,7 +112,7 @@ export function FavoritesProvider({
       isFavorite,
       clearLocalState,
     }),
-    [items],
+    [items, toggleFavorite, isFavorite, clearLocalState],
   );
 
   return (

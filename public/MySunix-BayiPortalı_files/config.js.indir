@@ -1,9 +1,0 @@
-window.BayiEgitim = window.BayiEgitim || {};
-
-BayiEgitim.Config = {
-    ajaxUrl: 'ajax/egitim/durum-guncelle.php',
-    shepherdCss: 'https://cdn.jsdelivr.net/npm/shepherd.js@11/dist/css/shepherd.css',
-    shepherdJs: 'https://cdn.jsdelivr.net/npm/shepherd.js@11/dist/js/shepherd.min.js',
-    totalSteps: 13,
-    mobileBreakpoint: 768
-};

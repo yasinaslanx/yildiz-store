@@ -40,7 +40,9 @@ export function CompareProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const stored = localStorage.getItem(COMPARE_STORAGE_KEY);
     if (stored) {
-      try { setItems(JSON.parse(stored)); } catch { setItems([]); }
+      queueMicrotask(() => {
+        try { setItems(JSON.parse(stored)); } catch { setItems([]); }
+      });
     }
   }, []);
 

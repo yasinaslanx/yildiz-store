@@ -19,6 +19,7 @@ export async function GET() {
         role: true,
         dealerTier: true,
         permissions: true,
+        isEmailVerified: true,
         createdAt: true,
       }
     });

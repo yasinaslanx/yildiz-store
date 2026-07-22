@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/store/auth-store";
 import { useUi } from "@/store/ui-store";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
 function getPasswordStrength(pass: string) {
   let score = 0;
@@ -19,10 +19,9 @@ function getPasswordStrength(pass: string) {
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { sendOtp, verifyOtp } = useAuth();
+  const { register } = useAuth();
   const { showToast } = useUi();
 
-  const [step, setStep] = useState<1 | 2>(1);
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -31,20 +30,10 @@ export default function RegisterPage() {
     confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (step === 2 && inputRef.current) {
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 50);
-    }
-  }, [step]);
-
-  const handleSendCode = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!form.firstName || !form.lastName || !form.email || !form.password) {
       showToast("Lütfen tüm alanları doldurun.", "error");
       return;
@@ -59,34 +48,11 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    const result = await sendOtp({ email: form.email, isRegister: true });
-
-    if (!result.success) {
-      showToast(result.message, "error");
-      setLoading(false);
-      return;
-    }
-
-    showToast(result.message, "success");
-    setStep(2);
-    setLoading(false);
-  };
-
-  const handleVerifyCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!code || code.length !== 6) {
-      showToast("Lütfen 6 haneli doğrulama kodunu girin.", "error");
-      return;
-    }
-
-    setLoading(true);
-    const result = await verifyOtp({
-      email: form.email,
-      code,
-      password: form.password,
+    const result = await register({
       firstName: form.firstName,
       lastName: form.lastName,
-      isRegister: true,
+      email: form.email,
+      password: form.password,
     });
 
     if (!result.success) {
@@ -104,155 +70,119 @@ export default function RegisterPage() {
   return (
     <section className="mx-auto max-w-2xl px-6 py-16">
       <div className="rounded-[2rem] border border-stone-100 bg-white p-10 shadow-xl shadow-stone-100 relative">
-        {step === 2 && (
-          <button 
-            onClick={() => setStep(1)} 
-            className="absolute left-10 top-10 text-stone-400 hover:text-stone-900 transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-        )}
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400 mt-8 md:mt-0">
+        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400 mt-4 md:mt-0">
           Kayıt Ol
         </p>
         <h1 className="mt-4 text-4xl font-black italic tracking-tighter text-stone-900 uppercase">Yeni Hesap Oluştur</h1>
 
-        {step === 1 ? (
-          <div className="mt-10 animate-in fade-in zoom-in-95 duration-500">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 ml-1">Ad</p>
-                <input
-                  placeholder="Adınız"
-                  value={form.firstName}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, firstName: e.target.value }))
-                  }
-                  className="w-full rounded-2xl border border-stone-100 bg-stone-50 px-6 py-4 text-xs font-bold outline-none focus:border-stone-900 focus:bg-white transition-all"
-                />
-              </div>
-              <div className="space-y-2">
-                <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 ml-1">Soyad</p>
-                <input
-                  placeholder="Soyadınız"
-                  value={form.lastName}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, lastName: e.target.value }))
-                  }
-                  className="w-full rounded-2xl border border-stone-100 bg-stone-50 px-6 py-4 text-xs font-bold outline-none focus:border-stone-900 focus:bg-white transition-all"
-                />
-              </div>
+        <form onSubmit={handleSubmit} className="mt-10 animate-in fade-in zoom-in-95 duration-500">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 ml-1">Ad</p>
+              <input
+                required
+                placeholder="Adınız"
+                value={form.firstName}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, firstName: e.target.value }))
+                }
+                className="w-full rounded-2xl border border-stone-100 bg-stone-50 px-6 py-4 text-xs font-bold outline-none focus:border-stone-900 focus:bg-white transition-all"
+              />
+            </div>
+            <div className="space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 ml-1">Soyad</p>
+              <input
+                required
+                placeholder="Soyadınız"
+                value={form.lastName}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, lastName: e.target.value }))
+                }
+                className="w-full rounded-2xl border border-stone-100 bg-stone-50 px-6 py-4 text-xs font-bold outline-none focus:border-stone-900 focus:bg-white transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-6">
+            <div className="space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 ml-1">E-posta</p>
+              <input
+                type="email"
+                required
+                placeholder="E-posta adresiniz"
+                value={form.email}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, email: e.target.value }))
+                }
+                className="w-full rounded-2xl border border-stone-100 bg-stone-50 px-6 py-4 text-xs font-bold outline-none focus:border-stone-900 focus:bg-white transition-all"
+              />
             </div>
 
-            <div className="mt-6 space-y-6">
-              <div className="space-y-2">
-                <p className="text-[10px] font-black uppercase tracking-widest text-stone-400 ml-1">E-posta</p>
-                <input
-                  type="email"
-                  placeholder="E-posta adresiniz"
-                  value={form.email}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, email: e.target.value }))
-                  }
-                  className="w-full rounded-2xl border border-stone-100 bg-stone-50 px-6 py-4 text-xs font-bold outline-none focus:border-stone-900 focus:bg-white transition-all"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 pl-1">Şifre</label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    required
-                    placeholder="••••••••"
-                    value={form.password}
-                    onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
-                    className="w-full rounded-2xl border border-stone-100 bg-stone-50 px-6 py-4 text-xs font-bold outline-none transition focus:border-stone-900 focus:bg-white"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-900 transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-                
-                {form.password && (
-                  <div className="mt-2 space-y-1">
-                    <div className="h-1.5 w-full rounded-full bg-stone-100 overflow-hidden flex">
-                      <div 
-                        className={`h-full transition-all duration-300 ${getPasswordStrength(form.password) < 50 ? 'bg-red-500' : getPasswordStrength(form.password) < 75 ? 'bg-orange-500' : 'bg-green-500'}`} 
-                        style={{ width: `${getPasswordStrength(form.password)}%` }} 
-                      />
-                    </div>
-                    <p className={`text-[10px] font-bold ${getPasswordStrength(form.password) < 50 ? 'text-red-500' : getPasswordStrength(form.password) < 75 ? 'text-orange-500' : 'text-green-500'}`}>
-                      {getPasswordStrength(form.password) < 50 ? 'Zayıf' : getPasswordStrength(form.password) < 75 ? 'Orta' : 'Güçlü'}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 pl-1">Şifre Tekrar</label>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 pl-1">Şifre</label>
+              <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   required
                   placeholder="••••••••"
-                  value={form.confirmPassword}
-                  onChange={(e) => setForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
-                  className={`w-full rounded-2xl border bg-stone-50 px-6 py-4 text-xs font-bold outline-none transition focus:bg-white ${form.confirmPassword && form.confirmPassword !== form.password ? 'border-red-300 focus:border-red-500' : 'border-stone-100 focus:border-stone-900'}`}
+                  value={form.password}
+                  onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
+                  className="w-full rounded-2xl border border-stone-100 bg-stone-50 px-6 py-4 text-xs font-bold outline-none transition focus:border-stone-900 focus:bg-white"
                 />
-                {form.confirmPassword && form.confirmPassword !== form.password && (
-                  <p className="text-[10px] font-bold text-red-500 mt-1 ml-1">Şifreler eşleşmiyor</p>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-900 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
+              
+              {form.password && (
+                <div className="mt-2 space-y-1">
+                  <div className="h-1.5 w-full rounded-full bg-stone-100 overflow-hidden flex">
+                    <div 
+                      className={`h-full transition-all duration-300 ${getPasswordStrength(form.password) < 50 ? 'bg-red-500' : getPasswordStrength(form.password) < 75 ? 'bg-orange-500' : 'bg-green-500'}`} 
+                      style={{ width: `${getPasswordStrength(form.password)}%` }} 
+                    />
+                  </div>
+                  <p className={`text-[10px] font-bold ${getPasswordStrength(form.password) < 50 ? 'text-red-500' : getPasswordStrength(form.password) < 75 ? 'text-orange-500' : 'text-green-500'}`}>
+                    {getPasswordStrength(form.password) < 50 ? 'Zayıf' : getPasswordStrength(form.password) < 75 ? 'Orta' : 'Güçlü'}
+                  </p>
+                </div>
+              )}
             </div>
 
-            <button
-              onClick={() => handleSendCode()}
-              disabled={loading || !form.password || form.password !== form.confirmPassword || getPasswordStrength(form.password) < 50}
-              className="w-full mt-10 rounded-full bg-stone-900 py-6 text-xs font-black uppercase tracking-[0.3em] text-white hover:bg-stone-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-stone-100"
-            >
-              {loading ? "Kod Gönderiliyor..." : "Doğrulama Kodu Gönder"}
-            </button>
-          </div>
-        ) : (
-          <form onSubmit={handleVerifyCode} className="mt-12 space-y-6 animate-in fade-in zoom-in-95 duration-500">
-            <p className="text-sm font-medium text-stone-500 mb-8">
-              <strong className="text-stone-900">{form.email}</strong> adresine gönderilen 6 haneli kodu girin.
-            </p>
-            <div className="space-y-2 text-center">
-              <label className="text-[10px] font-black uppercase tracking-widest text-stone-400">Doğrulama Kodu</label>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-stone-400 pl-1">Şifre Tekrar</label>
               <input
-                ref={inputRef}
-                type="text"
+                type={showPassword ? "text" : "password"}
                 required
-                maxLength={6}
-                placeholder="000000"
-                value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                className="w-full text-center tracking-[1em] text-2xl rounded-2xl border border-stone-100 bg-stone-50 px-6 py-4 font-black text-stone-900 outline-none transition focus:border-stone-900 focus:bg-white"
+                placeholder="••••••••"
+                value={form.confirmPassword}
+                onChange={(e) => setForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                className={`w-full rounded-2xl border bg-stone-50 px-6 py-4 text-xs font-bold outline-none transition focus:bg-white ${form.confirmPassword && form.confirmPassword !== form.password ? 'border-red-300 focus:border-red-500' : 'border-stone-100 focus:border-stone-900'}`}
               />
+              {form.confirmPassword && form.confirmPassword !== form.password && (
+                <p className="text-[10px] font-bold text-red-500 mt-1 ml-1">Şifreler eşleşmiyor</p>
+              )}
             </div>
+          </div>
 
-            <button
-              type="submit"
-              disabled={loading || code.length !== 6}
-              className="w-full cursor-pointer rounded-full border-2 border-black bg-black py-6 text-xs font-black uppercase tracking-[0.3em] text-white transition hover:bg-stone-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 shadow-xl shadow-stone-200"
-            >
-              {loading ? "Hesap Oluşturuluyor..." : "Kodu Doğrula ve Kayıt Ol"}
-            </button>
-          </form>
-        )}
+          <button
+            type="submit"
+            disabled={loading || !form.password || form.password !== form.confirmPassword || getPasswordStrength(form.password) < 50}
+            className="w-full mt-10 rounded-full bg-stone-900 py-6 text-xs font-black uppercase tracking-[0.3em] text-white hover:bg-stone-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-stone-100"
+          >
+            {loading ? "Hesap Oluşturuluyor..." : "Kayıt Ol"}
+          </button>
+        </form>
 
-        {step === 1 && (
-          <p className="mt-8 text-center text-[10px] font-bold text-stone-400 uppercase tracking-widest">
-            Zaten hesabınız var mı?{" "}
-            <button onClick={() => router.push("/login")} className="text-stone-900 underline underline-offset-4 hover:text-stone-500 transition">Giriş Yap</button>
-          </p>
-        )}
+        <p className="mt-8 text-center text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+          Zaten hesabınız var mı?{" "}
+          <button onClick={() => router.push("/login")} className="text-stone-900 underline underline-offset-4 hover:text-stone-500 transition">Giriş Yap</button>
+        </p>
       </div>
     </section>
   );
-}
+}

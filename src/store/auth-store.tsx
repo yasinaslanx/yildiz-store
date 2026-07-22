@@ -23,6 +23,7 @@ export type AuthUser = {
   role: UserRole;
   permissions?: string[];
   needsPassword?: boolean;
+  isEmailVerified?: boolean;
 };
 
 type SendOtpPayload = {
@@ -45,6 +46,7 @@ type AuthResult = {
   success: boolean;
   message: string;
   data?: AuthUser;
+  bypassOtp?: boolean;
 };
 
 type AuthContextType = {
@@ -53,6 +55,7 @@ type AuthContextType = {
   isLoading: boolean;
   sendOtp: (payload: SendOtpPayload) => Promise<AuthResult>;
   verifyOtp: (payload: VerifyOtpPayload) => Promise<AuthResult>;
+  register: (payload: any) => Promise<AuthResult>;
   logout: () => Promise<void>;
 };
 
@@ -69,9 +72,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (raw) {
       try {
-        setUser(JSON.parse(raw) as AuthUser);
+        const parsed = JSON.parse(raw) as AuthUser;
+        queueMicrotask(() => setUser(parsed));
       } catch {
-        setUser(null);
+        queueMicrotask(() => setUser(null));
       }
     }
 
@@ -97,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
   }, []);
 
-  const sendOtp = async (payload: SendOtpPayload): Promise<AuthResult> => {
+  const sendOtp = async (payload: SendOtpPayload): Promise<AuthResult & { bypassOtp?: boolean }> => {
     const result = await sendOtpRequest(payload);
 
     if (!result.ok) {
@@ -107,8 +111,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
     }
 
+    if (result.bypassOtp && result.data) {
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(result.data));
+      setUser(result.data);
+    }
+
     return {
       success: true,
+      bypassOtp: result.bypassOtp,
+      data: result.data,
       message: result.message || "Doğrulama kodu gönderildi.",
     };
   };
@@ -137,6 +148,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   };
 
+  const register = async (payload: any): Promise<AuthResult> => {
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        return {
+          success: false,
+          message: result.message || "Kayıt sırasında bir hata oluştu.",
+        };
+      }
+
+      sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(result.data));
+      setUser(result.data);
+
+      return {
+        success: true,
+        message: result.message || "Kayıt işlemi başarılı.",
+        data: result.data,
+      };
+    } catch {
+      return {
+        success: false,
+        message: "Kayıt yapılırken bir ağ hatası oluştu.",
+      };
+    }
+  };
+
   const logout = async () => {
     await logoutRequest();
     localStorage.removeItem(AUTH_USER_KEY);
@@ -151,6 +193,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isLoading,
       sendOtp,
       verifyOtp,
+      register,
       logout,
     }),
     [user, isLoading],

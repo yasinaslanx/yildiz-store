@@ -23,11 +23,13 @@ export function OrderHistoryProvider({
     const stored = localStorage.getItem(STORAGE_KEY);
 
     if (stored) {
-      try {
-        setOrders(JSON.parse(stored));
-      } catch {
-        setOrders([]);
-      }
+      queueMicrotask(() => {
+        try {
+          setOrders(JSON.parse(stored));
+        } catch {
+          setOrders([]);
+        }
+      });
     }
   }, []);
 

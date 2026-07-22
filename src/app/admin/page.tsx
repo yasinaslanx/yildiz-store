@@ -108,11 +108,10 @@ export default function AdminDashboardPage() {
              Ürün Yönetimi
            </Link>
            <Link 
-             href="/admin/questions" 
-             className="rounded-full border-2 border-black bg-stone-50 px-8 py-4 text-[10px] font-black uppercase tracking-widest text-black transition hover:bg-black hover:text-white"
-             style={{ color: '#000000', backgroundColor: '#F5F5F4' }}
+             href="/admin/returns" 
+             className="rounded-full border-2 border-amber-500 bg-amber-500 px-8 py-4 text-[10px] font-black uppercase tracking-widest text-white transition hover:bg-amber-600 shadow-lg shadow-amber-500/20"
            >
-             Soru Yönetimi
+             ↩️ İade & Değişim
            </Link>
            <Link 
              href="/admin/orders" 

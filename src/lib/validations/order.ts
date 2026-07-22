@@ -41,6 +41,7 @@ export const createOrderSchema = z.object({
       "CASH_ON_DELIVERY",
       "BANK_TRANSFER",
       "CREDIT_CARD",
+      "OPEN_ACCOUNT",
     ])
     .optional()
     .default("CASH_ON_DELIVERY"),

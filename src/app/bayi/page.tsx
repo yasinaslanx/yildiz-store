@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/store/auth-store";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Package, Percent, ShoppingBag, Clock, ArrowRight, Trophy, TrendingUp, Zap, ChevronRight } from "lucide-react";
+import { Package, Percent, Clock, ArrowRight, Trophy, TrendingUp, Zap, ChevronRight } from "lucide-react";
 import { DealerOffersBanner } from "@/components/dealer-offers-banner";
 import { DealerOffersCards } from "@/components/dealer-offers-cards";
 
@@ -93,10 +93,27 @@ export default function DealerPortalPage() {
     <>
       <DealerOffersBanner />
       <div className="mx-auto max-w-7xl px-6 py-12 lg:py-24 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-      <header className="mb-12">
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 mb-2">Sunix B2B</p>
-        <h1 className="text-4xl lg:text-6xl font-black tracking-tighter text-stone-900 uppercase">Bayi Portalı</h1>
-        <p className="mt-4 text-stone-500 font-medium">Hoş geldiniz {user.firstName}. Size özel avantajlar, kampanyalar ve erken erişim ürünleri burada.</p>
+      <header className="mb-12 flex flex-col md:flex-row justify-between md:items-end gap-6">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 mb-2">Sunix B2B</p>
+          <h1 className="text-4xl lg:text-6xl font-black tracking-tighter text-stone-900 uppercase">Bayi Portalı</h1>
+          <p className="mt-4 text-stone-500 font-medium">Hoş geldiniz {user.firstName}. Size özel avantajlar, kampanyalar ve erken erişim ürünleri burada.</p>
+        </div>
+        <div className="flex flex-wrap gap-3 shrink-0">
+          <a
+            href="/api/bayi/price-list?format=excel"
+            download
+            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-emerald-600 text-white text-xs font-black uppercase tracking-widest hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/20"
+          >
+            📊 Fiyat Listesi (Excel)
+          </a>
+          <button
+            onClick={() => window.open("/api/bayi/price-list?format=html", "_blank")}
+            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-white border border-stone-200 text-stone-900 text-xs font-black uppercase tracking-widest hover:bg-stone-50 transition shadow-sm"
+          >
+            🖨️ Fiyat Listesi Gör / Yazdır
+          </button>
+        </div>
       </header>
 
       {/* Tier Card */}
@@ -261,7 +278,7 @@ export default function DealerPortalPage() {
         <div className="max-w-xl z-10">
           <h3 className="text-2xl font-black tracking-tight text-blue-900 uppercase mb-4">Toplu Alımlarda İndirim Fırsatı!</h3>
           <p className="text-sm font-medium text-blue-800/80 leading-relaxed">
-            Yüksek adetli alımlarınızda sepete giderek <strong>"Toplu Alım İçin İndirim İste"</strong> butonuna basabilirsiniz.
+            Yüksek adetli alımlarınızda sepete giderek <strong>&quot;Toplu Alım İçin İndirim İste&quot;</strong> butonuna basabilirsiniz.
             Talebiniz uzman satış ekibimize anında ulaşır ve size özel bir fiyat teklifi sunulur.
           </p>
         </div>

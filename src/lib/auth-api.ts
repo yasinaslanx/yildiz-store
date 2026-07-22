@@ -19,10 +19,12 @@ export async function sendOtpRequest(payload: {
     body: JSON.stringify(payload),
   });
 
-  const result = (await response.json()) as ApiResponse<null>;
+  const result = (await response.json()) as ApiResponse<AuthUser> & { bypassOtp?: boolean };
 
   return {
     ok: response.ok && result.success,
+    bypassOtp: result.bypassOtp,
+    data: result.data,
     message: result.message || "",
   };
 }

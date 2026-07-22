@@ -11,7 +11,7 @@ import { createOrderSchema } from "@/lib/validations/order";
 import { getZodErrorMessage } from "@/lib/validation";
 
 // ... formatOrder and generateOrderNumber functions remain same ...
-function formatOrder(order: any) {
+function formatOrder(order: Record<string, unknown>) {
   return {
     id: order.id,
     orderNumber: order.orderNumber,
@@ -27,7 +27,7 @@ function formatOrder(order: any) {
     shippingDistrict: order.shippingDistrict,
     shippingPostalCode: order.shippingPostalCode,
     createdAt: order.createdAt,
-    items: order.items.map((item: any) => ({
+    items: (Array.isArray(order.items) ? order.items : []).map((item: Record<string, unknown>) => ({
       id: item.id,
       productId: item.productId,
       variantId: item.variantId,
@@ -37,8 +37,8 @@ function formatOrder(order: any) {
       storage: item.storage,
       image: item.image,
       price: Number(item.price),
-      quantity: item.quantity,
-      total: Number(item.price) * item.quantity,
+      quantity: Number(item.quantity),
+      total: Number(item.price) * Number(item.quantity),
     })),
   };
 }
@@ -177,8 +177,18 @@ export async function POST(request: Request) {
       }
 
       const dbUser = await tx.user.findUnique({ where: { id: user.id } });
+      if (!dbUser) throw new Error("USER_NOT_FOUND");
+
+      if (paymentMethod === "OPEN_ACCOUNT") {
+        const currentDebt = Number(dbUser.currentDebt || 0);
+        const creditLimit = Number(dbUser.creditLimit || 0);
+        if (currentDebt + totalAmount > creditLimit) {
+          throw new Error(`CREDIT_LIMIT_EXCEEDED:${creditLimit}:${currentDebt}`);
+        }
+      }
+
       let spentPoints = 0;
-      if (validatedBody.usePoints && dbUser && dbUser.points > 0) {
+      if (validatedBody.usePoints && dbUser.points > 0) {
         spentPoints = Math.min(dbUser.points, Math.floor(totalAmount));
         totalAmount = Math.max(0, totalAmount - spentPoints);
       }
@@ -260,6 +270,17 @@ export async function POST(request: Request) {
         });
       }
 
+      if (paymentMethod === "OPEN_ACCOUNT") {
+        await tx.user.update({
+          where: { id: user.id },
+          data: {
+            currentDebt: {
+              increment: new Prisma.Decimal(totalAmount),
+            },
+          },
+        });
+      }
+
       if (spentPoints > 0 || earnedPoints > 0) {
         await tx.user.update({
           where: { id: user.id },
@@ -304,6 +325,16 @@ export async function POST(request: Request) {
     if (error instanceof ZodError) {
       return NextResponse.json(
         { success: false, message: getZodErrorMessage(error) },
+        { status: 400 },
+      );
+    }
+
+    if ((error as Error).message.startsWith("CREDIT_LIMIT_EXCEEDED:")) {
+      const parts = (error as Error).message.split(":");
+      const limit = Number(parts[1] || 0).toLocaleString("tr-TR");
+      const debt = Number(parts[2] || 0).toLocaleString("tr-TR");
+      return NextResponse.json(
+        { success: false, message: `Kredi limitiniz aşıldı! Limit: ${limit} ₺, Mevcut Borç: ${debt} ₺. Lütfen ödeme yönteminizi değiştirin veya açık hesap bakiyenizi kapatın.` },
         { status: 400 },
       );
     }

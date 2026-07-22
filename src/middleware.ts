@@ -11,7 +11,7 @@ const secret = new TextEncoder().encode(
 type SessionUser = {
   id: string;
   email: string;
-  role: "USER" | "ADMIN" | "DEALER";
+  role: "USER" | "ADMIN" | "DEALER"; 
   permissions?: string[];
 };
 
@@ -52,10 +52,13 @@ export async function middleware(request: NextRequest) {
   const isAuthenticated = !!sessionUser;
   const isAdmin = sessionUser?.role === "ADMIN";
 
+  const isDealer = sessionUser?.role === "DEALER" || isAdmin;
+
   const protectedRoutes = [
     "/checkout",
     "/orders",
     "/profile",
+    "/favorites",
   ];
 
   const isProtectedRoute = protectedRoutes.some((route) =>
@@ -70,7 +73,20 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // 2. Admin rotaları kontrolü
+  // 2. Bayi rotaları kontrolü (/bayi-girisi hariç)
+  if (pathname.startsWith("/bayi") && !pathname.startsWith("/bayi-girisi")) {
+    if (!isAuthenticated) {
+      const loginUrl = new URL("/bayi-girisi", request.url);
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    if (!isDealer) {
+      return NextResponse.redirect(new URL("/dealer-application", request.url));
+    }
+  }
+
+  // 3. Admin rotaları kontrolü
   if (pathname.startsWith("/admin")) {
     if (!isAuthenticated) {
       return NextResponse.redirect(new URL("/login", request.url));
@@ -82,10 +98,10 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 3. Zaten giriş yapmış kullanıcıyı login/register sayfalarından uzaklaştır
+  // 4. Zaten giriş yapmış kullanıcıyı login/register sayfalarından uzaklaştır
   if (
     isAuthenticated &&
-    (pathname === "/login" || pathname === "/register")
+    (pathname === "/login" || pathname === "/register" || pathname === "/bayi-girisi")
   ) {
     return NextResponse.redirect(new URL("/", request.url));
   }
@@ -102,6 +118,7 @@ export const config = {
     "/favorites/:path*",
     "/cart/:path*",
     "/admin/:path*",
+    "/bayi/:path*",
     "/login",
     "/register",
   ],
