@@ -72,7 +72,7 @@ export default function HomePage() {
                      <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/40 to-white/0" />
                      <div className="absolute inset-0 overflow-hidden rounded-[4rem] bg-white">
                         <Image
-                           src="/MySunix-BayiPortalı_files/urun_3836_6a2fd6b13e12a.jpg"
+                           src="/images/sunproof-lens.png"
                            alt="Sunproof Lens"
                            fill
                            quality={100}
